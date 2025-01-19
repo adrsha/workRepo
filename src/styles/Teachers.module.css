@@ -1,0 +1,97 @@
+.container {
+  min-height: 100vh;
+  background-color: #ffefef;
+}
+
+.navbar {
+  background-color: #ff6b6b;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.navLinks {
+  display: flex;
+  gap: 1rem;
+}
+
+.navLinks button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+}
+
+.mainContent {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.subjectTitle {
+  color: #ff6b6b;
+  margin-bottom: 2rem;
+}
+
+.teacherCard {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.upperRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.teacherInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selectBtn {
+  background-color: #ffe4e4;
+  color: #ff6b6b;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.lowerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.timeInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4a90e2;
+}
+
+.profileBtn {
+  background-color: #e8f5e9;
+  color: #4caf50;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

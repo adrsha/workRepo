@@ -1,0 +1,51 @@
+.container {
+  min-height: 100vh;
+  background-color: #ffefef;
+}
+
+.mainContent {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.mainContent h2 {
+  color: #ff6b6b;
+  margin: 2rem 0 1rem;
+}
+
+.subjectsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.subjectCard {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.subjectCard:hover {
+  transform: translateY(-5px);
+}
+
+.subjectIcon {
+  width: 60px;
+  height: 60px;
+  background-color: #ff9999;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+}
+
+.subjectCard p {
+  color: #ff6b6b;
+  margin: 0;
+}
+
