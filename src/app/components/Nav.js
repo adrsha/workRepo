@@ -8,7 +8,8 @@ export default function Nav() {
   return (
       <nav className={styles.navbar}>
         <div className={styles.logo} onClick={() => router.push('/')}>
-                MeroClass
+                 <img src="/small_logo.png" alt="logo" />
+                MeroTuition
         </div>
         <div className={styles.navLinks}>
           <button>Contact Us</button>

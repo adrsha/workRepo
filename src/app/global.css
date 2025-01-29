@@ -1,0 +1,57 @@
+:root {
+  /* 20221D */
+  --background:  #111111;
+  --foreground: #b6aca2;
+  --primary:#1a1a1a;
+  --secondary: #54514a;
+  --tertiary: #5b483f;
+  --quaternary: #905954;
+
+  --font-sans: "Poppins", sans-serif;
+  --font-serif: "Prata", serif;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: var(--font-sans);
+}
+
+.paperButtons {
+  background: var(--primary);
+  color: var(--foreground);
+  border: none;
+  padding: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all ease 0.2s;
+}
+
+.paperButtons:hover {
+  background: var(--foreground);
+  color: var(--background);
+  border-radius: 2px 2px 10px 2px;
+  position: relative;
+  overflow: hidden;
+}
+.paperButtons:hover::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(var(--foreground), rgba(200, 200, 200, 1));
+  border-radius: 0 0 30px 0;
+  animation: slideIn 0.2s ease-in-out;
+  box-shadow: 0px 0px 10px 0 rgba(0, 0, 0, 1);
+}
+
+@keyframes slideIn {
+  0% {
+    transform: translate(100%, 100%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}

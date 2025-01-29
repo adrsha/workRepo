@@ -1,16 +1,27 @@
 .navbar {
-  background-color: #ff6b6b;
-  padding: 1rem 2rem;
+  --navheight: 6rem;
+  background-color: rgba(0, 0, 0, 0);
+  height: var(--navheight);
+  padding: 1rem 10vw;
+  position: fixed;
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .logo {
-  color: white;
-  font-size: 1.5rem;
-  font-weight: bold;
+  color: var(--foreground);
+  font-size: 1.25rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo img {
+  height: 3rem;
+  margin-right: 2rem;
 }
 
 .navLinks {
@@ -21,13 +32,17 @@
 .navLinks button {
   background: none;
   border: none;
-  color: white;
+  color: var(--foreground);
   cursor: pointer;
   padding: 0.5rem 1rem;
 }
 
 .getStarted {
-  background-color: white !important;
-  color: #ff6b6b !important;
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
   border-radius: 4px;
+}
+
+.body{
+    padding-top: calc(var(--navheight) + 2rem);
 }
