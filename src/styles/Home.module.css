@@ -25,34 +25,32 @@
   width: 60vw;
   margin-left: 10vw;
   padding: 2rem 5rem;
-  /* background-color: var(--primary); */
   border-radius: 20px;
   border: 0.5rem solid var(--primary);
-  /* outline: 0.25rem solid var(--secondary); */
   outline-offset: 0.25rem;
 }
-/* .leftSection::before { */
-/*   content: ""; */
-/*   position: absolute; */
-/*   top: 30vh; */
-/*   right: 60vw; */
-/*   width: 1rem; */
-/*   height: 5vh; */
-/*   background-color: var(--background); */
-/* } */
 
-/* .leftSection::before { */
-/*   content: ""; */
-/*   width: calc(50vw - 2rem); */
-/*   position: absolute; */
-/*   bottom: 0; */
-/*   border-bottom: 1px solid var(--foreground); */
-/* } */
-/* .leftSection::after { */
-/*   display: block; */
-/*   content: "No cost, low cost tuition"; */
-/*   padding: 1rem; */
-/*   text-align: right; */
-/*   width: calc(50vw - 2rem); */
-/*   color: var(--foreground); */
-/* } */
+@media (max-width: 1000px) {
+    .leftSection {
+        position: static;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+    }
+    .leftSection img {
+        border: none;
+        width: 100%;
+        height: min(100vw, 40vh);
+        padding: 0px;
+        margin: 0;
+    }
+    .menuButtons {
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+    }
+}
