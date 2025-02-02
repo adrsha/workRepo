@@ -1,33 +1,41 @@
 .container {
-  min-height: 100vh;
+    min-height: 100vh;
 }
 
 .mainContent {
-  padding-top: 20vh;
-  flex: 1;
-  gap: 10vw;
+    padding-top: 20vh;
+    flex: 1;
+    gap: 10vw;
 }
 .leftSection {
-  position: relative;
+    position: relative;
 }
 
 .menuButtons {
-  position: absolute;
-  right: 0;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  margin-right: 10vw;
+    position: absolute;
+    right: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-right: 10vw;
 }
+
+.menuButtons button {
+    border-radius: 8px;
+    font-size: 1rem;
+    padding: 1rem;
+    background: var(--primary);
+}
+
 .profileCircle {
-  object-fit: contain;
-  width: 60vw;
-  margin-left: 10vw;
-  padding: 2rem 5rem;
-  border-radius: 20px;
-  border: 0.5rem solid var(--primary);
-  outline-offset: 0.25rem;
+    object-fit: contain;
+    width: 60vw;
+    margin-left: 10vw;
+    padding: 2rem 5rem;
+    border-radius: 20px;
+    border: 0.5rem solid var(--primary);
+    outline-offset: 0.25rem;
 }
 
 @media (max-width: 1000px) {

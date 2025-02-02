@@ -1,0 +1,28 @@
+.container {
+  min-height: 100vh;
+  background-color: var(--background);
+  padding-top: calc(var(--navheight) + 2rem);
+}
+
+.classCard {
+  background-color: var(--primary);
+  padding: 1rem 2rem;
+  cursor: pointer;
+  border-radius: 2rem;
+  color: var(--foreground);
+  font-size: 1rem;
+  font-family: var(--font-sans);
+}
+.classCards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.centeredHeader {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: var(--foreground);
+}

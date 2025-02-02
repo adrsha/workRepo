@@ -1,10 +1,10 @@
 .container {
   min-height: 100vh;
-  background-color: #ffefef;
+  background-color: var(--background);
 }
 
 .navbar {
-  background-color: #ff6b6b;
+  background-color: var(--background);
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -12,7 +12,7 @@
 }
 
 .logo {
-  color: white;
+  color: var(--foreground);
   font-size: 1.5rem;
   font-weight: bold;
 }
@@ -25,7 +25,7 @@
 .navLinks button {
   background: none;
   border: none;
-  color: white;
+  color: var(--foreground);
   cursor: pointer;
   padding: 0.5rem 1rem;
 }
@@ -37,12 +37,13 @@
 }
 
 .subjectTitle {
-  color: #ff6b6b;
+  color: var(--secondary);
   margin-bottom: 2rem;
 }
 
 .teacherCard {
-  background-color: white;
+  background-color: var(--primary);
+  color: var(--foreground);
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1rem;
@@ -63,8 +64,8 @@
 }
 
 .selectBtn {
-  background-color: #ffe4e4;
-  color: #ff6b6b;
+  background-color: var(--foreground);
+  color: var(--primary);
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
@@ -81,12 +82,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #4a90e2;
+  color: var(--secondary);
 }
 
 .profileBtn {
-  background-color: #e8f5e9;
-  color: #4caf50;
+  background-color: var(--background);
+  color: var(--secondary);
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;

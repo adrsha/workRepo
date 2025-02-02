@@ -1,5 +1,4 @@
 .navbar {
-  --navheight: 6rem;
   background-color: rgba(0, 0, 0, 0);
   height: var(--navheight);
   padding: 1rem 10vw;
@@ -37,12 +36,19 @@
   padding: 0.5rem 1rem;
 }
 
-.getStarted {
-  background-color: var(--background) !important;
-  color: var(--foreground) !important;
+.navLinks .specialNavButton {
+  background-color: var(--primary);
+  color: var(--foreground);
   border-radius: 4px;
 }
 
-.body{
-    padding-top: calc(var(--navheight) + 2rem);
+.separator {
+  border-right: 1px solid var(--secondary);
+  margin: 0 1rem;
+}
+
+@media (max-width: 1000px) {
+  .logo img {
+    margin-right: 0;
+  }
 }

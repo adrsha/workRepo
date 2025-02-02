@@ -1,28 +1,25 @@
 .container {
   min-height: 100vh;
-  background-color: #ffefef;
+  background-color: var(--background);
+  padding-top: calc(var(--navheight) + 1rem);
 }
 
-.mainContent {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+.centeredHeader {
+  text-align: center;
+  margin: 2rem 0;
+  font-size: 2rem;
+  color: var(--foreground);
 }
 
-.mainContent h2 {
-  color: #ff6b6b;
-  margin: 2rem 0 1rem;
-}
-
-.subjectsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+.subjectContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .subjectCard {
-  background-color: white;
+  background-color: var(--primary);
   padding: 1.5rem;
   border-radius: 8px;
   display: flex;
@@ -30,22 +27,13 @@
   align-items: center;
   cursor: pointer;
   transition: transform 0.2s;
-}
-
-.subjectCard:hover {
-  transform: translateY(-5px);
+  color: var(--foreground);
 }
 
 .subjectIcon {
-  width: 60px;
-  height: 60px;
-  background-color: #ff9999;
+  width: 50px;
+  height: 50px;
+  background-color: var(--foreground);
   border-radius: 50%;
   margin-bottom: 1rem;
 }
-
-.subjectCard p {
-  color: #ff6b6b;
-  margin: 0;
-}
-

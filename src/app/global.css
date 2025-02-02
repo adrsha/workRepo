@@ -1,5 +1,6 @@
 :root {
   /* 20221D */
+  --navheight: 6rem;
   --background:  #111111;
   --foreground: #b6aca2;
   --primary:#1a1a1a;
@@ -16,14 +17,14 @@
   font-family: var(--font-sans);
 }
 
+h1, h2, h3, h4, h5, h6 {
+    font-weight: normal;
+}
+
 .paperButtons {
-  background: var(--primary);
   color: var(--foreground);
   border: none;
-  padding: 1rem;
-  border-radius: 8px;
   cursor: pointer;
-  font-size: 1rem;
   transition: all ease 0.2s;
 }
 
