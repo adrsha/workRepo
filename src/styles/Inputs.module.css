@@ -1,0 +1,127 @@
+.inputContainer {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.input::placeholder {
+    color: transparent; /* Change to your desired color */
+    opacity: 1; /* Ensures full visibility in some browsers */
+}
+
+.inputLabel {
+    position: absolute;
+    padding: 0.5rem;
+    margin-left: var(--inputThickness);
+    font-size: 1rem;
+    left: 0;
+    color: var(--secondary);
+    transition: 0.2s ease-in-out;
+    border-radius: 4px;
+}
+
+.input:not([type='checkbox']):not([type='radio']) {
+    width: 100%;
+}
+
+.input {
+    padding: var(--inputThickness);
+    background-color: var(--background);
+    color: var(--foreground);
+    border: none;
+    border-radius: 4px;
+}
+
+.input:focus {
+    outline: none;
+}
+
+/* :NOTE: The order of the following rules is important. */
+
+/* When nothing is typed in the input, the label is shown. */
+.input:not(:focus):not(:placeholder-shown):not([type='checkbox']) + .inputLabel {
+    font-size: 0.75rem;
+    top: calc(0.5 * var(--inputThickness));
+    left: calc(100% - var(--inputThickness)*1.5);
+    transform: translateX(-100%);
+    padding: 0.5rem;
+}
+.input:focus:not(:placeholder-shown):not([type='checkbox']) + .inputLabel {
+    font-size: 0.75rem;
+    top: calc(-2 * var(--inputThickness));
+    left: calc(100% - var(--inputThickness)*1.5);
+    transform: translateX(-100%);
+}
+.input:placeholder-shown + .inputLabel {
+    top: calc(0.5 * var(--inputThickness));
+}
+/* When the input is focused, the label is moved up. */
+.input:focus + .inputLabel {
+    top: calc(-2 * var(--inputThickness));
+    background-color: var(--foreground);
+    color: var(--background);
+}
+/* When something is typed in the input, the label is moved up. */
+.input:not(placeholder-shown) + .inputLabel {
+    top: calc(-2 * var(--inputThickness));
+    background-color: transparent;
+}
+/* :NOTE: The order of the above rules is important. */
+
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+.input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--color1);
+    background-color: var(--background);
+    outline: none;
+    border: none;
+}
+
+.input[type='checkbox'],
+.input[type='radio'] {
+    appearance: none;
+    position: relative;
+    transform: translateY(0.25rem);
+    /* width: 0.3rem; */
+    /* height: 0.3rem; */
+    padding: 0.5rem;
+    border-radius: 0.3rem;
+    background-color: var(--secondary);
+    border: 0.2rem solid var(--secondary);
+    transition: 0.2s ease-in-out;
+    margin: 0;
+}
+.input[type='checkbox']::after {
+    content: '✓'; /* checkmark */
+    transform: translate(-50%, -50%);
+    color: var(--foreground);
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: 1.5rem;
+    transition: opacity 0.2s ease-in-out;
+}
+.input[type='checkbox']:checked::after{
+    opacity: 1;
+}
+.input[type='checkbox']:hover{
+    border-color: var(--background);
+    background-color: var(--background);
+}
+
+.input[type='checkbox']+ label,
+.input[type='radio']+ label {
+    padding: 0;
+    position: static;
+    display: inline-block;
+    color: var(--foreground);
+}
+
+.input[type='checkbox']:focus + label,
+.input[type='radio']:focus + label {
+    background-color: transparent;
+    color: var(--foreground);
+}

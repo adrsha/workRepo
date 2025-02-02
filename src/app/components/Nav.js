@@ -15,8 +15,8 @@ export default function Nav() {
           <button className="paperButtons">Contact Us</button>
           <button className="paperButtons">About Us</button>
           <span className={styles.separator}></span>
-          <button className="paperButtons">Log In</button>
-          <button className={styles.specialNavButton + " paperButtons"}>Sign Up</button>
+          <button className="paperButtons" onClick={() => router.push('/registration/login')}>Login</button>
+          <button className={styles.specialNavButton + " paperButtons"} onClick={() => router.push('/registration/signup')}>Sign Up</button>
         </div>
       </nav>
   );

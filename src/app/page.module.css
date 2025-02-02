@@ -7,3 +7,7 @@
   padding: 0;
   background: var(--background);
 }
+
+.background {
+    padding-top: calc(var(--navheight) + 1rem);
+}

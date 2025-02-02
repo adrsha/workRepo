@@ -1,7 +1,6 @@
 .container {
   min-height: 100vh;
   background-color: var(--background);
-  padding-top: calc(var(--navheight) + 1rem);
 }
 
 .centeredHeader {

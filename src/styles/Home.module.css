@@ -1,9 +1,8 @@
 .container {
-    min-height: 100vh;
 }
 
 .mainContent {
-    padding-top: 20vh;
+    padding-top: 10vh;
     flex: 1;
     gap: 10vw;
 }
@@ -26,6 +25,8 @@
     font-size: 1rem;
     padding: 1rem;
     background: var(--primary);
+    border: none;
+    color: var(--foreground);
 }
 
 .profileCircle {

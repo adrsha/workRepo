@@ -5,7 +5,9 @@ export default function RootLayout({ children }) {
         <html lang="en" className={defaultStyle.html}>
             <body className={defaultStyle.body}>
                 <Nav />
+                <div className={defaultStyle.background}>
                 {children}
+                </div>
             </body>
         </html>
     );
