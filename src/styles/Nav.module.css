@@ -1,54 +1,92 @@
 .navbar {
-  background-color: rgba(0, 0, 0, 0);
-  height: var(--navheight);
-  padding: 1rem 10vw;
-  position: fixed;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    background-color: var(--background);
+    height: var(--navheight);
+    padding: 1rem 10vw;
+    position: fixed;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
 }
 
 .logo {
-  color: var(--foreground);
-  font-size: 1.25rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    color: var(--foreground);
+    font-size: 1.25rem;
+    font-family: var(--font-serif);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .logo img {
-  height: 3rem;
-  margin-right: 2rem;
+    height: 3rem;
 }
 
 .navLinks {
-  display: flex;
-  gap: 1rem;
+    display: flex;
+    gap: 1rem;
 }
 
 .navLinks button {
-  background: none;
-  border: none;
-  color: var(--foreground);
-  cursor: pointer;
-  padding: 0.5rem 1rem;
+    background: none;
+    border: none;
+    color: var(--foreground);
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
 }
 
 .navLinks .specialNavButton {
-  background-color: var(--primary);
-  color: var(--foreground);
-  border-radius: 4px;
+    background-color: var(--primary);
+    color: var(--foreground);
+    border-radius: 4px;
 }
 
 .separator {
-  border-right: 1px solid var(--secondary);
-  margin: 0 1rem;
+    border-right: 1px solid var(--secondary);
+    margin: 0 1rem;
 }
 
-@media (max-width: 1000px) {
-  .logo img {
-    margin-right: 0;
-  }
+.dropdown {
+    position: relative;
+    display: inline-block;
+    color: var(--foreground);
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+}
+.dropdown ul {
+    visibility: hidden;
+    clip-path: inset(0 0 100% 0);
+    margin: 0;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: var(--background);
+    border-radius: 5px;
+    list-style: none;
+    z-index: 1;
+    overflow: hidden;
+    transition: 0.3s ease-in-out, visibility 0.5s;
+    background-color: var(--primary);
+    padding: 0rem;
+}
+.dropdown:hover ul {
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+}
+.dropdown a>li{
+    padding: 0.5rem 1rem;
+}
+.dropdown a>li:hover{
+    background-color: var(--secondary);
+    color: var(--foreground);
+}
+
+@media (max-width: 800px) {
+    .navbar {
+        flex-direction: column;
+        gap: 2rem;
+    }
 }

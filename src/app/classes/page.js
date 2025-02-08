@@ -26,7 +26,7 @@ export default function ClassesPage() {
                                 className={styles.classCard + ' paperButtons'}
                                 key={classDetails.class_id}
                                 onClick={() => {
-                                    return router.push(`/courses/${classDetails.class_id}`);
+                                    return router.push(`/classes/${classDetails.class_id}`);
                                 }}>
                                 <h2>{classDetails.class_name[0].toUpperCase() + classDetails.class_name.slice(1)}</h2>
                             </div>

@@ -3,12 +3,17 @@
   --inputThickness: 1rem;
   
   /* 20221D */
+  --darkblack:  #000000;
   --background:  #111111;
   --foreground: #b6aca2;
+  --darkforeground: #968c82;
   --primary:#1a1a1a;
   --secondary: #54514a;
-  --tertiary: #5b483f;
+  --tertiary: #2a2a2a;
   --quaternary: #905954;
+  
+  --primaryLight:#e6dcd2;
+  --secondaryLight: #c6bcb2;
 
   --font-sans: "Poppins", sans-serif;
   --font-serif: "Prata", serif;
@@ -33,6 +38,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--background);
   border-bottom-right-radius: 15px; 
   position: relative;
+  border-radius: 5px; 
   overflow: hidden;
 }
 .paperButtons:hover::after {
@@ -48,6 +54,15 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0px 0px 10px 0 rgba(0, 0, 0, 1);
 }
 
+button {
+    border-radius: 8px;
+    font-size: 1rem;
+    padding: 1rem;
+    background: var(--primary);
+    border: none;
+    color: var(--foreground);
+}
+
 
 
 @keyframes slideIn {
@@ -58,3 +73,4 @@ h1, h2, h3, h4, h5, h6 {
     transform: translate(0, 0);
   }
 }
+

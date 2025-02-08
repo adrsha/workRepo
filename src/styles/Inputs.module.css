@@ -59,7 +59,7 @@
 /* When the input is focused, the label is moved up. */
 .input:focus + .inputLabel {
     top: calc(-2 * var(--inputThickness));
-    background-color: var(--foreground);
+    background-color: var(--secondary);
     color: var(--background);
 }
 /* When something is typed in the input, the label is moved up. */
