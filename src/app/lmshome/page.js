@@ -9,18 +9,21 @@ export default function Home() {
     const router = useRouter();
     const { data: session, status } = useSession();
     const [courses, setCourses] = useState([]);
-    console.log(session);
     useEffect(() => {
         setCourses(session?.user?.courses);
+        console.log(session?.user?.courses);
     }, [session]);
+    
     return (
         <div className={styles.container}>
             <h1 className={styles.title}>Dashboard</h1>
+            
             {status === 'authenticated' ? <p>Welcome, {session?.user?.name}!</p> : <p>Not Signed In</p>}
+            
             <h2>Enrolled Courses</h2>
             <div className={styles.courseCards}>
                 {courses?.map((course) => (
-                    <div className={styles.courseCard} key={course.course_id}>
+                    <div className={styles.courseCard} key={course.relation_id}>
                         <h2>
                             {course.course_name[0].toUpperCase() + course.course_name.slice(1)}
                             <span> - {course.teacher_name}</span>
