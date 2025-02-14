@@ -7,6 +7,7 @@
   --background:  #111111;
   --foreground: #b6aca2;
   --darkforeground: #968c82;
+  
   --primary:#1a1a1a;
   --secondary: #54514a;
   --tertiary: #2a2a2a;
@@ -15,6 +16,8 @@
   --primaryLight:#e6dcd2;
   --secondaryLight: #c6bcb2;
 
+  --darkGreen: #305934;
+  --lightGreen: #80ff94;
   --font-sans: "Poppins", sans-serif;
   --font-serif: "Prata", serif;
 }
@@ -22,6 +25,12 @@
 * {
   box-sizing: border-box;
   font-family: var(--font-sans);
+   -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -63,6 +72,10 @@ button {
     color: var(--foreground);
 }
 
+a {
+    text-decoration: none;
+    color: var(--foreground);
+}
 
 
 @keyframes slideIn {

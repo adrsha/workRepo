@@ -1,22 +1,52 @@
 import mysql from 'mysql2/promise';
 
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
-    connectTimeout: 10000,
-    waitForConnections: true,
-    connectionLimit: 20,
-});
+let globalPool;
+
+if (process.env.NODE_ENV === 'development') {
+    if (globalPool) {
+        console.log('Closing database connection pool');
+        globalPool.end();
+    }
+    console.log('Reloaded');
+}
+
+function getPool() {
+    if (!globalPool) {
+        globalPool = mysql.createPool({
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME,
+            port: process.env.DB_PORT,
+            connectTimeout: 10000,
+            waitForConnections: true,
+            connectionLimit: 20,
+        });
+
+        globalPool.on('connection', (connection) => {
+            console.log(`New connection established: ${connection.threadId}`);
+        });
+
+        globalPool.on('error', (err) => {
+            console.error('Database pool error:', err);
+            if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+                globalPool = null; 
+            }
+        });
+    }
+    return globalPool;
+}
 
 export async function query({ query, values = [] }) {
+    const pool = getPool();
+    const connection = await pool.getConnection();
     try {
-        const [results] = await pool.execute(query, values);
+        const [results] = await connection.execute(query, values); 
         return results;
     } catch (error) {
         throw Error(error.message);
+    } finally {
+        connection.release();
     }
 }
 
@@ -50,7 +80,8 @@ function isRetryableError(error) {
         'ETIMEDOUT',
         'ECONNRESET',
         'ECONNREFUSED',
-        'PROTOCOL_CONNECTION_LOST'
+        'ER_TOO_MANY_USER_CONNECTIONS',
+        'PROTOCOL_CONNECTION_LOST',
     ];
-    return retryableErrors.some(err => error.message.includes(err));
+    return retryableErrors.some((err) => error.message.includes(err));
 }

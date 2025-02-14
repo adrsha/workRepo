@@ -1,0 +1,158 @@
+.container {
+    height: calc(100vh - var(--navheight));
+    background-color: var(--background);
+    display: flex;
+}
+
+.sidePanel {
+    width: max(16vw, 15rem);
+    height: calc(100vh - var(--navheight) - 2rem);
+    padding: 1rem;
+    padding-left: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 0 0.5rem 0.5rem 0;
+    z-index: 5;
+}
+
+.gradeCard {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    color: var(--foreground);
+    width: 100%;
+    font-size: 0.75rem;
+    font-family: var(--font-sans);
+    transition: all 0.1s ease-in-out;
+}
+.gradeCard:hover {
+    background-color: var(--primary);
+    color: var(--foreground);
+    border-radius: 0.5rem;
+}
+
+.activegrade{
+    background-color: var(--primary);
+    color: var(--foreground);
+    border-radius: 0.5rem;
+}
+
+.gradeCard h2 {
+    margin: 0;
+}
+
+.gradeCards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0rem;
+    overflow-y: scroll;
+}
+
+.header{
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: var(--foreground);
+}
+
+.mainSection{
+    width: 100%;
+    padding: 1rem;  
+    flex-wrap: wrap;
+    color: var(--foreground);
+    height: calc(100vh - var(--navheight) - 2rem);
+}
+
+.classCards {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    max-width: 30rem;
+    display: inline-block;
+    margin: 2px;
+}
+
+.classCards ul li {
+    padding: 1rem;
+    background-color: var(--primary);
+    transition: all 0.1s ease-in-out;
+    display: flex;
+    justify-content: space-between;
+}
+
+.classCards li:hover{
+    background-color: var(--foreground);
+    color: var(--background);
+}
+
+.classCards ul{
+    border-radius: 1.5rem;
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    margin-top: 1rem;
+    transition: 0.4s ease;
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+    list-style: none;
+    overflow-y: scroll;
+}
+
+.classCards:hover ul {
+    clip-path: inset(0 0 0% 0);
+    opacity: 1;
+}
+
+.time {
+    font-weight: bold;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    margin-left: 1rem;
+    font-size: 0.8rem;
+}
+.teacher{
+    background-color: var(--background);
+    color: var(--foreground);
+    font-weight: bold;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    margin-left: 1rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.1s ease-in-out;
+}
+
+.teacher:hover{
+    opacity: 0.8;
+}
+
+.joinIn{
+    background-color: var(--darkGreen);
+    color: var(--lightGreen);
+    font-weight: bold;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    margin-left: 1rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.1s ease-in-out;
+}
+
+.joinIn:hover{
+    color: var(--darkGreen);
+    background-color: var(--lightGreen);
+}
+
+.disabledJoinButton{
+    background-color: var(--darkGreen);
+    color: var(--lightGreen);
+    cursor: default;
+    opacity: 0.5;
+    font-size: 0.8rem;
+}
+
+.disabledJoinButton:hover{
+    background-color: var(--darkGreen);
+    color: var(--lightGreen);
+}
+

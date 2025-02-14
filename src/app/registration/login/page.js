@@ -80,6 +80,7 @@ export default function Login() {
             <form className={styles.loginForm} onSubmit={handleSubmit}>
                 <Input label="Email" type="text" name="email" id="email" />
                 <Input label="Password" type="password" name="password" id="password" />
+                <span>Don't have an account? <a className={styles.link} href="/registration/signup">Sign Up here!</a></span>
                 <button className={styles.submitButton} type="submit">
                     {loading ? 'Logging In...' : 'Login'}
                 </button>

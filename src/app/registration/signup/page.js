@@ -47,7 +47,34 @@ export default function Signup() {
             <h1>Signing Up</h1>
             {error && <p className={styles.error}>{error}</p>}
             <form className={styles.signupForm} onSubmit={handleSubmit}>
-                <Input label="Username" type="text" name="username" id="username" />
+                <span className={styles.flexyspan}>
+                <Input
+                    label="Teacher"
+                    type="radio"
+                    name="user-level"
+                    id="user-level-teacher"
+                />
+                <Input
+                    label="Student"
+                    type="radio"
+                    name="user-level"
+                    id="user-level-student"
+                />
+                <Input
+                    label="Admin"
+                    type="radio"
+                    name="user-level"
+                    id="user-level-admin"
+                />
+                </span>
+                <span className={styles.flexyspan}>
+                <Input label="First Name" type="text" name="firstName" id="firstName" />
+                <Input label="Last Name" type="text" name="lastName" id="lastName" />
+                </span>
+                <span className={styles.flexyspan}>
+                <Input label="Guardian Name" type="text" name="guardianName" id="guardianName" />
+                <Input label="Guardian Relation" type="text" name="guardianRelation" id="guardianRelation" />
+                </span>
                 <Input label="Email" type="email" name="email" id="email" />
                 <Input label="Password" type="password" name="password" id="password" />
                 <Input
@@ -63,6 +90,13 @@ export default function Signup() {
                         }
                     }}
                 />
+                <span className={styles.flexyspan}>
+                <Input label="School" type="text" name="school" id="school" />
+                <Input label="Class" type="text" name="class" id="class" />
+                </span>
+                <Input label="Contact" type="text" name="contact" id="contact" />
+                <Input label="Address" type="text" name="address" id="address" />
+                <Input label="Date Of Birth" type="date" name="dateOfBirth" id="dateOfBirthage" />
                 <Input label="I agree to Terms and Conditions" type="checkbox" name="terms" id="terms" />
                 <button className={styles.submitButton} type="submit">
                     {loading ? 'Signing Up...' : 'Sign Up'}

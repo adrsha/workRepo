@@ -9,7 +9,7 @@
     color: var(--foreground);
     padding: 2rem;
     border-radius: 8px;
-    max-width: 400px;
+    max-width: 500px;
 }
 
 .loginForm {
@@ -37,4 +37,19 @@
 }
 .submitButton:hover {
     background-color: var(--foreground);
+}
+
+a.link {
+    color: var(--quaternary);
+}
+
+.flexyspan {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.flexyspan > * {
+    max-width: fit-content;
+    flex: 1;
 }

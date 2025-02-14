@@ -9,8 +9,8 @@ export default function Nav() {
         <div className="book__pg book__pg--3"></div>
         <div className="book__pg book__pg--4"></div>
         <div className="book__pg book__pg--5"></div>
-    <h1 className="loadingText">Loading...</h1>
     </div>
+    <h1 className="loadingText">Loading...</h1>
     </>
     );
 }

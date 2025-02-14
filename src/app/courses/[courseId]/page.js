@@ -9,7 +9,8 @@ import '../../global.css';
 export default function CoursePage({ params }) {
     const resolvedParams = use(params);
     const [courseData, setCourseData] = useState([]);
-    console.log(resolvedParams.courseId);
+    const [moduleData, setModuleData] = useState([]);
+    const [subModuleData, setSubModuleData] = useState([]);
 
     function getCourse(courseId) {
         return (
@@ -21,6 +22,9 @@ export default function CoursePage({ params }) {
 
     useEffect(() => {
         fetchData('courses').then((data) => setCourseData(data));
+        fetchData('course_modules').then((data) => setModuleData(data));
+        fetchData('course_submodules').then((data) => setSubModuleData(data));
+        fetchData('course_content').then((data) => setcontentData(data));
     }, []);
 
     return (
@@ -37,12 +41,32 @@ export default function CoursePage({ params }) {
                     <>
                         <div className={styles.subjectLSideMenu}>
                             <ul>
-                                <li className={styles.active}>Chapter 1</li>
-                                <li>Chapter 2</li>
-                                <li>Chapter 3</li>
+                                {moduleData
+                                    .filter((module) => module.course_id === parseInt(resolvedParams.courseId)) // Filter matching modules
+                                    .map((module, index) => (
+                                        <li key={module.module_id} className={index === 0 ? styles.active : null}>
+                                            <a
+                                                className={styles.subjectLink}
+                                                href={`/courses/${resolvedParams.courseId}/modules/${module.module_id}`}>
+                                                {module.module_name}
+                                            </a>
+                                        </li>
+                                    ))}
                             </ul>
                         </div>
-                        <div className={styles.subjectRSideMenu}></div>
+                        <div className={styles.subjectRSideMenu}>
+                            {subModuleData
+                                // .filter((smodule) => smodule.module_id === parseInt(resolvedParams.courseId)) // Filter matching modules
+                                .map((smodule, index) => (
+                                    <li key={smodule.module_id} className={index === 0 ? styles.active : null}>
+                                        <a
+                                            className={styles.subjectLink}
+                                            href={`/courses/${resolvedParams.courseId}/modules/${smodule.module_id}`}>
+                                            {smodule.submodule_title}
+                                        </a>
+                                    </li>
+                                ))}
+                        </div>
                     </>
                 )}
             </div>

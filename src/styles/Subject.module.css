@@ -35,9 +35,8 @@
     transition: all ease 0.2s;
 }
 
-.subjectLSideMenu li.active {
+.subjectLSideMenu .active {
     background-color: var(--primary);
-    color: var(--foreground);
 }
 
 .subjectLSideMenu li:hover {
@@ -50,7 +49,7 @@
     flex-direction: column;
     gap: 1rem;
     margin-bottom: 1rem;
-    flex: 1;
+    flex: 3;
     background-color: var(--primary);
 }
 
