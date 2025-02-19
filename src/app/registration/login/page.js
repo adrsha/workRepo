@@ -26,7 +26,7 @@ export default function Login() {
         // Extract form data
         const formData = new FormData(e.currentTarget);
         const payload = {
-            email: formData.get('email'),
+            contact: formData.get('contact'),
             password: formData.get('password'),
         };
 
@@ -49,14 +49,15 @@ export default function Login() {
             // NextAuth authentication
             const signInResponse = await signIn('credentials', {
                 // FIXED: Use payload keys instead of non-existent keys
-                email: payload.email,
+                contact: payload.contact,
                 password: payload.password,
                 redirect: false,
             });
 
             // Throw error if NextAuth authentication fails
             if (signInResponse?.error) {
-                throw new Error(signInResponse.error);
+                setError(signInResponse.error);
+                console.log(signInResponse.error);
             }
 
             // Successful login: Navigate to home page
@@ -78,7 +79,7 @@ export default function Login() {
             {error && <p className={styles.error}>{error}</p>}
 
             <form className={styles.loginForm} onSubmit={handleSubmit}>
-                <Input label="Email" type="text" name="email" id="email" />
+                <Input label="Phone Number" type="text" name="contact" id="contact" />
                 <Input label="Password" type="password" name="password" id="password" />
                 <span>Don't have an account? <a className={styles.link} href="/registration/signup">Sign Up here!</a></span>
                 <button className={styles.submitButton} type="submit">

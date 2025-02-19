@@ -15,7 +15,16 @@ export default function LMSHome() {
     const router = useRouter();
 
     useEffect(() => {
-        fetchViewData('course_details_view').then((data) => setClassesData(data));
+        if (!session) return;
+        fetchViewData('course_details_view').then((data) => {
+            let courseArray = [];
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].user_id === session.user.id) {
+                    courseArray.push(data[i]);
+                }
+            }
+            setClassesData(courseArray);
+        });
     }, [session])
 
     return (
@@ -27,16 +36,16 @@ export default function LMSHome() {
                     <h2>Enrolled Courses</h2>
                     <div className={styles.courseCards}>
                         {classesData.map((classData) => (
-                            <div className={styles.courseCard} key={classData.class_id}>
+                            <div className={styles.classCard} key={classData.class_id}>
                                 <h2>
                                     {classData.course_name[0].toUpperCase() + classData.course_name.slice(1)}
                                     <span> - {classData.teacher_name}</span>
                                 </h2>
                                 <span> for {classData.grade_name}</span>
                                 <p>{classData.course_details}</p>
-                                <span className={styles.courseDetails}>
+                                <span className={styles.classDetails}>
                                     <button
-                                        className={styles.courseDetailsButton}
+                                        className={styles.classDetailsButton}
                                         onClick={() => router.push(`/classes/${classData.class_id}`)}>
                                         Study
                                     </button>

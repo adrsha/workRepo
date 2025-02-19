@@ -16,7 +16,6 @@ export async function POST(req) {
         // Get the classId and userId from the request body
         const { classId, userId } = await req.json();
 
-        console.log('ClassId', classId, 'UserId', userId, "Session", session);
         // Ensure that the userId from the session matches the provided userId
         if (session.user.id !== userId) {
             return new Response(JSON.stringify({ error: 'Unauthorized: User mismatch' }), { status: 403 });
@@ -49,7 +48,6 @@ async function joinClassInDatabase(classId, userId) {
                     WHERE users.user_id = ? AND classes.class_id = ?`,
         values: [userId, classId],
     });
-    console.log('Enrolled Classes', enrolledClasses);
 
     if (enrolledClasses.length > 0) {
         return NextResponse.json({ error: 'User is already enrolled in the class', success: false }, { status: 400 });

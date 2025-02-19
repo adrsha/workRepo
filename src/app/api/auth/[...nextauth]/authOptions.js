@@ -8,13 +8,13 @@ export const authOptions = {
         CredentialsProvider({
             name: 'Credentials',
             credentials: {
-                email: { label: 'Email', type: 'email' },
+                contact: { label: 'Phone Number', type: 'tel' },
                 password: { label: 'Password', type: 'password' },
             },
             async authorize(credentials) {
                 const users = await executeQueryWithRetry({
-                    query: 'SELECT * FROM users WHERE user_email = ?',
-                    values: [credentials.email],
+                    query: 'SELECT * FROM users WHERE contact = ?',
+                    values: [credentials.contact],
                 });
 
                 if (users.length === 0 || !(await compare(credentials.password, users[0].user_passkey))) {
@@ -30,7 +30,7 @@ export const authOptions = {
                 return {
                     id: user.user_id,
                     name: user.user_name,
-                    email: user.user_email,
+                    contact: user.contact,
                     level: user.user_level,
                     // courses: courses,
                 };
@@ -81,7 +81,7 @@ async function fetchLatestUserFromDB(userId) {
     return {
         id: user.user_id,
         name: user.user_name,
-        email: user.user_email,
+        contact: user.contact,
         level: user.user_level,
     };
 }

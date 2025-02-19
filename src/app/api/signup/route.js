@@ -2,7 +2,10 @@
 import { hash } from 'bcryptjs';
 import { query } from '../../lib/db';
 import { NextResponse } from 'next/server';
+import { sendEmail } from '../../lib/email';
+import crypto from 'crypto';
 
+const SECRET_KEY_EXPIRATION_DAYS = 3;
 const MAX_RETRIES = 30;
 const RETRY_DELAY = 1000; // 1 second delay between retries
 
@@ -25,9 +28,8 @@ async function executeQueryWithRetry(queryOptions) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { username, email, password, terms } = body;
+        const { username, email, password, userLevel, terms, secretCode, contact, address, ...extraData } = body;
 
-        // Validate input
         if (!username || !email || !password) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
@@ -36,54 +38,109 @@ export async function POST(request) {
             return NextResponse.json({ error: 'You must agree to terms and conditions' }, { status: 400 });
         }
 
-        // Check if email and/or username already exists
-        // TODO: make the user_level dynamic
-        const existingUsersForEmail = await executeQueryWithRetry({
-            query: 'SELECT * FROM users WHERE user_email = ? AND user_level = 0',
-            values: [email],
-        });
+        // Define max length limits for each field
+        const MAX_LENGTHS = {
+            username: 50,
+            email: 320,
+            password: 60,
+            contact: 10,
+            guardianName: 50,
+            guardianRelation: 30,
+            guardianContact: 10,
+            school: 100,
+            class: 50,
+            address: 100,
+            dateOfBirth: 10, // YYYY-MM-DD
+            subject: 50,
+            experience: 255,
+            qualification: 255,
+        };
 
-        if (existingUsersForEmail.length > 0) {
-            return NextResponse.json({ error: 'Email already in use' }, { status: 409 });
+        for (const [field, maxLength] of Object.entries(MAX_LENGTHS)) {
+            if (body[field] && body[field].length > maxLength) {
+                return NextResponse.json(
+                    { error: `${field} exceeds the maximum allowed length of ${maxLength} characters` },
+                    { status: 400 }
+                );
+            }
+        }
+        const userLevels = { student: 0, teacher: 1, admin: 2 };
+        if (!(userLevel in userLevels)) {
+            return NextResponse.json({ error: 'Invalid user level' }, { status: 400 });
         }
 
-        // if (existingUsersForEmail.length > 0 && existingUsersForUsername.length > 0) {
-        //     return NextResponse.json({ error: 'Email and Username already in use' }, { status: 409 });
-        // } else if (existingUsersForUsername.length > 0 ) {
-        //     return NextResponse.json({ error: 'Username already in use' }, { status: 409 });
-        // } else if (existingUsersForEmail.length > 0) {
-        //     return NextResponse.json({ error: 'Email already in use' }, { status: 409 });
-        // }
+        const userLevelId = userLevels[userLevel];
 
-        // Hash password
-        const hashedPassword = await hash(password, 10);
-
-        let userLevel = 0;
-        // Insert new user
-        const result = await executeQueryWithRetry({
-            query: 'INSERT INTO users (user_name, user_email, user_passkey, user_level) VALUES (?, ?, ?, ?)',
-            values: [username, email, hashedPassword, userLevel],
+        const existingUser = await executeQueryWithRetry({
+            query: 'SELECT * FROM users WHERE contact = ?',
+            values: [contact],
         });
 
-        return NextResponse.json(
-            {
-                message: 'User created successfully',
-                userId: result.insertId,
-            },
-            { status: 201 }
-        );
+        if (existingUser.length > 0) {
+            return NextResponse.json({ error: 'Phone number already in use' }, { status: 409 });
+        }
+
+        const hashedPassword = await hash(password, 10);
+
+        if (userLevel === 'admin') {
+            // Generate a secret key for verification
+            const secretKey = crypto.randomBytes(20).toString('hex');
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + SECRET_KEY_EXPIRATION_DAYS);
+
+            const existingAdmin = await executeQueryWithRetry({
+                query: 'SELECT * FROM pending_admins WHERE contact = ?',
+                values: [contact],
+            });
+
+            if (existingAdmin.length > 0) {
+                return NextResponse.json({ error: 'Contact already in use' }, { status: 409 });
+            }
+
+            await query({
+                query: 'INSERT INTO pending_admins (user_name, user_email, contact, user_passkey, secret_key, expires_at) VALUES (?, ?, ?, ?, ?, ?)',
+                values: [username, email, contact, hashedPassword, secretKey, expirationDate],
+            });
+
+            // Send the secret key via email
+            await sendEmail(email, 'Admin Verification Code', `Your admin verification key: ${secretKey}`);
+
+            return NextResponse.json(
+                { message: 'Verification key sent to email. Please verify within 3 days.' },
+                { status: 202 }
+            );
+        }
+        // Regular user registration
+        const userInsertResult = await executeQueryWithRetry({
+            query: 'INSERT INTO users (user_name, user_email, user_passkey, user_level, contact, address) VALUES (?, ?, ?, ?, ?, ?)',
+            values: [username, email, hashedPassword, userLevelId, contact, address],
+        });
+
+        const userId = userInsertResult.insertId;
+
+        if (userLevel === 'student') {
+            await executeQueryWithRetry({
+                query: 'INSERT INTO students (user_id, guardian_name, guardian_relation, guardian_contact, school, class, date_of_birth) VALUES (?, ?, ?, ?, ?, ?, ? )',
+                values: [
+                    userId,
+                    extraData.guardianName || '',
+                    extraData.guardianRelation || '',
+                    extraData.guardianContact || '',
+                    extraData.school || '',
+                    extraData.class || '',
+                    extraData.dateOfBirth || '',
+                ],
+            });
+        } else if (userLevel === 'teacher') {
+            await executeQueryWithRetry({
+                query: 'INSERT INTO teachers (user_id, subject, experience, qualification) VALUES (?, ?, ?, ?)',
+                values: [userId, extraData.subject || '', extraData.experience || '', extraData.qualification || ''],
+            });
+        }
+
+        return NextResponse.json({ message: 'User created successfully', userId }, { status: 201 });
     } catch (error) {
         console.error('Signup error:', error);
         return NextResponse.json({ error: 'Internal server error', details: error.message }, { status: 500 });
     }
 }
-// To reset the auto increment value
-// -- Get the maximum user_id value
-// SELECT MAX(user_id) FROM users;
-//
-// -- Set AUTO_INCREMENT to max(user_id) + 1
-// SET @new_ai = (SELECT MAX(user_id) FROM users) + 1;
-// SET @query = CONCAT('ALTER TABLE users AUTO_INCREMENT = ', @new_ai);
-// PREPARE stmt FROM @query;
-// EXECUTE stmt;
-// DEALLOCATE PREPARE stmt;

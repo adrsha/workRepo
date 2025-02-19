@@ -22,9 +22,6 @@ export default function CoursePage({ params }) {
 
     useEffect(() => {
         fetchData('courses').then((data) => setCourseData(data));
-        fetchData('course_modules').then((data) => setModuleData(data));
-        fetchData('course_submodules').then((data) => setSubModuleData(data));
-        fetchData('course_content').then((data) => setcontentData(data));
     }, []);
 
     return (

@@ -7,21 +7,21 @@ import { NextResponse } from 'next/server';
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { email, password } = body;
+        const { contact, password } = body;
 
         // Validate input
-        if (!email || !password) {
-            return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+        if (!contact || !password) {
+            return NextResponse.json({ error: 'Phone Number and password are required' }, { status: 400 });
         }
 
-        // Find user by email
+        // Find user by phone number
         const users = await executeQueryWithRetry({
-            query: 'SELECT * FROM users WHERE user_email = ?',
-            values: [email],
+            query: 'SELECT * FROM users WHERE contact = ?',
+            values: [contact],
         });
         
         if (users.length === 0) {
-            return NextResponse.json({ error: 'Email could not be found' }, { status: 401 });
+            return NextResponse.json({ error: 'Contact could not be found' }, { status: 401 });
         }
 
         const user = users[0];

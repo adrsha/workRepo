@@ -1,0 +1,61 @@
+.container{
+    height: calc(100vh - var(--navheight));
+    background-color: var(--background);
+    display: flex;
+}
+
+.profile{
+    padding: 1rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--foreground);
+}
+.profile h1{
+    font-family: var(--font-serif);
+}
+
+.profile img{
+    border-radius: 50%;
+    border: 2px solid var(--foreground);
+}
+
+.editProfileMenu{
+    /* position: fixed; */
+    /* top: 50%; */
+    /* left: 50%; */
+    /* transform: translate(-50%, -50%); */
+    padding: 2rem;
+    background-color: var(--primary);
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    gap: 1rem;
+}
+
+.editProfileMenu button{
+    cursor: pointer;
+    background-color: var(--darkRed);
+    color: var(--foreground);
+}
+.container button {
+    cursor: pointer;
+}
+
+.profile *[contenteditable="true"] {
+    background-color: var(--primary);
+    border-radius: 0.5rem;
+}
+.profile *[contenteditable="true"]:focus {
+    outline: none;
+}
+
+.editProfileMenu .cancelButton {
+    cursor: pointer;
+    background-color: var(--background);
+}
+

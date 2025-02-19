@@ -1,17 +1,18 @@
 import mysql from 'mysql2/promise';
-
+let count = 0;
 let globalPool;
 
-if (process.env.NODE_ENV === 'development') {
-    if (globalPool) {
-        console.log('Closing database connection pool');
-        globalPool.end();
-    }
-    console.log('Reloaded');
-}
-
 function getPool() {
+    // if (process.env.NODE_ENV === 'development') {
+    //     if (globalPool) {
+    //         console.log('Closing database connection pool');
+    //         globalPool.end();
+    //         count = 0;
+    //     }
+    //     console.log('Reloaded');
+    // }
     if (!globalPool) {
+        count++;
         globalPool = mysql.createPool({
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
@@ -20,17 +21,20 @@ function getPool() {
             port: process.env.DB_PORT,
             connectTimeout: 10000,
             waitForConnections: true,
-            connectionLimit: 20,
+            connectionLimit: 40,
         });
 
         globalPool.on('connection', (connection) => {
             console.log(`New connection established: ${connection.threadId}`);
         });
+        globalPool.on('release', (connection) => {
+            console.log(`New connection released: ${connection.threadId}`);
+        });
 
         globalPool.on('error', (err) => {
             console.error('Database pool error:', err);
             if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-                globalPool = null; 
+                globalPool = null;
             }
         });
     }
@@ -40,13 +44,17 @@ function getPool() {
 export async function query({ query, values = [] }) {
     const pool = getPool();
     const connection = await pool.getConnection();
+    console.log('Connection created ', connection.threadId);
+
     try {
-        const [results] = await connection.execute(query, values); 
+        const [results] = await connection.execute(query, values);
         return results;
     } catch (error) {
         throw Error(error.message);
     } finally {
         connection.release();
+        console.log('Connection released ', connection.threadId);
+        count = 0;
     }
 }
 
@@ -58,13 +66,13 @@ export async function executeQueryWithRetry(queryOptions) {
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
+            console.log('Count', count);
             return await query(queryOptions);
         } catch (error) {
             if (attempt === MAX_RETRIES || !isRetryableError(error)) {
                 console.error(`Query failed after ${attempt} attempts:`, error);
                 throw error;
             }
-
             console.warn(`Attempt ${attempt} failed: ${error.message}. Retrying in ${RETRY_DELAY}ms...`);
             await sleep(RETRY_DELAY);
         }

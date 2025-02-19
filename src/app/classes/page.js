@@ -22,6 +22,7 @@ export default function gradesPage() {
     const { data: session, status, update } = useSession();
 
     function getTeacher(teacherId) {
+        console.log(teachersData);
         return teachersData?.find((teacher) => teacher.user_id === teacherId);
     }
 
@@ -74,10 +75,10 @@ export default function gradesPage() {
         if (!gradesData.length) {
             fetchData('grades', authToken).then((data) => setgradesData(data));
         }
-        fetchViewData('teachers').then((data) => setTeachersData(data));
+        fetchViewData('teachers_view').then((data) => setTeachersData(data));
     }, []);
+    
     useEffect(() => {
-        console.log("Active grade", activegrade, status);
         if (activegrade) {
             const authToken = localStorage.getItem('authToken');
             fetchJoinableData(
@@ -95,7 +96,6 @@ export default function gradesPage() {
 
     useEffect(() => {
         setGroupedClassesData([]);
-        console.log(classesData);
         if (!classesData.length) return;
         let sortedClasses = classesData.sort((a, b) => a.course_name.localeCompare(b.course_name));
         let prevCourseName = '';

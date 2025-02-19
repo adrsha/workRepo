@@ -29,6 +29,7 @@
     transition: 0.2s ease-in-out;
     white-space: nowrap;
     border-radius: 4px;
+    cursor: text;
 }
 
 .input:not([type='checkbox']):not([type='radio']) {
@@ -198,4 +199,6 @@
     position: static;
     color: var(--secondary);
 }
-
+textarea.textarea {
+  resize: none;
+}

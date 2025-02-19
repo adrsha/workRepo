@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import styles from '../../styles/Nav.module.css';
 import { signOut, useSession } from 'next-auth/react';
 
-const userNavElements = [{ name: 'Profile', path: '/profile' }];
+const userNavElements = [{ name: 'Edit profile', path: '/settings' }];
 
 export default function Nav() {
     const router = useRouter();
@@ -40,7 +40,19 @@ export default function Nav() {
                                         <li>{navElement.name}</li>
                                     </a>
                                 ))}
-                                <a onClick={() => signOut()}>
+                                {session.user.level === 2 ? (
+                                    <a
+                                        onClick={() => {
+                                            router.push('/control');
+                                        }}>
+                                        <li>Control Panel</li>
+                                    </a>
+                                ) : null}
+                                <a
+                                    onClick={() => {
+                                        signOut();
+                                        router.push('/');
+                                    }}>
                                     <li>Sign Out</li>
                                 </a>
                             </ul>

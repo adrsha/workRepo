@@ -132,3 +132,34 @@ export async function fetchJoinableData(tables, joinConditions, selectionAttrs =
         throw new Error(error.message);
     }
 }
+
+export async function updateTableData(tableName, data, conditions, authToken = null) {
+    try {
+        if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
+            throw new Error('Invalid table name');
+        }
+
+        const response = await fetch('/api/updateProfile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(publicDataTables.includes(tableName)
+                    ? {}
+                    : {
+                          Authorization: `Bearer ${authToken}`,
+                      }),
+            },
+            body: JSON.stringify({ data, conditions })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update data');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error in updateTableData:', error);
+        throw error;
+    }
+}

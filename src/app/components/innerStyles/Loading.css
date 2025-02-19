@@ -1,10 +1,10 @@
 :root {
    --hue: 223;
-	--bg: var(--primary);
+	--bg: var(--prime);
 	--fg: var(--background);
-	--primary: var(--background);
-	--primary-l: var(--primary);
-	--primary-d: var(--primary);
+	--prime: var(--background);
+	--prime-l: var(--prime);
+	--prime-d: var(--prime);
 	--white: var(--foreground);
 	--white-d: var(--foreground);
 }
@@ -24,11 +24,11 @@
 }
 
 .book {
-	background-color: var(--primary);
+	background-color: var(--prime);
 	border-radius: 0.25em;
 	box-shadow:
 		0 0.25em 0.5em hsla(0,0%,0%,0.3),
-		0 0 0 0.25em var(--primary) inset;
+		0 0 0 0.25em var(--prime) inset;
 	padding: 0.25em;
 	perspective: 37.5em;
 	position: relative;
@@ -63,7 +63,7 @@
 .book__pg--3,
 .book__pg--4 {
 	background-image:
-		repeating-linear-gradient(var(--primary) 0 0.075em,transparent 0.075em 0.5em),
+		repeating-linear-gradient(var(--prime) 0 0.075em,transparent 0.075em 0.5em),
 		linear-gradient(90deg,transparent 87.5%,var(--darkforeground));
 	background-repeat: no-repeat;
 	background-position: center;
@@ -94,11 +94,11 @@
 @keyframes cover {
 	from, 5%, 45%, 55%, 95%, to {
 		animation-timing-function: ease-out;
-		background-color: var(--primary-l);
+		background-color: var(--prime-l);
 	}
 	10%, 40%, 60%, 90% {
 		animation-timing-function: ease-in;
-		background-color: var(--primary-d);
+		background-color: var(--prime-d);
 	}
 }
 @keyframes shadow {

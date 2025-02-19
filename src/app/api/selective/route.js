@@ -32,7 +32,6 @@ export async function GET(req) {
 
         // Construct the SQL query safely using the table name and parameters
         const query = `SELECT * FROM ${tableName} ${whereClause}`;
-        console.log("Query", query);
         
         // Execute the query
         const results = await executeQueryWithRetry({
