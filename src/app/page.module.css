@@ -3,9 +3,10 @@
 
 .body,
 .html {
-  margin: 0;
-  padding: 0;
-  background: var(--background);
+    margin: 0;
+    padding: 0;
+    background: var(--background) url('/axiom-pattern.png');
+    background-blend-mode: multiply;
 }
 
 .background {

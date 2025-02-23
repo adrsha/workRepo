@@ -14,24 +14,19 @@ export default function Nav() {
     return (
         <nav className={styles.navbar}>
             <div className={styles.logo} onClick={() => router.push('/')}>
-                <img src="/logo_ref.svg" alt="logo" />
-                MeroTuition
+                <img src="/logo_ref.svg" alt="MeroTuition Logo" />
             </div>
             <div className={styles.navLinks}>
-                {pathname !== '/' ? (
-                    <button className="paperButtons" onClick={() => router.push('/classes')}>
-                        Courses
-                    </button>
+                {session?.user?.level === 0 ? (
+                    pathname !== '/' ? (
+                        <button onClick={() => router.push('/classes')}>Courses</button>
+                    ) : null
                 ) : null}
-                <button className="paperButtons">Contact Us</button>
+                <button>Contact Us</button>
                 <span className={styles.separator}></span>
                 {status === 'authenticated' ? (
                     <>
-                        {pathname === '/lmshome' ? null : (
-                            <button className="paperButtons" onClick={() => router.push('/lmshome')}>
-                                Home
-                            </button>
-                        )}
+                        {pathname === '/lmshome' ? null : <button onClick={() => router.push('/lmshome')}>Home</button>}
                         <span className={styles.dropdown}>
                             {session?.user?.name}
                             <ul>
@@ -40,14 +35,6 @@ export default function Nav() {
                                         <li>{navElement.name}</li>
                                     </a>
                                 ))}
-                                {session.user.level === 2 ? (
-                                    <a
-                                        onClick={() => {
-                                            router.push('/control');
-                                        }}>
-                                        <li>Control Panel</li>
-                                    </a>
-                                ) : null}
                                 <a
                                     onClick={() => {
                                         signOut();
@@ -60,13 +47,9 @@ export default function Nav() {
                     </>
                 ) : (
                     <>
-                        <button className="paperButtons" onClick={() => router.push('/registration/login')}>
+                        <button onClick={() => router.push('/registration/signup')}>Sign Up</button>
+                        <button className={styles.specialNavButton} onClick={() => router.push('/registration/login')}>
                             Login
-                        </button>
-                        <button
-                            className={styles.specialNavButton + ' paperButtons'}
-                            onClick={() => router.push('/registration/signup')}>
-                            Sign Up
                         </button>
                     </>
                 )}

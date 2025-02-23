@@ -1,5 +1,6 @@
 'use client';
 import Nav from './components/Nav.js';
+import Footer from './components/Footer.js';
 import defaultStyle from './page.module.css';
 import { SessionProvider } from 'next-auth/react';
 
@@ -12,6 +13,7 @@ export default function RootLayout({ children }) {
                 <div className={defaultStyle.background}>
                     {children}
                 </div>
+                <Footer />
                 </SessionProvider>
             </body>
         </html>

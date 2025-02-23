@@ -76,12 +76,12 @@ export default function Login() {
     return (
         <div>
             <h1>Logging In</h1>
-            {error && <p className={styles.error}>{error}</p>}
 
             <form className={styles.loginForm} onSubmit={handleSubmit}>
                 <Input label="Phone Number" type="text" name="contact" id="contact" />
                 <Input label="Password" type="password" name="password" id="password" />
                 <span>Don't have an account? <a className={styles.link} href="/registration/signup">Sign Up here!</a></span>
+                {error && <p className={styles.error}>{error}</p>}
                 <button className={styles.submitButton} type="submit">
                     {loading ? 'Logging In...' : 'Login'}
                 </button>

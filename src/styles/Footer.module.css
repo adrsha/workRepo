@@ -1,0 +1,185 @@
+/* Footer.module.css */
+.footer {
+  margin-top: 10vh;
+  background: var(--darkBlack);
+  color: var(--white);
+  padding: 3rem 0;
+}
+
+.footer {
+    border-top: 1px solid var(--white);
+}
+
+.footerContent {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+}
+
+/* Company Section */
+.companyInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.companyInfo h3 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.companyInfo p {
+  color: var(--offWhite);
+  line-height: 1.5;
+}
+
+.socialIcons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.socialIcons svg {
+  width: 20px;
+  height: 20px;
+  color: #d1d5db;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.socialIcons svg:hover {
+  color: var(--white);
+}
+
+/* Quick Links Section */
+.quickLinks h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.quickLinks ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.quickLinks a {
+  color: var(--offWhite);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.quickLinks a:hover {
+  color: var(--white);
+}
+
+/* Contact Info Section */
+.contactInfo h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.contactInfo div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contactItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--offWhite);
+}
+
+.contactItem svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Newsletter Section */
+.newsletter h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.newsletter p {
+  color: var(--offWhite);
+  margin-bottom: 1rem;
+}
+
+.newsletterForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.newsletterForm input {
+  padding: 0.5rem 1rem;
+  background-color: var(--black);
+  border: none;
+  border-radius: 0.25rem;
+  color: var(--white);
+}
+
+.newsletterForm input:focus {
+  outline: 2px solid var(--quaternary);
+}
+
+.newsletterForm button {
+  padding: 0.5rem 1rem;
+  background-color: var(--quaternary);
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.newsletterForm button:hover {
+  background-color: var(--quaternary);
+}
+
+/* Bottom Bar */
+.bottomBar {
+  border-top: 1px solid var(--black);
+  margin-top: 3rem;
+  padding-top: 1rem;
+  text-align: center;
+}
+
+.bottomBar p {
+  color: var(--offWhite);
+  font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .footerContent {
+    grid-template-columns: 1fr;
+  }
+  
+  .companyInfo,
+  .quickLinks,
+  .contactInfo,
+  .newsletter {
+    text-align: center;
+  }
+  
+  .socialIcons {
+    justify-content: center;
+  }
+  
+  .contactItem {
+    justify-content: center;
+  }
+}

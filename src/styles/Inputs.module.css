@@ -1,6 +1,7 @@
 .inputContainer {
     position: relative;
     margin: 0;
+    border-radius: 4px;
     padding: 0;
     width: 100%;
 }
@@ -25,7 +26,7 @@
     margin-left: var(--inputThickness);
     font-size: 1rem;
     left: 0;
-    color: var(--secondary);
+    color: var(--secondaryBackground);
     transition: 0.2s ease-in-out;
     white-space: nowrap;
     border-radius: 4px;
@@ -164,7 +165,7 @@
     content: ''; 
     opacity: 1;
     transform: translate(-50%, -50%);
-    background-color: var(--foreground);
+    background-color: var(--background);
     border-radius: 0.2rem;
     width: 80%;
     aspect-ratio: 1;

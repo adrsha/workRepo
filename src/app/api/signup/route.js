@@ -6,7 +6,7 @@ import { sendEmail } from '../../lib/email';
 import crypto from 'crypto';
 
 const SECRET_KEY_EXPIRATION_DAYS = 3;
-const MAX_RETRIES = 30;
+const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second delay between retries
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -28,7 +28,7 @@ async function executeQueryWithRetry(queryOptions) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { username, email, password, userLevel, terms, secretCode, contact, address, ...extraData } = body;
+        const { username, email, password, userLevel, terms, secretCode, contact, address, experience, qualification, ...extraData } = body;
 
         if (!username || !email || !password) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -51,7 +51,6 @@ export async function POST(request) {
             class: 50,
             address: 100,
             dateOfBirth: 10, // YYYY-MM-DD
-            subject: 50,
             experience: 255,
             qualification: 255,
         };
@@ -64,7 +63,7 @@ export async function POST(request) {
                 );
             }
         }
-        const userLevels = { student: 0, teacher: 1, admin: 2 };
+        const userLevels = { student: 0, teacher: 1 };
         if (!(userLevel in userLevels)) {
             return NextResponse.json({ error: 'Invalid user level' }, { status: 400 });
         }
@@ -82,28 +81,37 @@ export async function POST(request) {
 
         const hashedPassword = await hash(password, 10);
 
-        if (userLevel === 'admin') {
+        if (userLevel === 'teacher') {
             // Generate a secret key for verification
             const secretKey = crypto.randomBytes(20).toString('hex');
             const expirationDate = new Date();
             expirationDate.setDate(expirationDate.getDate() + SECRET_KEY_EXPIRATION_DAYS);
 
-            const existingAdmin = await executeQueryWithRetry({
-                query: 'SELECT * FROM pending_admins WHERE contact = ?',
+            const existingTeach = await executeQueryWithRetry({
+                query: 'SELECT * FROM pending_teachers WHERE contact = ?',
                 values: [contact],
             });
 
-            if (existingAdmin.length > 0) {
-                return NextResponse.json({ error: 'Contact already in use' }, { status: 409 });
+            if (existingTeach.length > 0) {
+                return NextResponse.json({ error: 'Contact already in pending' }, { status: 409 });
             }
 
             await query({
-                query: 'INSERT INTO pending_admins (user_name, user_email, contact, user_passkey, secret_key, expires_at) VALUES (?, ?, ?, ?, ?, ?)',
-                values: [username, email, contact, hashedPassword, secretKey, expirationDate],
+                query: 'INSERT INTO pending_teachers (user_name, user_email, contact, qualification, experience, user_passkey, secret_key, expires_at) VALUES (?, ?, ?,?, ?, ?, ?, ?)',
+                values: [
+                    username,
+                    email,
+                    contact,
+                    qualification,
+                    experience,
+                    hashedPassword,
+                    secretKey,
+                    expirationDate,
+                ],
             });
 
             // Send the secret key via email
-            await sendEmail(email, 'Admin Verification Code', `Your admin verification key: ${secretKey}`);
+            await sendEmail(email, 'Teacher Verification Code', `Your Teacher verification key: ${secretKey}`);
 
             return NextResponse.json(
                 { message: 'Verification key sent to email. Please verify within 3 days.' },
@@ -120,21 +128,16 @@ export async function POST(request) {
 
         if (userLevel === 'student') {
             await executeQueryWithRetry({
-                query: 'INSERT INTO students (user_id, guardian_name, guardian_relation, guardian_contact, school, class, date_of_birth) VALUES (?, ?, ?, ?, ?, ?, ? )',
+                query: 'INSERT INTO students (user_id, guardian_name, guardian_relation, guardian_contact, school, class_id, date_of_birth) VALUES (?, ?, ?, ?, ?, ?, ? )',
                 values: [
                     userId,
                     extraData.guardianName || '',
                     extraData.guardianRelation || '',
                     extraData.guardianContact || '',
                     extraData.school || '',
-                    extraData.class || '',
+                    extraData.class_id || '',
                     extraData.dateOfBirth || '',
                 ],
-            });
-        } else if (userLevel === 'teacher') {
-            await executeQueryWithRetry({
-                query: 'INSERT INTO teachers (user_id, subject, experience, qualification) VALUES (?, ?, ?, ?)',
-                values: [userId, extraData.subject || '', extraData.experience || '', extraData.qualification || ''],
             });
         }
 

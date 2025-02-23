@@ -1,9 +1,8 @@
 .container {
     height: calc(100vh - var(--navheight));
-    background-color: var(--background);
+    background-color: transparent;
     display: flex;
 }
-
 
 .header{
     font-size: 2rem;
@@ -122,9 +121,11 @@
 }
 
 .classData{
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    background-color: var(--background);
+    padding: 2rem;
+    min-height: 100%;
+    width: min(100%, 60vw);
+    border-radius: 5px;
 }
 
 .classData>span{

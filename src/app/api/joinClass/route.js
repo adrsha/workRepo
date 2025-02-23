@@ -20,6 +20,11 @@ export async function POST(req) {
         if (session.user.id !== userId) {
             return new Response(JSON.stringify({ error: 'Unauthorized: User mismatch' }), { status: 403 });
         }
+        // Ensure that the userLevel is only 0 (student)
+        
+        if (session.user.level !== 0) {
+            return new Response(JSON.stringify({ error: 'Unauthorized: User level mismatch' }), { status: 403 });
+        }
 
         // Your logic to handle joining the class (e.g., database update)
         //

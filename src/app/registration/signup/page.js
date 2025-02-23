@@ -3,6 +3,7 @@ import '../../global.css';
 import Input from '../../components/Input.js';
 import styles from '../../../styles/Registration.module.css';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const MAX_LENGTHS = {
     username: 50,
@@ -16,7 +17,6 @@ const MAX_LENGTHS = {
     class: 50,
     address: 100,
     dateOfBirth: 10, // YYYY-MM-DD
-    subject: 50,
     experience: 255,
     qualification: 255,
 };
@@ -25,6 +25,7 @@ export default function Signup() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [userLevel, setUserLevel] = useState('student');
+    const router = useRouter();
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -79,13 +80,8 @@ export default function Signup() {
         } else if (userLevel === 'teacher') {
             payload = {
                 ...payload,
-                subject: formData.get('subject') || '',
                 experience: formData.get('experience') || '',
                 qualification: formData.get('qualification') || '',
-            };
-        } else if (userLevel === 'admin') {
-            payload = {
-                ...payload,
             };
         }
 
@@ -116,7 +112,6 @@ export default function Signup() {
     return (
         <div>
             <h1>Signing Up</h1>
-            {error && <p className={styles.error}>{error}</p>}
             <form className={styles.signupForm} onSubmit={handleSubmit}>
                 <span className={styles.flexyspan}>
                     <Input
@@ -135,14 +130,6 @@ export default function Signup() {
                         checked={userLevel === 'student'}
                         onChange={() => setUserLevel('student')}
                     />
-                    <Input
-                        label="Admin"
-                        type="radio"
-                        name="user-level"
-                        id="user-level-admin"
-                        checked={userLevel === 'admin'}
-                        onChange={() => setUserLevel('admin')}
-                    />
                 </span>
 
                 <Input
@@ -153,7 +140,6 @@ export default function Signup() {
                     maxLength={MAX_LENGTHS.username}
                     required
                 />
-                <Input label="Email" type="email" name="email" id="email" maxLength={MAX_LENGTHS.email} required />
                 <Input
                     label="Password"
                     type="password"
@@ -190,6 +176,7 @@ export default function Signup() {
                 />
                 {userLevel === 'student' && (
                     <>
+                        <Input label="Email" type="email" name="email" id="email" maxLength={MAX_LENGTHS.email}/>
                         <Input label="Guardian Name" type="text" name="guardianName" id="guardianName" required />
                         <span className={styles.flexyspan}>
                             <Input
@@ -231,13 +218,7 @@ export default function Signup() {
 
                 {userLevel === 'teacher' && (
                     <>
-                        <Input
-                            label="Subject"
-                            type="text"
-                            name="subject"
-                            id="subject"
-                            maxLength={MAX_LENGTHS.subject}
-                        />
+                        <Input label="Email" type="email" name="email" id="email" maxLength={MAX_LENGTHS.email} required/>
                         <Input
                             label="Brief Work Experience"
                             type="textarea"
@@ -255,9 +236,8 @@ export default function Signup() {
                     </>
                 )}
 
-                {userLevel === 'admin' && <></>}
-
                 <Input label="I agree to Terms and Conditions" type="checkbox" name="terms" id="terms" required />
+                {error && <p className={styles.errorDisplay}>{error}</p>}
 
                 <button className={styles.submitButton} type="submit" disabled={loading}>
                     {loading ? 'Signing Up...' : 'Sign Up'}

@@ -1,0 +1,47 @@
+import { getServerSession } from "next-auth";
+import { executeQueryWithRetry } from '../../lib/db';
+import { authOptions } from "../auth/[...nextauth]/authOptions";  // Ensure to import your NextAuth authOptions
+
+export async function POST(req) {
+    try {
+        const body = await req.json();
+        const { classId } = body;
+        console.log("CID", classId);
+        // Get the session using NextAuth
+        const session = await getServerSession(authOptions); // Fetch session using NextAuth.js session management
+        if (!session) {
+            return new Response(JSON.stringify({ error: 'Unauthorized: User not authenticated' }), { status: 401 });
+        }
+        const userLevel = session.user.level;
+
+        // Validate the user level
+        if (userLevel !== 1) {
+            return new Response(JSON.stringify({ error: 'Invalid user level' }), { status: 400 });
+        }
+        
+        // NextAuth token validation: no need to manually validate the token if you're using NextAuth.
+        // Just check the session object for its validity (session already contains the token)
+        if (!session.accessToken) {
+            return new Response(JSON.stringify({ error: 'Unauthorized: Token not valid' }), { status: 401 });
+        }
+
+        const response = await removeClasses(classId);
+        return new Response(JSON.stringify(response), { status: 200 });
+    } catch (error) {
+        console.error('Error processing request:', error);
+        return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
+    }
+}   
+
+async function removeClasses(classId) {
+    try {
+        const result = await executeQueryWithRetry({
+            query: `DELETE FROM classes WHERE class_id = ?`,
+            values: [classId],
+        });
+        return result;
+    } catch (err) {
+        console.error('Database insertion failed:', err);
+        throw new Error('Database operation failed');
+    }
+}

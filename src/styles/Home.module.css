@@ -5,6 +5,7 @@
     gap: 10vw;
 }
 .leftSection {
+    display: flex;
     position: relative;
 }
 
@@ -13,33 +14,100 @@
     right: 0;
     top: 0;
     display: flex;
+    gap: 1rem;
     flex-direction: column;
-    gap: 2rem;
     margin-right: 10vw;
 }
+.menuButtons img{
+    height: 3rem;
+}
+.menuButtons button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 1rem;
+    width: fit-content;
+    color: var(--white);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+.menuButtons button span{
+    margin-right: 1rem;
+}
+
+.menuButtons button#course{
+    background-color: var(--primary);
+    box-shadow: 0px 0px 5rem 0px var(--primary);
+}
+.menuButtons button#preparation{
+    background-color: var(--secondary);
+    box-shadow: 0px 0px 5rem 0px var(--secondary);
+}
+.menuButtons button#languages{
+    background-color: var(--tertiary);
+    box-shadow: 0px 0px 5rem 0px var(--tertiary);
+}
+.menuButtons button#others{
+    background-color: var(--quaternary);
+    box-shadow: 0px 0px 5rem 0px var(--quaternary);
+}
+.menuButtons button#course:hover{
+    background-color: var(--black);
+}
+.menuButtons button#preparation:hover{
+    background-color: var(--black);
+}
+.menuButtons button#languages:hover{
+    background-color: var(--black);
+}
+.menuButtons button#others:hover{
+    background-color: var(--black);
+}
+
 
 .profileCircle {
     object-fit: contain;
-    width: 60vw;
+    height: 50vh;
+    min-width: fit-content;
     margin-left: 10vw;
     padding: 2rem 5rem;
-    border-radius: 20px;
-    border: 0.5rem solid var(--primary);
     outline-offset: 0.25rem;
+    background-color: var(--background);
+    border-radius: 2rem;
 }
 
 .topDetails{
     display: flex;
     gap: 1rem;
-    margin-top: 20vh;
+    padding-left: 10vw;
+    padding-right: 10vw;
+    flex-wrap: wrap;
+    margin-top: 10vh;
     align-items: center;
     justify-content: center;
 }
 .topCourses{
-    background: var(--primary);
+    background: var(--background);
+    box-shadow: 0px 0px 5rem 0px rgba(0, 0, 0, 0.1);
     color: var(--foreground);
+    max-width: 30rem;
     padding: 2rem;
     border-radius: 1rem;
+}
+.topCoursesList{
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.topCoursesListItem{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 1rem;
+    /* background-color: var(--offWhite); */
 }
 
 @media (max-width: 1000px) {
@@ -51,12 +119,17 @@
         align-items: center;
         gap: 2rem;
     }
-    .leftSection img {
+    .leftSection img.profileCircle {
         border: none;
         width: 100%;
         height: min(100vw, 40vh);
         padding: 0px;
         margin: 0;
+    }
+    .leftSection img.profileCircle {
+        border-radius: 2rem;
+        box-shadow: 0px 0px 5rem 0px rgba(0, 0, 0, 0.1);
+        width: 80%
     }
     .menuButtons {
         position: static;
@@ -64,5 +137,6 @@
         flex-wrap: wrap;
         align-items: center;
         justify-content: center;
+        margin: 0;
     }
 }
