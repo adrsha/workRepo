@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import styles from '../../styles/Grades.module.css';
 import Loading from '../components/Loading.js';
+import Payer from '../components/Payer.js';
 import '../global.css';
 import { fetchData, fetchViewData, fetchJoinableData, fetchDataWhereAttrIs } from '../lib/helpers.js';
 
@@ -17,6 +18,7 @@ export default function gradesPage() {
     const [teachersData, setTeachersData] = useState([]);
     const [groupedClassesData, setGroupedClassesData] = useState([]);
     const [classesUsersJoined, setClassesUsersJoined] = useState([]);
+    const [showPayer, setShowPayer] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
 
     const { data: session, status, update } = useSession();
@@ -170,7 +172,7 @@ export default function gradesPage() {
                                                 status === 'authenticated' && !isJoining
                                                     ? classesUsersJoined.includes(cd.class_id)
                                                         ? null
-                                                        : joinClass(cd.class_id)
+                                                        : setShowPayer(true)
                                                     : router.push('/registration/login');
                                             }}>
                                             {isJoining
@@ -190,6 +192,7 @@ export default function gradesPage() {
                     <Loading />
                 )}
             </main>
+            {showPayer && <Payer/>}
         </div>
     ): null);
 }

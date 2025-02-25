@@ -8,6 +8,7 @@
     justify-content: space-between;
     align-items: center;
     z-index: 100;
+    box-shadow: 0 0 2rem 0 rgba(0, 0, 0, 0.05), inset 0 0 2rem 0 rgba(0, 0, 0, 0.15);
 }
 
 .logo {

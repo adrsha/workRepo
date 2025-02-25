@@ -10,9 +10,9 @@
   --darkforeground: #181818;
   
   --primary:#FF8F7D;
-  --secondary: #FF697C;
+  --secondary: #48A2B5;
   --tertiary: #00BF92;
-  --quaternary: #48A2B5;
+  --quaternary: #FF697C;
   
   --primaryLight:#FFB5AD;
   --secondaryLight: #FFa9aC;
@@ -29,8 +29,8 @@
   --offWhite: #c0c0c0;
   --black: #2A2A2A;
   
-  --font-sans: "Poppins", sans-serif;
-  --font-serif: "Prata", serif;
+  --font-sans: "Funnel Sans", sans-serif;
+  --font-serif: "Bungee", serif;
 }
 
 * {
@@ -53,6 +53,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 .slices{
     box-shadow: inset 2px 2px 8px 0px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255,255,255,0.5);
+    transition: all 0.2s ease-in-out;
+}
+.slices.hoverable:hover{
+    box-shadow: inset -2px -2px 8px 0px rgba(0, 0, 0, 0.1), inset 2px 2px 4px rgba(255,255,255,0.5);
 }
 
 .paperButtons {
@@ -117,3 +121,6 @@ a {
 }
 
 
+.headers{
+    font-family: var(--font-serif);
+}
