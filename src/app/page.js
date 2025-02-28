@@ -44,7 +44,7 @@ export default function HomePage() {
                         </div>
                     </main>
                     <div className={styles.topDetails}>
-                        <div className={styles.topCourses + ' slabs'}>
+                        <div className={styles.topCourses}>
                             <h1 className="headers">Top Teachers</h1>
                             <div className={styles.topCoursesList}>
                                 <div className={styles.topCoursesListItem + ' slices hoverable'}>
@@ -64,7 +64,7 @@ export default function HomePage() {
                                 </div>
                             </div>
                         </div>
-                        <div className={styles.topCourses + ' slabs'}>
+                        <div className={styles.topCourses}>
                             <h1 className="headers">Top Courses</h1>
                             <div className={styles.topCoursesList}>
                                 <div className={styles.topCoursesListItem + ' slices hoverable'}>

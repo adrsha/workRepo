@@ -55,7 +55,7 @@ h1, h2, h3, h4, h5, h6 {
 .slices{
     /* box-shadow: inset 2px 2px 8px 0px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255,255,255,0.5); */
     transition: all 0.2s ease-in-out;
-    border: 2px solid var(--offWhite);
+    border: 1px solid var(--offWhite);
 }
 .slices.hoverable:hover{
     box-shadow: inset -2px -2px 8px 0px rgba(0, 0, 0, 0.1), inset 2px 2px 4px rgba(255,255,255,0.5);
