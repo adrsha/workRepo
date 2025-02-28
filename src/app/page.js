@@ -11,7 +11,7 @@ export default function HomePage() {
                 <div className={styles.container}>
                     <main className={styles.mainContent}>
                         <div className={styles.leftSection}>
-                            <img className={styles.profileCircle + ' slabs'} src="/logo.png" alt="logo" />
+                            <img className={styles.profileCircle} src="/logo.png" alt="logo" />
                             <div className={styles.menuButtons}>
                                 <button onClick={() => router.push('/classes')} id={styles.course}>
                                     <span>
