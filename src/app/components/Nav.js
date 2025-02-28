@@ -22,8 +22,8 @@ export default function Nav() {
                         <button onClick={() => router.push('/classes')}>Courses</button>
                     ) : null
                 ) : null}
-                <button>Contact Us</button>
-                <span className={styles.separator}></span>
+                <button onClick={() => router.push('/aboutus')}>About Us</button>
+                <button onClick={() => router.push('/contactus')}>Contact Us</button>
                 {status === 'authenticated' ? (
                     <>
                         {pathname === '/lmshome' ? null : <button onClick={() => router.push('/lmshome')}>Home</button>}

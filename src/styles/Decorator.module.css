@@ -1,0 +1,16 @@
+
+.decoratorBox {
+    position: absolute;
+    background-color: var(--primaryLight);
+    border-radius: 1rem;
+    z-index: 0;
+    transform-style: preserve-3d;
+}
+
+.decoratorWrapper {
+    position: fixed;
+    width: 100vw;
+    z-index: 0;
+    height: 100vh;
+    perspective: 1000px; 
+}

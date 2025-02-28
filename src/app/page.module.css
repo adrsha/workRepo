@@ -11,3 +11,9 @@
 .background {
     padding-top: calc(var(--navheight) + 1rem);
 }
+
+
+.nonDecoratorWrapper{
+    position: relative;
+    z-index: 1;
+}
