@@ -5,7 +5,7 @@ export default function Input({ label, type, name, id, value, onChange, checked,
         <div className={styles.inputContainer}>
             {type === 'textarea' ? (
                 <textarea
-                    className={styles.input +" "+ styles.textarea +" slices"}
+                    className={styles.input +" "+ styles.textarea}
                     id={id}
                     name={name}
                     placeholder={label}
@@ -17,7 +17,7 @@ export default function Input({ label, type, name, id, value, onChange, checked,
                 />
             ) : type === 'select' ? (
                 <select
-                    className={styles.input +" "+ styles.select +" slices"}
+                    className={styles.input +" "+ styles.select}
                     id={id}
                     name={name}
                     placeholder={label}
@@ -31,7 +31,7 @@ export default function Input({ label, type, name, id, value, onChange, checked,
                 </select>
                 ) : (
                 <input
-                    className={styles.input+" slices"}
+                    className={styles.input}
                     type={type}
                     id={id}
                     name={name}
