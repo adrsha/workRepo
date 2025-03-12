@@ -53,8 +53,13 @@
     position: relative;
     display: inline-block;
     color: var(--foreground);
+    /* border: 2px solid transparent; */
+    transition: 0.4s ease;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    padding: 0.5rem 1rem;
 }
 .dropdown ul {
     visibility: hidden;
@@ -63,13 +68,12 @@
     position: absolute;
     top: 100%;
     left: 0;
-    background-color: var(--background);
     border-radius: 5px;
     list-style: none;
     z-index: 1;
     overflow: hidden;
     transition: 0.3s ease-in-out, visibility 0.5s;
-    background-color: var(--offWhite);
+    background-color: var(--foreground);
     padding: 0rem;
 }
 .dropdown:hover ul {
@@ -79,8 +83,22 @@
 .dropdown a>li{
     padding: 0.5rem 1rem;
     white-space: nowrap;
+    color: var(--background);
 }
 .dropdown a>li:hover{
+    background-color: var(--primary);
+    color: var(--foreground);
+}
+
+.dropdownUname {
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;    
+    transition: all 0.2s ease-in-out;
+    margin: 0;
+    height: 100%;
+}
+.dropdownUname:hover{
     background-color: var(--primary);
     color: var(--foreground);
 }
@@ -91,3 +109,4 @@
         gap: 2rem;
     }
 }
+

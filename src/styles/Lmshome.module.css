@@ -6,12 +6,6 @@
     color: var(--foreground);
 }
 
-.container > div {
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
 .container > span button{
     width: fit-content;
     cursor: pointer;
@@ -60,27 +54,6 @@
 }
 .classCard:hover {
     transform: translateY(-5px);
-}
-
-.classDetails {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-.classDetailsButton {
-    background-color: var(--secondary);
-    color: var(--white);
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all ease 0.2s;
-}
-
-.classDetailsButton:hover {
-    color: var(--secondary);
-    background-color: var(--white);
 }
 
 .addClass {
@@ -153,6 +126,7 @@
     flex-wrap: wrap;
     gap: 1rem;
 }
+
 
 @keyframes wobble { 
     0%   { transform: rotate(0deg); }

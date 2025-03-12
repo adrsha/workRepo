@@ -75,7 +75,7 @@ export default function Login() {
     // Render Login Form
     return (
         <div>
-            <h1>Logging In</h1>
+            <h1 className="headers">Login</h1>
 
             <form className={styles.loginForm} onSubmit={handleSubmit}>
                 <Input label="Phone Number" type="text" name="contact" id="contact" />

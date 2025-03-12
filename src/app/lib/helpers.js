@@ -29,7 +29,7 @@ export async function fetchData(tableName, authToken = null) {
 export async function fetchViewData(viewName) {
     try {
         const response = await fetch(`/api/views?view=${viewName}`);
-
+        console.log(response)
         if (!response.ok) {
             throw new Error('Failed to fetch View data');
         }

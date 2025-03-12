@@ -1,0 +1,46 @@
+.editable-field {
+  margin-bottom: 1rem;
+  font-family: var(--font-sans);
+}
+
+.editable-field__label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+}
+
+.editable-field__input {
+  width: 100%;
+  padding: var(--inputThickness);
+  font-size: 1rem;
+  border: 1px solid var(--offWhite);
+  border-radius: 4px;
+  background-color: var(--background);
+  color: var(--darkforeground);
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.editable-field__input:focus {
+  outline: none;
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 2px var(--secondaryLight);
+}
+
+.editable-field__display {
+  width: 100%;
+  padding: var(--inputThickness);
+  font-size: 1rem;
+  border: 1px solid var(--offWhite);
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: var(--background);
+  color: var(--darkforeground);
+  transition: background-color 0.2s ease-in-out;
+}
+
+.editable-field__display:hover {
+  background-color: var(--secondaryBackground);
+}
+

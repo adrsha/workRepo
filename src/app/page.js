@@ -47,17 +47,17 @@ export default function HomePage() {
                         <div className={styles.topCourses}>
                             <h1 className="headers">Top Teachers</h1>
                             <div className={styles.topCoursesList}>
-                                <div className={styles.topCoursesListItem + ' slices hoverable'}>
+                                <div className={styles.topCoursesListItem }>
                                     <span className={styles.smallClassName}>class 12</span>
                                     <h3>Nabin Sharma</h3>
                                     <button className={styles.viewProfile}> View Profile </button>
                                 </div>
-                                <div className={styles.topCoursesListItem + ' slices hoverable'}>
+                                <div className={styles.topCoursesListItem}>
                                     <span className={styles.smallClassName}>class 12</span>
                                     <h3>Shanti Sharma</h3>
                                     <button className={styles.viewProfile}> View Profile </button>
                                 </div>
-                                <div className={styles.topCoursesListItem + ' slices hoverable'}>
+                                <div className={styles.topCoursesListItem }>
                                     <span className={styles.smallClassName}>class 1</span>
                                     <h3>Kavi Paudel</h3>
                                     <button className={styles.viewProfile}> View Profile </button>
@@ -67,20 +67,40 @@ export default function HomePage() {
                         <div className={styles.topCourses}>
                             <h1 className="headers">Top Courses</h1>
                             <div className={styles.topCoursesList}>
-                                <div className={styles.topCoursesListItem + ' slices hoverable'}>
+                                <div className={styles.topCoursesListItem}>
                                     <span className={styles.smallClassName}>class 12</span>
                                     <h3>English</h3>
                                     <button className={styles.viewProfile}> View Profile </button>
                                 </div>
-                                <div className={styles.topCoursesListItem + ' slices hoverable'}>
+                                <div className={styles.topCoursesListItem}>
                                     <span className={styles.smallClassName}>class 12</span>
                                     <h3>Maths</h3>
                                     <button className={styles.viewProfile}> View Profile </button>
                                 </div>
-                                <div className={styles.topCoursesListItem + ' slices hoverable'}>
+                                <div className={styles.topCoursesListItem}>
                                     <span className={styles.smallClassName}>class 1</span>
                                     <h3>Science</h3>
                                     <button className={styles.viewProfile}> View Profile </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className={styles.topCourses}>
+                            <h1 className="headers">Top Classes</h1>
+                            <div className={styles.topCoursesList}>
+                                <div className={styles.topCoursesListItem}>
+                                    <span className={styles.smallClassName}>Nabin Sharma</span>
+                                    <h3>Class 12 - Physics</h3>
+                                    <button className={styles.viewProfile}> View Class </button>
+                                </div>
+                                <div className={styles.topCoursesListItem}>
+                                    <span className={styles.smallClassName}>Nabin Sharma</span>
+                                    <h3>Class 12 - Physics</h3>
+                                    <button className={styles.viewProfile}> View Class </button>
+                                </div>
+                                <div className={styles.topCoursesListItem}>
+                                    <span className={styles.smallClassName}>Nabin Sharma</span>
+                                    <h3>Class 12 - Physics</h3>
+                                    <button className={styles.viewProfile}> View Class </button>
                                 </div>
                             </div>
                         </div>

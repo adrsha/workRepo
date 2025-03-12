@@ -9,10 +9,22 @@ export async function GET(req) {
         const { searchParams } = new URL(req.url);
         const tableName = searchParams.get('table');
         
-        // Authorization check for sensitive data
-        const session = await getServerSession({ authOptions });
-        if (!session && !publicDataTables.includes(tableName)){
-            return new Response(JSON.stringify({ error: 'Unauthorized access' }), { status: 401 });
+        // Validate table name exists
+        if (!tableName) {
+            return new Response(JSON.stringify({ error: 'Table name is required' }), { status: 400 });
+        }
+        
+        // Strict validation - only allow explicitly defined tables
+        if (!publicDataTables.includes(tableName)) {
+            return new Response(JSON.stringify({ error: 'Access to this table is not permitted' }), { status: 403 });
+        }
+
+        // Authorization check is now redundant since we only allow public tables,
+        // but keeping it here for defense in depth
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            // Log access attempts for monitoring
+            console.info(`Public data access to ${tableName} without session`);
         }
 
         // Collect selection attributes and their values
@@ -30,7 +42,7 @@ export async function GET(req) {
         // Build the WHERE clause dynamically
         const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-        // Construct the SQL query safely using the table name and parameters
+        // Construct the SQL query with validated table name
         const query = `SELECT * FROM ${tableName} ${whereClause}`;
         
         // Execute the query
@@ -42,6 +54,6 @@ export async function GET(req) {
         return new Response(JSON.stringify(results), { status: 200 });
     } catch (error) {
         console.error('Database query failed:', error);
-        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+        return new Response(JSON.stringify({ error: 'An error occurred while processing your request' }), { status: 500 });
     }
 }

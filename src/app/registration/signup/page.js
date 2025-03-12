@@ -111,7 +111,7 @@ export default function Signup() {
 
     return (
         <div>
-            <h1>Signing Up</h1>
+            <h1 className="headers">Sign Up</h1>
             <form className={styles.signupForm} onSubmit={handleSubmit}>
                 <span className={styles.flexyspan}>
                     <Input

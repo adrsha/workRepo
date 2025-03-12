@@ -150,7 +150,7 @@ export default function gradesPage() {
             <main className={styles.mainSection}>
                 {groupedClassesData.length > 0 ? (
                     groupedClassesData.map((clDt) => (
-                        <div className={styles.classCards + ' slabs'} key={clDt.course_id}>
+                        <div className={styles.classCards} key={clDt.course_id}>
                             <h3>{clDt.course_name}</h3>
                             <span>{clDt.course_description}</span>
                             <ul>

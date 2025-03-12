@@ -28,7 +28,9 @@ export default function Nav() {
                     <>
                         {pathname === '/lmshome' ? null : <button onClick={() => router.push('/lmshome')}>Home</button>}
                         <span className={styles.dropdown}>
-                            {session?.user?.name}
+                            <a className={styles.dropdownUname} onClick={
+                                ()=>router.push(`/profile/${session?.user?.id}`)
+                            }> {session?.user?.name} </a>
                             <ul>
                                 {userNavElements.map((navElement) => (
                                     <a key={navElement.name} onClick={() => router.push(navElement.path)}>
