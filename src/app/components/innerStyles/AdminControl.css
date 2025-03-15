@@ -1,183 +1,218 @@
 /* Admin Control Styles */
 .admin-panel {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    background-color: var(--background);
-    box-shadow: 0 0 2rem 0 rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: var(--background);
+  box-shadow: 0 0 2rem 0 rgba(0, 0, 0, 0.1);
 }
 
 .navigation {
-    display: flex;
-    background-color: var(--background);
-    box-shadow: 0 0 2rem 0 rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    margin-bottom: 2rem;
+  display: flex;
+  background-color: var(--background);
+  box-shadow: 0 0 2rem 0 rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  margin-bottom: 2rem;
 }
 
 .navigation span {
-    flex: 1;
-    padding: 1rem;
-    transition: 0.2s ease;
-    cursor: pointer;
-    text-align: center;
-    font-weight: 600;
+  flex: 1;
+  padding: 1rem;
+  transition: 0.2s ease;
+  cursor: pointer;
+  text-align: center;
+  font-weight: 600;
 }
 
 .navigation span.active {
-    background-color: var(--offWhite);
-    border-bottom: 3px solid var(--secondary);
+  background-color: var(--offWhite);
+  border-bottom: 3px solid var(--secondary);
 }
 
 .navigation span:hover {
-    background-color: var(--offWhite);
+  background-color: var(--offWhite);
 }
 
 .tab-content {
-    padding: 1rem 0;
+  padding: 1rem 0;
 }
 
 .headers {
-    margin: 1.5rem 0 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--offWhite);
-    font-size: 1.2rem;
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--offWhite);
+  font-size: 1.2rem;
 }
 
 .teachers-section,
 .classes-section,
 .students-section {
-    margin-bottom: 30px;
+  margin-bottom: 30px;
 }
 
 .teachers-grid,
 .classes-grid,
 .students-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .teacher-card,
 .class-card,
 .student-card {
-    background-color: var(--background);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    padding: 1.5rem;
-    transition:
-        transform 0.3s ease,
-        box-shadow 0.3s ease;
+  background-color: var(--background);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .teacher-card:hover,
 .class-card:hover,
 .student-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
 }
 
 .teacher-name,
 .class-title,
 .student-name {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .time {
-    font-size: 0.8rem;
-    color: var(--grey);
-    font-weight: normal;
-    margin-left: 1rem;
+  font-size: 0.8rem;
+  color: var(--grey);
+  font-weight: normal;
+  margin-left: 1rem;
 }
 
 .teacher-details,
 .class-details {
-    margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .teacher-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .approve-btn,
 .deny-btn,
 .classDetailsButton {
-    background-color: var(--secondary);
-    color: var(--white);
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all ease 0.2s;
-    min-width: 100px;
+  background-color: var(--secondary);
+  color: var(--white);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all ease 0.2s;
+  min-width: 100px;
 }
 
 .approve-btn {
-    background-color: var(--success, #28a745);
+  background-color: var(--success, #28a745);
 }
 
 .deny-btn {
-    background-color: var(--danger, #dc3545);
+  background-color: var(--danger, #dc3545);
 }
 
 .approve-btn:hover,
 .deny-btn:hover,
 .classDetailsButton:hover {
-    opacity: 0.9;
-    transform: translateY(-2px);
+  opacity: 0.9;
+  transform: translateY(-2px);
 }
 
 .empty-state {
-    padding: 2rem;
-    text-align: center;
-    background-color: var(--offWhite, #f8f9fa);
-    border-radius: 8px;
-    color: var(--grey, #6c757d);
-    font-style: italic;
+  padding: 2rem;
+  text-align: center;
+  background-color: var(--offWhite, #f8f9fa);
+  border-radius: 8px;
+  color: var(--grey, #6c757d);
+  font-style: italic;
 }
 
 .loading-spinner {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 200px;
-    font-size: 1.2rem;
-    color: var(--grey);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1.2rem;
+  color: var(--grey);
 }
 
 .error-message {
-    padding: 1rem;
-    background-color: var(--danger, #dc3545);
-    color: white;
-    border-radius: 8px;
-    margin: 1rem 0;
+  padding: 1rem;
+  background-color: var(--danger, #dc3545);
+  color: white;
+  border-radius: 8px;
+  margin: 1rem 0;
 }
+
+.student-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.student-card .student-name {
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.payment-proof img {
+  width: 100px;
+}
+
+.payment-proof {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem;
+}
+
+.payment-proof::before {
+  content: "Payment Proof";
+  font-size: 0.8rem;
+  color: var(--grey);
+  font-weight: normal;
+  margin-bottom: 0.5rem;
+}
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .teachers-grid,
-    .classes-grid,
-    .students-grid {
-        grid-template-columns: 1fr;
-    }
 
-    .teacher-actions {
-        flex-direction: column;
-    }
+  .teachers-grid,
+  .classes-grid,
+  .students-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .navigation span {
-        padding: 0.75rem 0.5rem;
-        font-size: 0.9rem;
-    }
+  .teacher-actions {
+    flex-direction: column;
+  }
+
+  .navigation span {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
 }
