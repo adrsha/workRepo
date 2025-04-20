@@ -1,16 +1,25 @@
 'use client';
 
 import './innerStyles/AdminControl.css';
+import './innerStyles/EditableField.css';
 import { useState, useEffect, useCallback } from 'react';
 import { fetchData, fetchViewData } from '../lib/helpers.js';
 import { EditableField } from '../components/EditableField';
+import { EditableDate } from '../components/EditableDate';
+import { EditableDropdown } from '../components/EditableDropdown';
+import { EditableTimeSchedule } from '../components/EditableTimeSchedule';
 import { useSession } from 'next-auth/react';
+
+function getCols(array) {
+  if (!array || array.length === 0) return [];
+  const commonKeys = array.reduce((acc, obj) => {
+    return acc.filter(key => Object.hasOwn(obj, key));
+  }, Object.keys(array[0]));
+  return commonKeys;
+}
 
 /**
  * Approves or denies a pending teacher
- * @param {string|number} pendingId - ID of the pending teacher
- * @param {boolean} approved - Whether to approve (true) or deny (false)
- * @returns {Promise<Object>} - Response data
  */
 async function actionTeacher(pendingId, approved = true) {
   const authToken = localStorage.getItem('authToken');
@@ -39,7 +48,6 @@ async function actionTeacher(pendingId, approved = true) {
   }
 }
 
-
 // Navigation tab options
 const TABS = {
   TEACHERS: 0,
@@ -47,105 +55,38 @@ const TABS = {
   STUDENTS: 2,
 };
 
-const EditableDropdown = ({ initialValue, onSave, label, options, placeholder }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [value, setValue] = useState(initialValue);
+// Format date and time for better readability
+const formatDateTime = (dateTimeStr) => {
+  if (!dateTimeStr) return 'Not set';
 
-  // Add useEffect to synchronize the component with updated props
-  useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
-
-
-  const handleSave = () => {
-    onSave(value);
-    setIsEditing(false);
-  };
-
-  // Find the matching option to display the label
-  const selectedOption = options.find((opt) => String(opt.value) === String(value));
-  const displayText = selectedOption ? selectedOption.label : placeholder || 'Click to edit';
-
-  return (
-    <div className="editable-field">
-      <label>{label}</label>
-      {isEditing ? (
-        <div className="edit-controls">
-          <select value={value || ''} onChange={(e) => setValue(e.target.value)}>
-            <option value="" disabled>
-              {placeholder || 'Select an option'}
-            </option>
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <button onClick={handleSave}>Save</button>
-          <button onClick={() => setIsEditing(false)}>Cancel</button>
-        </div>
-      ) : (
-        <div className="display-value" onClick={() => setIsEditing(true)}>
-          {displayText}
-          <span className="edit-icon">✏️</span>
-        </div>
-      )}
-    </div>
-  );
+  try {
+    const date = new Date(dateTimeStr);
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  } catch (e) {
+    console.error('Date formatting error:', e);
+    return dateTimeStr; // Return original string if parsing fails
+  }
 };
 
-// New component for time selection
-const EditableTimeSchedule = ({ initialStartTime, initialEndTime, onSave, label }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [startTime, setStartTime] = useState(initialStartTime || '');
-  const [endTime, setEndTime] = useState(initialEndTime || '');
-
-  const handleSave = () => {
-    onSave(startTime, endTime);
-    setIsEditing(false);
-  };
-
-  // Format the display time
-  const formatTimeDisplay = (start, end) => {
-    if (!start && !end) return 'No schedule set';
-    if (!start) return `End: ${end}`;
-    if (!end) return `Start: ${start}`;
-    return `${start} to ${end}`;
-  };
-
-  return (
-    <div className="editable-field">
-      <label>{label}</label>
-      {isEditing ? (
-        <div className="edit-controls time-controls">
-          <div className="time-inputs">
-            <div className="time-input-group">
-              <label>Start Time:</label>
-              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-            </div>
-            <div className="time-input-group">
-              <label>End Time:</label>
-              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-            </div>
-          </div>
-          <div className="button-group">
-            <button onClick={handleSave}>Save</button>
-            <button onClick={() => setIsEditing(false)}>Cancel</button>
-          </div>
-        </div>
-      ) : (
-        <div className="display-value" onClick={() => setIsEditing(true)}>
-          {formatTimeDisplay(startTime, endTime)}
-          <span className="edit-icon">✏️</span>
-        </div>
-      )}
-    </div>
-  );
-};
 
 export default function AdminControl({ pendingTeachersData: initialPendingTeachers = [] }) {
+  // Use localStorage to persist active tab
+  const [activeTab, setActiveTab] = useState(() => {
+    // Try to get the saved tab from localStorage
+    if (typeof window !== 'undefined') {
+      const savedTab = localStorage.getItem('adminActiveTab');
+      return savedTab !== null ? parseInt(savedTab, 10) : TABS.TEACHERS;
+    }
+    return TABS.TEACHERS;
+  });
+
   const [studentsQueued, setStudentsQueued] = useState([]);
-  const [activeTab, setActiveTab] = useState(TABS.TEACHERS);
   const [classesData, setClassesData] = useState([]);
   const [teachersData, setTeachersData] = useState([]);
   const [courseData, setCourseData] = useState([]);
@@ -156,24 +97,66 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
   const [error, setError] = useState(null);
   const [usersData, setUsersData] = useState([]);
   const { data: session, update } = useSession();
+  const [actionInProgress, setActionInProgress] = useState({});
 
+  // Save active tab to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('adminActiveTab', activeTab.toString());
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const authToken = localStorage.getItem('authToken');
-    fetchData('class_joining_pending', authToken).then((data) => setStudentsQueued(data));
-    fetchData('users', authToken).then((data) => setUsersData(data));
+    let isMounted = true;
+
+    const loadInitialData = async () => {
+      try {
+        // Only fetch the data needed for the initial view
+        const [pendingStudents, users] = await Promise.all([
+          fetchData('class_joining_pending', authToken),
+          fetchData('users', authToken)
+        ]);
+
+        if (isMounted) {
+          setStudentsQueued(pendingStudents);
+          setUsersData(users);
+        }
+      } catch (err) {
+        console.error('Error fetching initial data:', err);
+        if (isMounted) {
+          setError('Failed to load student queue data. Please try again.');
+        }
+      }
+    };
+
+    loadInitialData();
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const getUserName = (userId) => {
-    return usersData.find((user) => user.user_id == userId)?.user_name;
-  };
+  // Memoized helper functions for looking up related data
+  const getUserName = useCallback((userId) => {
+    return usersData.find((user) => user.user_id == userId)?.user_name || 'Unknown User';
+  }, [usersData]);
 
-  const getClassName = (classId) => {
-    console.log("ClassesData: ", classesData);
+
+  const getClassName = useCallback((classId) => {
     const classC = classesData.find((classData) => classData.class_id == classId);
-    const courseName = courseData.find((course) => course.course_id == classC.course_id)?.course_name;
-    return `${courseName} - ${getUserName(classC.teacher_id)}`;
-  };
+    if (!classC) return 'Unknown Class';
+
+    const courseName = courseData.find((course) => course.course_id == classC.course_id)?.course_name || 'Unknown Course';
+
+    // Format dates for better readability
+    const startFormatted = formatDateTime(classC.start_time);
+    const endFormatted = formatDateTime(classC.end_time);
+
+    return `${courseName} - ${getUserName(classC.teacher_id)} from ${startFormatted} to ${endFormatted}`;
+  }, [classesData, courseData, getUserName]);
+
   // Add new function to handle saving edited data
   // Modify handleSaveData to use the new API
   const handleSaveData = useCallback(
@@ -182,6 +165,9 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
         console.error('No session found');
         return;
       }
+
+      // Set loading state for this specific item
+      setActionInProgress(prev => ({ ...prev, [`${table}-${id}-${column}`]: true }));
 
       try {
         const response = await fetch('/api/changeData', {
@@ -195,13 +181,13 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
             updates: { [column]: value },
           }),
         });
-
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || `Failed to update ${table}`);
         }
 
         const result = await response.json();
+
 
         // Update local state based on the type of data being edited
         if (table === 'classes') {
@@ -210,7 +196,7 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
           );
         } else if (table === 'students') {
           setStudentsData((prevData) =>
-            prevData.map((item) => (item.studentId === id ? { ...item, [column]: value } : item))
+            prevData.map((item) => (item.user_id === id ? { ...item, [column]: value } : item))
           );
         } else if (table === 'teachers') {
           setTeachersData((prevData) =>
@@ -224,12 +210,23 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
           setGradesData((prevData) =>
             prevData.map((item) => (item.grade_id === id ? { ...item, [column]: value } : item))
           );
+        } else if (table === 'users') {
+          setUsersData((prevData) =>
+            prevData.map((item) => (item.user_id === id ? { ...item, [column]: value } : item))
+          );
         }
 
         console.log(`Updated ${table}:`, result);
       } catch (error) {
         console.error(`Error updating ${table}:`, error);
-        throw error;
+        alert(`Failed to update ${table}: ${error.message}`);
+      } finally {
+        // Clear loading state
+        setActionInProgress(prev => {
+          const newState = { ...prev };
+          delete newState[`${table}-${id}-${column}`];
+          return newState;
+        });
       }
     },
     [session]
@@ -242,6 +239,10 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
         console.error('No session found');
         return;
       }
+
+      // Generate a unique key for this multi-save operation
+      const operationKey = `${table}-${id}-multi`;
+      setActionInProgress(prev => ({ ...prev, [operationKey]: true }));
 
       try {
         const response = await fetch('/api/changeData', {
@@ -270,7 +271,7 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
           );
         } else if (table === 'students') {
           setStudentsData((prevData) =>
-            prevData.map((item) => (item.studentId === id ? { ...item, ...updates } : item))
+            prevData.map((item) => (item.user_id === id ? { ...item, ...updates } : item))
           );
         } else if (table === 'teachers') {
           setTeachersData((prevData) =>
@@ -289,12 +290,25 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
         console.log(`Updated ${table}:`, result);
       } catch (error) {
         console.error(`Error updating ${table}:`, error);
-        throw error;
+        alert(`Failed to update ${table}: ${error.message}`);
+      } finally {
+        // Clear loading state
+        setActionInProgress(prev => {
+          const newState = { ...prev };
+          delete newState[operationKey];
+          return newState;
+        });
       }
     },
     [session]
   );
-  async function handleStudentQueueRejection(pendingId) {
+
+
+  // Improved student queue handling with proper state updates
+  const handleStudentQueueRejection = useCallback(async (pendingId) => {
+    // Set loading state for this action
+    setActionInProgress(prev => ({ ...prev, [`student-reject-${pendingId}`]: true }));
+
     try {
       const response = await fetch('/api/rejectPayment', {
         method: 'POST',
@@ -312,15 +326,29 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
         throw new Error(data.error || 'Failed to reject student');
       }
 
-      console.log('Data:', data);
+      // Update local state to remove this student from queue
+      setStudentsQueued(prev => prev.filter(student => student.pending_id !== pendingId));
+
+      // Refresh session data if needed
       update();
     } catch (error) {
       console.error('Error:', error);
-      // Handle error (show message to user, etc.)
+      alert(`Failed to reject student: ${error.message}`);
+    } finally {
+      // Clear loading state
+      setActionInProgress(prev => {
+        const newState = { ...prev };
+        delete newState[`student-reject-${pendingId}`];
+        return newState;
+      });
     }
-  }
+  }, [update]);
 
-  async function handleStudentQueueApproval(classId, userId) {
+
+  const handleStudentQueueApproval = useCallback(async (classId, userId, pendingId) => {
+    // Set loading state for this action
+    setActionInProgress(prev => ({ ...prev, [`student-approve-${pendingId}`]: true }));
+
     try {
       const response = await fetch('/api/acceptPayment', {
         method: 'POST',
@@ -329,7 +357,8 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
         },
         body: JSON.stringify({
           classId: classId,
-          userId: userId,  // Changed from paymentId to userId to match API expectation
+          userId: userId,
+          pendingId: pendingId,
         }),
       });
 
@@ -339,45 +368,118 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
         throw new Error(data.error || 'Failed to approve student');
       }
 
-      console.log('Data:', data);
+      // Update local state to remove this student from queue
+      setStudentsQueued(prev => prev.filter(student => student.pending_id !== pendingId));
+
+      // Refresh students data
+      const authToken = localStorage.getItem('authToken');
+      const updatedStudents = await fetchViewData('students_view');
+      setStudentsData(updatedStudents);
+
+      // Refresh session data
       update();
     } catch (error) {
       console.error('Error:', error);
-      // Handle error (show message to user, etc.)
+      alert(`Failed to approve student: ${error.message}`);
+    } finally {
+      // Clear loading state
+      setActionInProgress(prev => {
+        const newState = { ...prev };
+        delete newState[`student-approve-${pendingId}`];
+        return newState;
+      });
     }
-  }
+  }, [update]);
 
-  // Fetch all necessary data on component mount
+
+  // Lazy-loading data based on active tab
   useEffect(() => {
     const authToken = localStorage.getItem('authToken');
-    setIsLoading(true);
+    let isMounted = true;
 
-    Promise.all([
-      fetchData('classes', authToken),
-      fetchViewData('teachers_view'),
-      fetchViewData('students_view'),
-      fetchData('courses', authToken),
-      fetchData('grades', authToken),
-    ])
-      .then(([classes, teachers, students, courses, grades]) => {
-        setClassesData(classes);
-        setTeachersData(teachers);
-        setStudentsData(students);
-        setCourseData(courses);
-        setGradesData(grades);
-        setError(null);
-      })
-      .catch((err) => {
-        console.error('Error fetching data:', err);
-        setError('Failed to load data. Please try again later.');
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
+    const loadTabData = async () => {
+      setIsLoading(true);
+      try {
+        // Load data based on which tab is active
+        switch (activeTab) {
+          case TABS.TEACHERS:
+            if (teachersData.length === 0) {
+              const teachers = await fetchViewData('teachers_view');
+              if (isMounted) setTeachersData(teachers);
+            }
+            const [pendingTeachers] = await Promise.all([
+              fetchViewData('pending_teachers_view', authToken)
+            ]);
+            setPendingTeachersData(pendingTeachers);
+
+            break;
+
+          case TABS.CLASSES:
+            if (classesData.length === 0 || courseData.length === 0 || gradesData.length === 0) {
+              const [classes, courses, grades, teachers] = await Promise.all([
+                fetchData('classes', authToken),
+                fetchData('courses', authToken),
+                fetchData('grades', authToken),
+                fetchViewData('teachers_view', authToken)
+              ]);
+              if (isMounted) {
+                setClassesData(classes);
+                setCourseData(courses);
+                setGradesData(grades);
+                setTeachersData(teachers);
+              }
+            }
+            break;
+
+          case TABS.STUDENTS:
+            if (studentsData.length === 0) {
+              const [classes, courses, students, studentsQueue] = await Promise.all([
+                fetchData('classes', authToken),
+                fetchData('courses', authToken),
+                fetchViewData('students_view'),
+                fetchData('class_joining_pending', authToken)
+              ]);
+
+              if (isMounted) {
+                setClassesData(classes);
+                setCourseData(courses);
+                setStudentsData(students);
+                setStudentsQueued(studentsQueue);
+              }
+            }
+            break;
+        }
+
+        if (isMounted) {
+          setError(null);
+        }
+      } catch (err) {
+        console.error('Error fetching tab data:', err);
+        if (isMounted) {
+          setError(`Failed to load ${activeTab === TABS.TEACHERS ? 'teachers' :
+            activeTab === TABS.CLASSES ? 'classes' : 'students'} data.`);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadTabData();
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, teachersData.length, classesData.length, courseData.length, gradesData.length, studentsData.length]);
+
 
   // Handle teacher approval/denial with optimistic UI update
   const handleTeacherAction = useCallback(async (pendingId, approved) => {
+    // Set loading state for this action
+    setActionInProgress(prev => ({ ...prev, [`teacher-${approved ? 'approve' : 'deny'}-${pendingId}`]: true }));
+
     try {
       await actionTeacher(pendingId, approved);
 
@@ -391,11 +493,18 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
       }
     } catch (error) {
       console.error('Failed to process teacher action:', error);
-      alert(`Failed to ${approved ? 'approve' : 'deny'} teacher. Please try again.`);
+      alert(`Failed to ${approved ? 'approve' : 'deny'} teacher: ${error.message}`);
+    } finally {
+      // Clear loading state
+      setActionInProgress(prev => {
+        const newState = { ...prev };
+        delete newState[`teacher-${approved ? 'approve' : 'deny'}-${pendingId}`];
+        return newState;
+      });
     }
   }, []);
 
-  // Handle teacher change for a class
+  // Memoized callback functions for field changes
   const handleTeacherChange = useCallback(
     (classId, teacherId) => {
       handleSaveData('classes', classId, 'teacher_id', teacherId);
@@ -409,13 +518,14 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
     },
     [handleSaveData]
   );
+
   const handleGradesChange = useCallback(
     (classId, gradeId) => {
       handleSaveData('classes', classId, 'grade_id', gradeId);
     },
     [handleSaveData]
   );
-  // Handle schedule change
+
   const handleScheduleChange = useCallback(
     (classId, startTime, endTime) => {
       handleMultiSaveData('classes', classId, {
@@ -426,90 +536,108 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
     [handleMultiSaveData]
   );
 
-  // Render loading state
+  // Render loading state with info about what's loading
   if (isLoading) {
-    return <div className="loading-spinner">Loading data...</div>;
+    return (
+      <div className="loading-spinner">
+        Loading {activeTab === TABS.TEACHERS ? 'teachers' :
+          activeTab === TABS.CLASSES ? 'classes' : 'students'} data...
+      </div>
+    );
   }
 
-  // Render error state
+  // Render error state with specific error message
   if (error) {
-    return <div className="error-message">{error}</div>;
+    return (
+      <div className="error-message">
+        {error}
+        <button onClick={() => setIsLoading(true)}>Retry</button>
+      </div>
+    );
   }
 
-  // Render Teachers Tab Content
+
+  // Format column labels to be more readable
+  const formatColName = (colName) => {
+    return colName
+      .replace(/_/g, ' ')
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^\w/, c => c.toUpperCase())
+      .trim();
+  };
+
+
+
   const renderTeachersTab = () => (
     <>
-      <section className="teachers-section">
+      <section className="teachers-section ">
         <h3 className="headers">Pending Teachers</h3>
         {pendingTeachersData.length > 0 ? (
-          <div className="teachers-grid">
-            {pendingTeachersData.map((teacher) => (
-              <div className="teacher-card" key={`pending-${teacher.pending_id}`}>
-                <h2 className="teacher-name">
-                  {teacher.user_name}
-                  <span className="time">{teacher.expires_at}</span>
-                </h2>
-                <div className="teacher-details">
-                  <p>
-                    <strong>Qualification:</strong> {teacher.qualification}
-                  </p>
-                  <p>
-                    <strong>Experience:</strong> {teacher.experience}
-                  </p>
-                </div>
-                <div className="teacher-actions">
-                  <button
-                    className="approve-btn"
-                    onClick={() => handleTeacherAction(teacher.pending_id, true)}>
-                    Approve
-                  </button>
-                  <button
-                    className="deny-btn"
-                    onClick={() => handleTeacherAction(teacher.pending_id, false)}>
-                    Deny
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <table className="teachers-table">
+            <thead>
+              <tr>
+                {getCols(pendingTeachersData).map(col => <th key={col}>{formatColName(col)}</th>)}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pendingTeachersData.map((teacher) => (
+                <tr key={`pending-${teacher.pending_id}`}>
+                  {getCols(pendingTeachersData).map(col => (
+                    <td key={`${teacher.pending_id}-${col}`}>{teacher[col]}</td>
+                  ))}
+                  <td>
+                    <button
+                      className="approve-btn"
+                      onClick={() => handleTeacherAction(teacher.pending_id, true)}
+                      disabled={actionInProgress[`teacher-approve-${teacher.pending_id}`]}>
+                      {actionInProgress[`teacher-approve-${teacher.pending_id}`] ? 'Processing...' : 'Approve'}
+                    </button>
+                    <button
+                      className="deny-btn"
+                      onClick={() => handleTeacherAction(teacher.pending_id, false)}
+                      disabled={actionInProgress[`teacher-deny-${teacher.pending_id}`]}>
+                      {actionInProgress[`teacher-deny-${teacher.pending_id}`] ? 'Processing...' : 'Deny'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
           <div className="empty-state">No pending teacher applications</div>
         )}
       </section>
 
-      <section className="teachers-section">
-        <h3 className="headers">Approved Teachers</h3>
+      <section className="teachers-section scrollable">
         {teachersData.length > 0 ? (
-          <div className="teachers-grid">
-            {teachersData.map((teacher, index) => (
-              <div className="teacher-card" key={`teacher-${teacher.user_id || index}`}>
-                <EditableField
-                  initialValue={teacher.user_name}
-                  onSave={(value) => handleSaveData('users', teacher.user_id, 'user_name', value)}
-                  label="Teacher Name"
-                  placeholder="Enter teacher name"
-                />
-                <div className="teacher-details">
-                  <EditableField
-                    initialValue={teacher.qualification || ''}
-                    onSave={(value) =>
-                      handleSaveData('teachers', teacher.user_id, 'qualification', value)
-                    }
-                    label="Qualification"
-                    placeholder="Enter qualification"
-                  />
-                  <EditableField
-                    initialValue={teacher.experience || ''}
-                    onSave={(value) =>
-                      handleSaveData('teachers', teacher.user_id, 'experience', value)
-                    }
-                    label="Experience"
-                    placeholder="Enter experience"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          <table className="teachers-table">
+            <thead>
+              <tr>
+                {getCols(teachersData).map(col => <th key={col}> {formatColName(col)} </th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {teachersData.map((teacher, index) => (
+                <tr key={`teacher-${teacher.user_id || index}`}>
+                  {getCols(teachersData).map(col => (
+                    <td key={`${index}-${col}`}>
+                      <EditableField
+                        initialValue={teacher[col] || ''}
+                        onSave={(value) => {
+                          // Determine which table to save to based on column name
+                          const tableType = col.startsWith('user_') ? 'users' : 'teachers';
+                          handleSaveData(tableType, teacher.user_id, col, value);
+                        }}
+                        label={formatColName(col)}
+                        placeholder={`Enter ${formatColName(col).toLowerCase()}`}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
           <div className="empty-state">No approved teachers</div>
         )}
@@ -517,106 +645,205 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
     </>
   );
 
-  // Modified renderClassesTab to include time selectors
-  const renderClassesTab = () => (
-    <section className="classes-section">
-      <h3 className="headers">Approved Classes</h3>
-      {classesData.length > 0 ? (
-        <div className="classes-grid">
-          {classesData.map((classData) => (
-            <div className="class-card" key={`class-${classData.class_id}`}>
-              <EditableField
-                initialValue={classData.class_description || 'No description'}
-                onSave={(value) =>
-                  handleSaveData('classes', classData.class_id, 'class_description', value)
-                }
-                label="Class Description"
-                placeholder="Enter class description"
-              />
-              <div className="class-details">
-                <EditableDropdown
-                  initialValue={classData.teacher_id}
-                  onSave={(value) => handleTeacherChange(classData.class_id, value)}
-                  label="Teacher"
-                  options={teachersData.map((teacher) => ({
-                    value: teacher.user_id,
-                    label: teacher.user_name,
-                  }))}
-                  placeholder="Select a teacher"
-                />
+  // Replace renderClassesTab with table-based layout
+  const renderClassesTab = () => {
+    // Function to get column names from data
+    const getCols = (data) => {
+      if (data.length === 0) return [];
+      console.log(classesData, teachersData)
+      // Define columns and their corresponding components/handlers
+      const columns = [
+        {
+          key: 'class_description',
+          title: 'Description',
+          component: (classData) => (
+            <EditableField
+              initialValue={classData.class_description || 'No description'}
+              onSave={(value) =>
+                handleSaveData('classes', classData.class_id, 'class_description', value)
+              }
+              label="Class Description"
+              placeholder="Enter class description"
+            />
+          )
+        },
+        {
+          key: 'teacher_id',
+          title: 'Teacher',
+          component: (classData) => (
+            <EditableDropdown
+              initialValue={classData.teacher_id}
+              onSave={(value) => handleTeacherChange(classData.class_id, value)}
+              label="Teacher"
+              options={teachersData.map((teacher) => ({
+                value: teacher.user_id,
+                label: teacher.user_name,
+              }))}
+              placeholder="Select a teacher"
+            />
+          )
+        },
+        {
+          key: 'course_id',
+          title: 'Course',
+          component: (classData) => (
+            <EditableDropdown
+              initialValue={classData.course_id}
+              onSave={(value) => handleCoursesChange(classData.class_id, value)}
+              label="Course"
+              options={courseData.map((course) => ({
+                value: course.course_id,
+                label: course.course_name,
+              }))}
+              placeholder="Select a course"
+            />
+          )
+        },
+        {
+          key: 'grade_id',
+          title: 'Grade',
+          component: (classData) => (
+            <EditableDropdown
+              initialValue={classData.grade_id}
+              onSave={(value) => handleGradesChange(classData.class_id, value)}
+              label="Grade"
+              options={gradesData.map((grade) => ({
+                value: grade.grade_id,
+                label: grade.grade_name,
+              }))}
+              placeholder="Select a grade"
+            />
+          )
+        },
+        {
+          key: 'schedule',
+          title: 'Schedule',
+          component: (classData) => (
+            <EditableTimeSchedule
+              initialStartTime={classData.start_time}
+              initialEndTime={classData.end_time}
+              onSave={(startTime, endTime) =>
+                handleScheduleChange(classData.class_id, startTime, endTime)
+              }
+              label="Schedule"
+            />
+          )
+        }
+      ];
 
-                <EditableDropdown
-                  initialValue={classData.course_id}
-                  onSave={(value) => handleCoursesChange(classData.class_id, value)}
-                  label="Course"
-                  options={courseData.map((course) => ({
-                    value: course.course_id,
-                    label: course.course_name,
-                  }))}
-                  placeholder="Select a course"
-                />
-                <EditableDropdown
-                  initialValue={classData.grade_id}
-                  onSave={(value) => handleGradesChange(classData.class_id, value)}
-                  label="Grade"
-                  options={gradesData.map((grade) => ({
-                    value: grade.grade_id,
-                    label: grade.grade_name,
-                  }))}
-                  placeholder="Select a grade"
-                />
-                <EditableTimeSchedule
-                  initialStartTime={classData.start_time}
-                  initialEndTime={classData.end_time}
-                  onSave={(startTime, endTime) =>
-                    handleScheduleChange(classData.class_id, startTime, endTime)
-                  }
-                  label="Schedule"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="empty-state">No classes available</div>
-      )}
-    </section>
-  );
+      return columns;
+    };
 
-  // Modify renderStudentsTab to include editable fields
+
+    return (
+      <section className="classes-section scrollable">
+        <h3 className="headers">Approved Classes</h3>
+        {classesData.length > 0 ? (
+          <table className="classes-table">
+            <thead>
+              <tr>
+                {getCols(classesData).map(col => <th key={col.key}>{col.title}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {classesData.map((classData) => (
+                <tr key={`class-${classData.class_id}`}>
+                  {getCols(classesData).map(col => (
+                    <td key={`${classData.class_id}-${col.key}`}>
+                      {col.component(classData)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="empty-state">No classes available</div>
+        )}
+      </section>
+    );
+  };
+
   const renderStudentsTab = () => (
-    <section className="students-section">
+    <section className="students-section scrollable">
       <h3 className="headers">Queued Students</h3>
       {studentsQueued.length > 0 ? (
-        <div className="students-grid">
-          {studentsQueued.map((student, index) => (
-            <div className="student-card" key={`student-${student.pending_id || index}`}>
-              <span className="student-name">{getUserName(student.user_id)}</span>
-              <span className="payment-proof"><img src={student.screenshot_path} alt="screenshot" /></span>
-              <span className="class-name">for {getClassName(student.class_id)}</span>
-              <button className="approve-btn" onClick={() => handleStudentQueueApproval(student.class_id, student.user_id)}>Approve</button>
-              <button className="deny-btn" onClick={() => handleStudentQueueRejection(student.pending_id)}>Deny</button>
-            </div>
-          ))}
-        </div>
+        <table className="students-table">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Payment Proof</th>
+              <th>Class</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {studentsQueued.map((student, index) => (
+              <tr key={`student-${student.pending_id || index}`}>
+                {console.log(student)}
+                <td>{getUserName(student.user_id)}</td>
+                <td><img src={student.screenshot_path} alt="screenshot" className="payment-proof-img" /></td>
+                <td>{getClassName(student.class_id)}</td>
+                <td>
+                  <button
+                    className="approve-btn"
+                    onClick={() => handleStudentQueueApproval(student.class_id, student.user_id, student.pending_id)}
+                    disabled={actionInProgress[`student-approve-${student.pending_id}`]}>
+                    {actionInProgress[`student-approve-${student.pending_id}`] ? 'Processing...' : 'Approve'}
+                  </button>
+                  <button
+                    className="deny-btn"
+                    onClick={() => handleStudentQueueRejection(student.pending_id)}
+                    disabled={actionInProgress[`student-reject-${student.pending_id}`]}>
+                    {actionInProgress[`student-reject-${student.pending_id}`] ? 'Processing...' : 'Deny'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       ) : (
-        <div className="empty-state">No students registered</div>
+        <div className="empty-state">No students in queue</div>
       )}
+
       <h3 className="headers">All Students</h3>
       {studentsData.length > 0 ? (
-        <div className="students-grid">
-          {studentsData.map((student, index) => (
-            <div className="student-card" key={`student-${student.studentId || index}`}>
-              <EditableField
-                initialValue={student.user_name}
-                onSave={(value) => handleSaveData('students', student.studentId, 'user_name', value)}
-                label="Student Name"
-                placeholder="Enter student name"
-              />
-              {/* Add more editable fields for student details as needed */}
-            </div>
-          ))}
-        </div>
+        <table className="students-table">
+          <thead>
+            <tr>
+              {getCols(studentsData).map(col => <th key={col}>{formatColName(col)}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {studentsData.map((student, index) => (
+              <tr key={`student-${student.user_id || index}`}>
+                {getCols(studentsData).map(col =>
+                  (col == "user_id") ? (
+                    <td key={`${index}-${col}`}>
+                      {student[col]}
+                    </td>
+                  ) : (col == "date_of_birth") ? (
+                    <td key={`${index}-${col}`}>
+                      <EditableDate
+                        initialDate={(student[col]).split('T')[0] || ''}
+                        onSave={(value) => handleSaveData('students', student.user_id, col, value + student[col].split('T')[1])}
+                        label={formatColName(col)}
+                      />
+                    </td>
+                  ) :
+                    <td key={`${index}-${col}`}>
+                      <EditableField
+                        initialValue={student[col] || ''}
+                        onSave={(value) => handleSaveData('students', student.user_id, col, value)}
+                        label={formatColName(col)}
+                        placeholder={`Enter ${formatColName(col).toLowerCase()}`}
+                      />
+                    </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       ) : (
         <div className="empty-state">No students registered</div>
       )}

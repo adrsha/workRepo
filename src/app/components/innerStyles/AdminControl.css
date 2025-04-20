@@ -51,6 +51,7 @@
 .classes-section,
 .students-section {
   margin-bottom: 30px;
+  overflow: scroll;
 }
 
 .teachers-grid,
@@ -197,10 +198,56 @@
   margin-bottom: 0.5rem;
 }
 
+.teachers-table,
+.classes-table,
+.students-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.teachers-table th,
+.classes-table th,
+.students-table th {
+  background-color: var(--background);
+  padding: 12px;
+  text-align: left;
+  font-weight: bold;
+  border-bottom: 2px solid var(--offWhite);
+}
+
+.teachers-table td,
+.classes-table td,
+.students-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--offWhite);
+  vertical-align: top;
+}
+
+.teachers-table tr:hover,
+.classes-table tr:hover,
+.students-table tr:hover {
+  background-color: var(--offWhite);
+}
+
+.payment-proof-img {
+  max-width: 150px;
+  max-height: 100px;
+  cursor: pointer;
+}
+
+.payment-proof-img:hover {
+  transform: scale(1.05);
+}
+
+.approve-btn,
+.deny-btn {
+  margin-right: 10px;
+  padding: 6px 12px;
+}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-
   .teachers-grid,
   .classes-grid,
   .students-grid {

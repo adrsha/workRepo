@@ -51,7 +51,7 @@ export function EditableField({ initialValue, onSave, label, placeholder }) {
         </div>
       ) : (
         <div onClick={() => setIsEditing(true)} className="editable-field__display">
-          {value || placeholder}
+          {(value != null) ? value.toString() : placeholder}
         </div>
       )}
     </div>

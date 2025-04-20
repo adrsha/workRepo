@@ -7,7 +7,7 @@ import AdminControl from '../components/AdminControl.js';
 
 import '../global.css';
 
-import { fetchJoinableData, fetchViewData, fetchData } from '../lib/helpers.js';
+import { fetchJoinableData, fetchViewData, fetchData, getDate } from '../lib/helpers.js';
 import { useSession } from 'next-auth/react';
 
 import { useRouter } from 'next/navigation';
@@ -94,7 +94,7 @@ async function updateTeacherProfile(teacherId, profileData) {
 
 export default function LMSHome() {
   const { data: session, status, update } = useSession();
-  const [classesData, setClassesData] = useState([]);
+  const [classesData, setClassesData] = useState(null);
   const router = useRouter();
   const [addClassOverLayState, setAddClassOverlayState] = useState(false);
   const [editProfileOverlayState, setEditProfileOverlayState] = useState(false);
@@ -108,7 +108,6 @@ export default function LMSHome() {
 
   useEffect(() => {
     if (!session) return;
-
     const token = localStorage.getItem('authToken');
 
     const fetchUserData = async () => {
@@ -179,18 +178,24 @@ export default function LMSHome() {
 
     const formData = new FormData(e.currentTarget);
     const startTime = formData.get('startTime');
+    const startDate = formData.get('startDate');
     const endTime = formData.get('endTime');
+    const endDate = formData.get('endDate');
     const classDescription = formData.get('classDescription');
+    const repeatEveryNDay = formData.get('repeatEveryNDay');
     const grade = parseInt(formData.get('grade'));
     const courseId = parseInt(formData.get('course'));
 
-    if (!startTime || !endTime || !classDescription || !courseId || !grade) {
+    if (!startTime || !endTime || !startDate || !endDate || !courseId || !grade || !repeatEveryNDay) {
       setAddClassError('Please fill in all required fields');
       return;
     }
 
+    const start = startDate + 'T' + startTime;
+    const end = endDate + 'T' + endTime;
+
     try {
-      await addClass(courseId, startTime, endTime, classDescription, grade);
+      await addClass(courseId, start, end, repeatEveryNDay, classDescription, grade);
       setAddClassError('Successfully added class');
       await update();
       setTimeout(() => {
@@ -290,15 +295,13 @@ export default function LMSHome() {
       <>
         <h1 className={styles.title}>Home</h1>
         {session && (
-          <>
-            <p>
-              {session.user.level === 0
-                ? 'Welcome to Enrolled courses!'
-                : session.user.level === 1
-                  ? 'Welcome to your classes.'
-                  : 'Welcome to your control panel.'}
-            </p>
-          </>
+          <p>
+            {session.user.level === 0
+              ? 'Welcome to Enrolled courses!'
+              : session.user.level === 1
+                ? 'Welcome to your classes.'
+                : 'Welcome to your control panel.'}
+          </p>
         )}
 
         {renderUserContent()}
@@ -308,7 +311,6 @@ export default function LMSHome() {
 
   const renderUserContent = () => {
     if (!session) return null;
-
     if (session.user.level === 0) {
       return renderStudentContent();
     } else if (session.user.level === 1) {
@@ -321,17 +323,16 @@ export default function LMSHome() {
   };
 
   const renderStudentContent = () => {
-    if (classesData.length === 0) return null;
+    if (!classesData) return <Loading />;
 
     return (
-      <div>
+      <div className={styles.classCards}>
         {classesData.map((classData) => (
           <div className={styles.classCard} key={classData.class_id}>
             <h2>
               {classData.course_name[0].toUpperCase() + classData.course_name.slice(1)}
-              <span> - {classData.teacher_name}</span>
+              <span> - {classData.user_name}</span>
             </h2>
-            <span> for {classData.grade_name}</span>
             <p>{classData.course_details}</p>
             <span className={styles.classDetails}>
               <button
@@ -380,41 +381,44 @@ export default function LMSHome() {
         {renderTeacherProfile()}
 
         <h2 className={styles.sectionTitle}>Your Classes</h2>
-
-        {classesData.length > 0 && (
-          <div>
-            {classesData.map((classData) => (
-              <div className={styles.classCard} key={classData.class_id}>
-                <h2>
-                  {classData.course_name[0].toUpperCase() +
-                    classData.course_name.slice(1)}
-                  <span className={styles.time}>
-                    {' '}
-                    {classData.start_time} to {classData.end_time}
-                  </span>
-                </h2>
-                <span> for {classData.grade_name}</span>
-                <p>{classData.class_description}</p>
-                <span className={styles.classDetails}>
-                  <button
-                    className={styles.classDetailsButton}
-                    onClick={() => router.push(`/classes/${classData.class_id}`)}>
-                    Join Class
-                  </button>
-                </span>
-                {showClassDeleters && (
-                  <div className={styles.classDeleter}>
+        {classesData ?
+          classesData.length > 0 && (
+            <div className={styles.classCards}>
+              {classesData.map((classData) => (
+                <div className={styles.classCard} key={classData.class_id}>
+                  <h2>
+                    {classData.course_name[0].toUpperCase() +
+                      classData.course_name.slice(1)}
+                    <span className={styles.time}>
+                      {' '}
+                      {getDate(classData.start_time).hhmmss} to {getDate(classData.end_time).hhmmss}
+                      {" "} and {" "}
+                      {getDate(classData.start_time).yyyymmdd} to {getDate(classData.end_time).yyyymmdd}
+                    </span>
+                  </h2>
+                  <span className={styles.gradeName}> for {classData.grade_name}</span>
+                  <span className={styles.repeatDay}>repeats every {classData.repeat_every_n_day} days</span>
+                  <p>{classData.class_description}</p>
+                  <span className={styles.classDetails}>
                     <button
-                      className={styles.classDeleterButton}
-                      onClick={() => handleRemoveClass(classData.class_id)}>
-                      X
+                      className={styles.classDetailsButton}
+                      onClick={() => router.push(`/classes/${classData.class_id}`)}>
+                      View Class
                     </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+                  </span>
+                  {showClassDeleters && (
+                    <div className={styles.classDeleter}>
+                      <button
+                        className={styles.classDeleterButton}
+                        onClick={() => handleRemoveClass(classData.class_id)}>
+                        X
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : <Loading />}
         <span className={styles.flexyspan}>
           <button
             className={styles.addClass}
@@ -462,12 +466,14 @@ export default function LMSHome() {
               />
               <Input label="Start Time" type="time" name="startTime" id="startTime" required />
               <Input label="End Time" type="time" name="endTime" id="endTime" required />
+              <Input label="Start Date" type="date" name="startDate" id="startDate" required />
+              <Input label="End Date" type="date" name="endDate" id="endDate" required />
+              <Input label="Every ? Days" type="number" name="repeatEveryNDay" id="repeatEveryNDay" required />
               <Input
                 label="Class Description"
                 type="textarea"
                 name="classDescription"
                 id="classDescription"
-                required
               />
               {addClassError && <p className={styles.errorDisplay}>{addClassError}</p>}
               <button type="submit" className={styles.addClassOverlaySubmitButton}>

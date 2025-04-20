@@ -26,13 +26,28 @@ export async function fetchData(tableName, authToken = null) {
   }
 }
 
-export async function fetchViewData(viewName) {
+export async function fetchViewData(viewName, token) {
   try {
-    const response = await fetch(`/api/views?view=${viewName}`);
-    console.log(response)
+    // Create headers object with the authorization token
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    // Add authorization header if token is provided
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // Make the fetch request with headers
+    const response = await fetch(`/api/views?view=${viewName}`, {
+      method: 'GET',
+      headers: headers
+    });
+    console.log(response);
     if (!response.ok) {
       throw new Error('Failed to fetch View data');
     }
+
     return await response.json();
   } catch (error) {
     console.error('Error in fetchViewData:', error);
@@ -162,4 +177,11 @@ export async function updateTableData(tableName, data, conditions, authToken = n
     console.error('Error in updateTableData:', error);
     throw error;
   }
+}
+
+export function getDate(string) {
+  let date = new Date(string)
+  let yyyymmdd = (date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate())
+  let hhmmss = (date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds())
+  return { yyyymmdd, hhmmss }
 }

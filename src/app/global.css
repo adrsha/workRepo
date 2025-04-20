@@ -1,34 +1,49 @@
 :root {
   --navheight: 6rem;
   --inputThickness: 1rem;
-  
-  /* 20221D */
-  --darkBlack:  #000000;
-  --background:  #e0e0e0;
-  --secondaryBackground: #A7A7A7;
-  --foreground: #4A4A4A;
-  --darkforeground: #181818;
-  
-  --primary:#FF8F7D;
-  --secondary: #48A2B5;
-  --tertiary: #00BF92;
-  --quaternary: #FF697C;
-  
-  --primaryLight:#FFB5AD;
-  --secondaryLight: #FFa9aC;
-  --tertiaryLight: #53CFC2;
-  --quaternaryLight: #6eb5c9;
-  
+  --card-shadow: 0 5px 15px rgba(0, 0, 10, 0.05); /* slight blue tint */
+  --hover-shadow: 0 8px 25px rgba(0, 0, 20, 0.1); /* more noticeable blue */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  --border-radius-sm: 0.5rem;
+  --border-radius-md: 0.75rem;
+  --border-radius-lg: 1rem;
 
-  --backgroundGreen: rgba(128, 255, 148, 0.2);
-  --lightGreen:  rgba(18, 200, 148, 1);
-  --lightRed: #FF595C;
-  --darkRed: #b02924;
+  /* Neutrals - match logo's cool grey/silver tones */
+  --darkBlack: #10141a;
+  --background: #e6edf3; /* soft cool light blue-grey */
+  --secondaryBackground: #c7d2dd;
+  --foreground: #3a4754; /* medium cool grey-blue */
+  --darkforeground: #1f2a36;
 
-  --white: #ffffff;
-  --offWhite: #c0c0c0;
-  --black: #2A2A2A;
-  
+  /* Primary Accent Colors - pulled from logo */
+  --primary: #ff697c; /* pink/red */
+  --secondary: #ff8670; /* coral/orange */
+  --tertiary: #3db0b7; /* teal-blue */
+  --quaternary: #00b87d; /* emerald-green */
+
+  /* Lighter Accents */
+  --primaryLight: #ff9ca7;
+  --secondaryLight: #ffc0ad;
+  --tertiaryLight: #a0e0e5;
+  --quaternaryLight: #6fe3bb;
+
+  /* Functional Colors */
+  --backgroundGreen: rgba(0, 184, 125, 0.1); /* from quaternary */
+  --lightGreen: #00b87d;
+  --lightRed: #ff5a73;
+  --lightBlue: #3db0b7;
+
+  --darkGreen: #00685d;
+  --darkRed: #a53844;
+
+  /* Whites and Blacks */
+  --white: #f8fafc;
+  --offWhite: #d4dce5;
+  --gray: #a4acbf;
+  --black: #1a1f27;
+
   --font-sans: "Funnel Sans", sans-serif;
   --font-serif: "Bungee", serif;
 }
@@ -36,56 +51,22 @@
 * {
   box-sizing: border-box;
   font-family: var(--font-sans);
-   -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 *::-webkit-scrollbar {
   display: none;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    font-weight: normal;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: normal;
 }
-
-
-.paperButtons {
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  display: inline-block;
-  position: relative;
-  padding: 10px 20px;
-  border-radius: 5px;
-  perspective: 800px; /* Adds depth */
-}
-
-.paperButtons:hover {
-  background: var(--white);
-  color: var(--darkblack);
-  position: relative;
-  border-radius: 5px;
-  border-bottom-right-radius: 15px;
-  box-shadow: 3px 3px 10px 0 rgba(0, 0, 0, 0.2);
-}
-
-
-.paperButtons:hover::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 10px;
-  height: 10px;
-  background: var(--black);
-  border-bottom-right-radius: 35px;
-  animation: slideIn 0.5s ease-in-out;
-  box-shadow: 0px 0px 5px 0 rgba(0, 0, 0, 0.2);
-}
-
-.paperButtons:hover img {
-  filter: brightness(0.3);
-}
-
 
 @keyframes slideIn {
   from {
@@ -99,18 +80,90 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 button {
-    font-size: 1rem;
-    padding: 1rem;
-    border: none;
-    color: var(--foreground);
+  font-size: 1rem;
+  padding: 1rem;
+  border: none;
+  background-color: var(--background);
 }
 
 a {
-    text-decoration: none;
-    color: var(--foreground);
+  text-decoration: none;
 }
 
+.headers {
+  font-family: var(--font-serif);
+}
 
-.headers{
-    font-family: var(--font-serif);
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.8rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-primary {
+  background-color: var(--primary);
+  color: var(--white);
+}
+
+.badge-secondary {
+  background-color: var(--secondary);
+  color: var(--white);
+}
+
+.badge-tertiary {
+  background-color: var(--tertiary);
+  color: var(--white);
+}
+
+/* Improved scroll appearance for components that need scrollbars */
+.scrollable {
+  overflow: auto; /* Ensure scrolling is enabled */
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--secondaryBackground) rgba(0, 0, 0, 0); /* thumb, track */
+
+  /* Internet Explorer 10+ */
+  -ms-overflow-style: auto;
+}
+
+/* Webkit browsers (Chrome, Edge, Safari) */
+.scrollable::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollable::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0);
+  border-radius: 10px;
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+  background-color: var(--secondaryBackground);
+  border-radius: 10px;
+}
+
+.scrollable::-webkit-scrollbar-thumb:hover {
+  background-color: var(--foreground);
 }

@@ -1,92 +1,97 @@
 .inputContainer {
-    position: relative;
-    margin: 0;
-    border-radius: 4px;
-    padding: 0;
-    width: 100%;
-    border: 2px solid var(--offWhite);
+  position: relative;
+  margin: 0;
+  border-radius: 4px;
+  padding: 0;
+  width: 100%;
+  border: 2px solid var(--offWhite);
 }
 
-.inputContainer:has(.input[type='radio']) {
-    display: inline;
-    width: fit-content;
-    border: none;
+.inputContainer:has(.input[type="radio"]) {
+  display: inline;
+  width: fit-content;
+  border: none;
 }
 
-
-.inputContainer:has(.input[type='date']) {
-    display: flex;
-    flex-direction: column-reverse;
+.inputContainer:has(.input[type="date"]) {
+  display: flex;
+  flex-direction: column-reverse;
 }
-.inputContainer:has(.input[type='checkbox']) {
-    border: none;
+.inputContainer:has(.input[type="checkbox"]) {
+  border: none;
 }
 
 .input::placeholder {
-    color: transparent; /* Change to your desired color */
-    opacity: 1; /* Ensures full visibility in some browsers */
+  color: transparent; /* Change to your desired color */
+  opacity: 1; /* Ensures full visibility in some browsers */
 }
 
 .inputLabel {
-    position: absolute;
-    padding: 0.5rem;
-    margin-left: var(--inputThickness);
-    font-size: 1rem;
-    left: 0;
-    color: var(--secondaryBackground);
-    transition: 0.2s ease-in-out;
-    white-space: nowrap;
-    border-radius: 4px;
-    cursor: text;
+  position: absolute;
+  padding: 0.5rem;
+  margin-left: var(--inputThickness);
+  font-size: 1rem;
+  left: 0;
+  color: var(--gray);
+  transition: 0.2s ease-in-out;
+  white-space: nowrap;
+  border-radius: 4px;
+  cursor: text;
 }
 
-.input:not([type='checkbox']):not([type='radio']) {
-    width: 100%;
+.input:not([type="checkbox"]):not([type="radio"]) {
+  width: 100%;
 }
 
 .input {
-    padding: var(--inputThickness);
-    background-color: var(--background);
-    color: var(--foreground);
-    border: none;
-    border-radius: 4px;
+  padding: var(--inputThickness);
+  background-color: var(--background);
+  color: var(--foreground);
+  border: none;
+  border-radius: 4px;
 }
 
 .input:focus {
-    outline: none;
+  outline: none;
 }
 
 /* :NOTE: The order of the following rules is important. */
 
 /* When nothing is typed in the input, the label is shown. */
-.input:not(:focus):not(:placeholder-shown):not([type='checkbox']):not([type='radio']):not([type='date']) + .inputLabel {
-    font-size: 0.75rem;
-    top: calc(0.5 * var(--inputThickness));
-    left: calc(100% - var(--inputThickness)*1.5);
-    background-color: var(--background);
-    box-shadow: -20px 0 10px -10px var(--background);
-    transform: translateX(-100%);
-    padding: 0.5rem;
+.input:not(:focus):not(:placeholder-shown):not([type="checkbox"]):not(
+    [type="radio"]
+  ):not([type="date"])
+  + .inputLabel {
+  font-size: 0.75rem;
+  top: calc(0.5 * var(--inputThickness));
+  left: calc(100% - var(--inputThickness) * 1.5);
+  background-color: var(--background);
+  box-shadow: -20px 0 10px -10px var(--background);
+  transform: translateX(-100%);
+  padding: 0.5rem;
 }
-.input:focus:not(:placeholder-shown):not([type='checkbox']:not[type='radio']):not([type='date']) + .inputLabel {
-    font-size: 0.75rem;
-    top: calc(-2 * var(--inputThickness));
-    left: calc(100% - var(--inputThickness)*1.5);
-    transform: translateX(-100%);
+.input:focus:not(:placeholder-shown):not(
+    [type="checkbox"]:not[type="radio"]
+  ):not([type="date"])
+  + .inputLabel {
+  font-size: 0.75rem;
+  top: calc(-2 * var(--inputThickness));
+  left: calc(100% - var(--inputThickness) * 1.5);
+  transform: translateX(-100%);
 }
 .input:placeholder-shown + .inputLabel {
-    top: calc(0.5 * var(--inputThickness));
+  top: calc(0.5 * var(--inputThickness));
 }
 /* When the input is focused, the label is moved up. */
 .input:focus + .inputLabel {
-    top: calc(-2 * var(--inputThickness));
-    background-color: var(--secondary);
-    color: var(--background);
+  top: calc(-2 * var(--inputThickness));
+  background-color: var(--secondary);
+  color: var(--white);
 }
 /* When something is typed in the input, the label is moved up. */
 .input:not(placeholder-shown) + .inputLabel {
-    top: calc(-2 * var(--inputThickness));
-    background-color: transparent;
+  top: calc(-2 * var(--inputThickness));
+  background-color: transparent;
 }
 /* :NOTE: The order of the above rules is important. */
 
@@ -94,124 +99,123 @@
 .input:-webkit-autofill:hover,
 .input:-webkit-autofill:focus,
 .input:-webkit-autofill:active {
-    -webkit-text-fill-color: var(--color1);
-    background-color: var(--background);
-    outline: none;
-    border: none;
+  -webkit-text-fill-color: var(--color1);
+  background-color: var(--background);
+  outline: none;
+  border: none;
 }
 
-.input[type='checkbox'] {
-    appearance: none;
-    position: relative;
-    transform: translateY(0.25rem);
-    /* width: 0.3rem; */
-    /* height: 0.3rem; */
-    padding: 0.5rem;
-    border-radius: 0.3rem;
-    background-color: var(--secondary);
-    border: 0.2rem solid var(--secondary);
-    transition: 0.2s ease-in-out;
-    margin: 0;
+.input[type="checkbox"] {
+  appearance: none;
+  position: relative;
+  transform: translateY(0.25rem);
+  /* width: 0.3rem; */
+  /* height: 0.3rem; */
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  background-color: var(--secondary);
+  border: 0.2rem solid var(--secondary);
+  transition: 0.2s ease-in-out;
+  margin: 0;
 }
-.input[type='checkbox']::after {
-    content: '✓'; /* checkmark */
-    transform: translate(-50%, -50%);
-    color: var(--foreground);
-    opacity: 0;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    font-size: 1.5rem;
-    transition: opacity 0.2s ease-in-out;
+.input[type="checkbox"]::after {
+  content: "✓"; /* checkmark */
+  transform: translate(-50%, -50%);
+  color: var(--foreground);
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 1.5rem;
+  transition: opacity 0.2s ease-in-out;
 }
-.input[type='checkbox']:checked::after{
-    opacity: 1;
+.input[type="checkbox"]:checked::after {
+  opacity: 1;
 }
-.input[type='checkbox']:hover{
-    border-color: var(--secondary);
-    background-color: var(--background);
-}
-
-.input[type='checkbox']+ label{
-    padding: 0;
-    position: static;
-    display: inline-block;
-    color: var(--foreground);
+.input[type="checkbox"]:hover {
+  border-color: var(--secondary);
+  background-color: var(--background);
 }
 
-.input[type='checkbox']:focus + label{
-    background-color: transparent;
-    color: var(--foreground);
+.input[type="checkbox"] + label {
+  padding: 0;
+  position: static;
+  display: inline-block;
+  color: var(--foreground);
 }
 
-.input[type='radio']:focus + label{
-    background-color: transparent;
-    color: var(--foreground);
+.input[type="checkbox"]:focus + label {
+  background-color: transparent;
+  color: var(--foreground);
 }
 
-.input[type='radio']+ label {
-    padding: 0;
-    margin-left: 0.5rem;
-    margin-right: 0.5rem;
-    position: static;
-    color: var(--foreground);
-    border-bottom: 1px solid transparent;
-    border-radius: 0;
+.input[type="radio"]:focus + label {
+  background-color: transparent;
+  color: var(--foreground);
 }
 
-.input[type='radio']:checked + label{
-    border-bottom-color: var(--secondary);
+.input[type="radio"] + label {
+  padding: 0;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  position: static;
+  color: var(--foreground);
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
 }
 
-.input[type='radio']:checked::after {
-    content: ''; 
-    opacity: 0.5;
-    transform: translate(-50%, -50%);
-    background-color: var(--background);
+.input[type="radio"]:checked + label {
+  border-bottom-color: var(--secondary);
 }
 
-.input[type='radio']:hover::after {
-    border-color: var(--secondary); 
+.input[type="radio"]:checked::after {
+  content: "";
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  background-color: var(--background);
 }
 
-.input[type='radio']::after {
-    content: ''; 
-    opacity: 1;
-    transform: translate(-50%, -50%);
-    background-color: var(--background);
-    border-radius: 0.2rem;
-    width: 80%;
-    aspect-ratio: 1;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    font-size: 1.5rem;
-    transition: opacity 0.2s ease-in-out;
+.input[type="radio"]:hover::after {
+  border-color: var(--secondary);
 }
 
-
-.input[type='radio'] {
-    appearance: none;
-    position: relative;
-    transform: translateY(0.25rem);
-    /* width: 0.3rem; */
-    /* height: 0.3rem; */
-    padding: 0.5rem;
-    border-radius: 0.3rem;
-    background-color: var(--secondary);
-    border: 0.2rem solid var(--secondary);
-    transition: 0.2s ease-in-out;
-    margin: 0;
+.input[type="radio"]::after {
+  content: "";
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  background-color: var(--background);
+  border-radius: 0.2rem;
+  width: 80%;
+  aspect-ratio: 1;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 1.5rem;
+  transition: opacity 0.2s ease-in-out;
 }
 
-.input[type='date'] + label {
-    display: flex;
-    padding: 0.5rem;
-    margin: 0;
-    font-size: 1rem;
-    border-radius: 4px 4px 0 0;
-    position: static;
-    color: var(--secondary);
+.input[type="radio"] {
+  appearance: none;
+  position: relative;
+  transform: translateY(0.25rem);
+  /* width: 0.3rem; */
+  /* height: 0.3rem; */
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  background-color: var(--secondary);
+  border: 0.2rem solid var(--secondary);
+  transition: 0.2s ease-in-out;
+  margin: 0;
+}
+
+.input[type="date"] + label {
+  display: flex;
+  padding: 0.5rem;
+  margin: 0;
+  font-size: 1rem;
+  border-radius: 4px 4px 0 0;
+  position: static;
+  color: var(--secondary);
 }
 textarea.textarea {
   resize: none;

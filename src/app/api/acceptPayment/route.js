@@ -5,11 +5,9 @@ import { executeQueryWithRetry } from '../../lib/db';
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { classId, userId } = body;
+    const { classId, userId, pendingId } = body;
     const session = await getServerSession(authOptions);
 
-    console.log('classId:', classId);
-    console.log('userId:', userId);
     // Check if the session is valid
     if (!session) {
       return new Response(JSON.stringify({ error: 'Unauthorized: User not authenticated' }), { status: 401 });
@@ -26,7 +24,7 @@ export async function POST(req) {
     }
     let addResponse = await addToDatabase(classId, userId);
     if (!addResponse.error) {
-      await removeCurrentEntry(classId, userId);
+      await removeCurrentEntry(pendingId);
     }
 
     return new Response(JSON.stringify({ message: 'Payment accepted' }), { status: 200 });
@@ -55,11 +53,11 @@ async function addToDatabase(classId, userId) {
   }
 }
 
-async function removeCurrentEntry(classId, userId) {
+async function removeCurrentEntry(pendingId) {
   try {
     const result = await executeQueryWithRetry({
-      query: 'DELETE FROM class_joining_pending WHERE class_id = ? AND user_id = ?',
-      values: [classId, userId],
+      query: 'DELETE FROM class_joining_pending WHERE pending_id = ?',
+      values: [pendingId],
     });
     return result;
   } catch (err) {
