@@ -8,7 +8,7 @@ import { executeQueryWithRetry } from './db';
 
 // Define paths for both local and server storage
 const LOCAL_UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
-const SERVER_UPLOADS_DIR = process.env.SERVER_UPLOADS_DIR || '/home/username/public_html/uploads';
+const SERVER_UPLOADS_DIR = process.env.SERVER_UPLOADS_DIR || '/home/merotuit/root/public/uploads';
 const USE_SERVER_FILES = process.env.USE_SERVER_FILES === 'true' || false;
 
 /**

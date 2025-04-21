@@ -10,7 +10,7 @@ import fs from 'fs';
 const localUploadsDir = join(process.cwd(), 'public', 'uploads');
 
 // Define the server uploads directory path - update this to your server path
-const serverUploadsDir = process.env.SERVER_UPLOADS_DIR || '/home/username/public_html/uploads';
+const serverUploadsDir = process.env.SERVER_UPLOADS_DIR || '/home/merotuit/root/public/uploads';
 
 export async function POST(req) {
   try {
