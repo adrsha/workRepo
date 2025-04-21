@@ -1,16 +1,3 @@
-// Add this at the very top of your file
-try {
-  const { setGlobalDispatcher, Agent } = require('undici');
-  setGlobalDispatcher(new Agent({
-    connections: 10, // Lower than default
-    pipelining: 1
-  }));
-  console.log('Global HTTP dispatcher set with custom configuration');
-} catch (err) {
-  console.warn('Could not set global dispatcher:', err.message);
-}
-
-// Then your existing code
 const next = require('next');
 const express = require('express');
 
