@@ -205,3 +205,107 @@
     margin: 0;
   }
 }
+
+/* Add these to your Home.module.css file */
+
+.notices {
+  padding: 2rem 10vw;
+  margin-top: 5vh;
+}
+
+.notices h2 {
+  color: var(--foreground);
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  position: relative;
+  display: inline-block;
+}
+
+.notices h2:after {
+  content: "";
+  position: absolute;
+  bottom: -0.5rem;
+  left: 0;
+  width: 50%;
+  height: 3px;
+  background-color: var(--primary);
+  border-radius: 2px;
+}
+
+.loadingNotices {
+  color: var(--foreground);
+  font-style: italic;
+  padding: 1rem;
+  text-align: center;
+}
+
+.noNotices {
+  color: var(--foreground);
+  padding: 1rem;
+  text-align: center;
+  font-style: italic;
+}
+
+.noticesList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.noticeItem {
+  background: var(--background);
+  box-shadow: var(--card-shadow);
+  border-radius: var(--border-radius-md);
+  padding: 1.5rem;
+  transition: var(--transition-normal);
+  border-left: 4px solid var(--tertiary);
+}
+
+.noticeItem:hover {
+  box-shadow: var(--hover-shadow);
+  transform: translateY(-3px);
+}
+
+.noticeHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  justify-content: space-between;
+}
+
+.noticeIcon {
+  display: flex;
+  align-items: center;
+  color: var(--tertiary);
+  margin-right: 0.75rem;
+}
+
+.noticeDateTime {
+  font-size: 0.85rem;
+  color: var(--gray);
+  font-weight: 500;
+}
+
+.noticeContent {
+  color: var(--foreground);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  padding-left: 2rem; /* Add space to align content with icon */
+}
+
+/* Responsive adjustments */
+@media (max-width: 1000px) {
+  .notices {
+    padding: 2rem 5vw;
+  }
+
+  .noticeHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .noticeDateTime {
+    margin-left: 2rem;
+  }
+}
