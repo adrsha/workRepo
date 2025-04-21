@@ -6,6 +6,7 @@ import '../../global.css';
 import styles from '../../../styles/ClassDetails.module.css';
 import Loading from '../../components/Loading';
 import { fetchData, fetchViewData, fetchJoinableData } from '../../lib/helpers';
+import ClassContent from '../../components/ClassContent';
 
 // Format ISO date strings to a more readable format
 const formatDateTime = (dateTimeString) => {
@@ -387,6 +388,9 @@ export default function ClassDetailsPage({ params }) {
             <h3>Course Description</h3>
             <p>{classDetails.course_details}</p>
           </div>
+
+          {/* Add Class Content Component */}
+          <ClassContent classId={classId} isTeacher={isTeacher} />
 
           <div className={styles.studentsSection}>
             <h3>Enrolled Students ({students.length})</h3>

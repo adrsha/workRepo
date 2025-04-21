@@ -43,7 +43,6 @@ export async function fetchViewData(viewName, token) {
       method: 'GET',
       headers: headers
     });
-    console.log(response);
     if (!response.ok) {
       throw new Error('Failed to fetch View data');
     }

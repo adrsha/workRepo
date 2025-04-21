@@ -1,0 +1,92 @@
+.fileUploadContainer {
+  width: 100%;
+}
+
+.dropzone {
+  border: 2px dashed #e2e8f0;
+  border-radius: 6px;
+  padding: 2rem 1rem;
+  text-align: center;
+  background-color: #f9fbfd;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dropzone.active {
+  border-color: #4a90e2;
+  background-color: #ebf5ff;
+}
+
+.dropzone.hasFile {
+  border-color: #10b981;
+  background-color: #ecfdf5;
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadLabel {
+  display: block;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.uploadLabel:hover {
+  color: #475569;
+}
+
+.fileInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fileName {
+  font-weight: 500;
+  color: #435365;
+  word-break: break-all;
+}
+
+.fileSize {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.uploadActions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.uploadButton {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 1.5rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.uploadButton:hover {
+  background-color: #059669;
+}
+
+.cancelButton {
+  padding: 0.7rem 1.5rem;
+  background-color: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.cancelButton:hover {
+  background-color: #f1f5f9;
+}
