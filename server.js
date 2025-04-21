@@ -8,19 +8,20 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
-    const server = express();
+  const server = express();
+  server.set('trust proxy', 1); // Trust first proxy
 
-    // Handle all requests with Next.js
-    server.all('*', (req, res) => {
-        return handle(req, res);
-    });
+  // Handle all requests with Next.js
+  server.all('*', (req, res) => {
+    return handle(req, res);
+  });
 
-    // Start listening
-    server.listen(port, (err) => {
-        if (err) throw err;
-        console.log(`> Ready on port ${port}`);
-    });
+  // Start listening
+  server.listen(port, (err) => {
+    if (err) throw err;
+    console.log(`> Ready on port ${port}`);
+  });
 }).catch((err) => {
-    console.error('Error:', err);
-    process.exit(1);
+  console.error('Error:', err);
+  process.exit(1);
 });
