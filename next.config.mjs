@@ -1,9 +1,12 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  swcMinify: false, // turn off Rust-based minifier
   experimental: {
-    swcPlugins: [],  // make sure none are used
-    turbo: false     // disable turbo as well if used
+    turbo: false, // Only if this field is allowed (depends on Next version)
+    swcPlugins: [] // Empty any plugins
+  },
+  compiler: {
+    // This disables SWC-specific minifier
+    removeConsole: false,
+    emotion: false
   }
 };
 
