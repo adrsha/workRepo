@@ -143,13 +143,7 @@ export default function LMSHome() {
           setGradeData(gradesData);
 
           // Fetch teacher profile data
-          const response = await fetch(`/api/getTeacherProfile?teacherId=${session.user.id}`, {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
+          const response = await fetchViewData('teachers_view', token);
           if (response.ok) {
             const profileData = await response.json();
             setTeacherProfile(profileData);

@@ -47,7 +47,11 @@ export const authOptions = {
       return token;
     },
     async session({ session, token }) {
+
       try {
+        if (!token?.user?.id) {
+          return session; // No user info available yet
+        }
         const updatedUser = await fetchLatestUserFromDB(token.user.id);
 
         session.user = updatedUser || token.user;
