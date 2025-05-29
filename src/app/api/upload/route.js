@@ -1,266 +1,218 @@
+
+// ============== REFACTORED UPLOAD API ==============
+// api/upload/route.js
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/authOptions';
 import { executeQueryWithRetry } from '../../lib/db';
-import { writeFile, readFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { mkdir } from 'fs/promises';
-import fs from 'fs';
+import { CONFIG } from '../../../constants/config';
+import { 
+    generateFileName, 
+    getPublicFilePath 
+} from '../../../utils/contentUtils';
 
-// Define the local uploads directory path
-const localUploadsDir = join(process.cwd(), 'public', 'uploads');
+// Authentication Layer
+const authService = {
+    async getAuthenticatedUser() {
+        const session = await getServerSession(authOptions);
+        if (!session) throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
+        return session.user;
+    },
 
-// Define the server uploads directory path - update this to your server path
-const serverUploadsDir = process.env.SERVER_UPLOADS_DIR || '/home/merotuit/root/public/uploads';
+    async canUserMakePublic(userId, userLevel, classId) {
+        if (userLevel === CONFIG.USER_LEVELS.ADMIN) return true;
+        if (userLevel === CONFIG.USER_LEVELS.TEACHER) {
+            return await this.isClassOwner(userId, classId);
+        }
+        return false;
+    },
 
+    async isClassOwner(userId, classId) {
+        const result = await executeQueryWithRetry({
+            query: 'SELECT class_id FROM class WHERE class_id = ? AND created_by = ?',
+            values: [classId, userId]
+        });
+        return result.length > 0;
+    }
+};
+
+// File System Layer
+const fileService = {
+    async createUploadDirectory(classId) {
+        const serverDir = join(CONFIG.SERVER_UPLOADS_DIR, 'classes', classId);
+        await mkdir(serverDir, { recursive: true });
+        return serverDir;
+    },
+
+    async saveFile(buffer, filePath) {
+        await writeFile(filePath, buffer);
+    }
+};
+
+// Database Layer
+const dbService = {
+    async insertContent(contentType, contentData, isPublic) {
+        const result = await executeQueryWithRetry({
+            query: 'INSERT INTO content (content_type, content_data, is_public) VALUES (?, ?, ?)',
+            values: [contentType, contentData, isPublic ? 1 : 0]
+        });
+        return result.insertId;
+    },
+
+    async linkContentToClass(classId, contentId) {
+        await executeQueryWithRetry({
+            query: 'INSERT INTO class_content (class_id, content_id) VALUES (?, ?)',
+            values: [classId, contentId]
+        });
+    },
+
+    async getContentById(contentId, classId) {
+        const result = await executeQueryWithRetry({
+            query: `
+                SELECT c.content_id, c.content_type, c.content_data, c.created_at, c.is_public
+                FROM content c
+                JOIN class_content cc ON c.content_id = cc.content_id
+                WHERE c.content_id = ? AND cc.class_id = ?
+            `,
+            values: [contentId, classId]
+        });
+
+        if (!result.length) return null;
+
+        const record = result[0];
+        const parsedData = this.parseContentData(record.content_data);
+
+        return {
+            content_id: record.content_id,
+            content_type: record.content_type,
+            created_at: record.created_at,
+            is_public: record.is_public,
+            ...parsedData
+        };
+    },
+
+    parseContentData(contentData) {
+        try {
+            return JSON.parse(contentData);
+        } catch (err) {
+            console.error('Failed to parse content data:', err);
+            return {};
+        }
+    },
+
+    async saveContent(contentType, contentData, classId, isPublic) {
+        try {
+            const contentId = await this.insertContent(contentType, JSON.stringify(contentData), isPublic);
+            await this.linkContentToClass(classId, contentId);
+            return await this.getContentById(contentId, classId);
+        } catch (err) {
+            console.error('Database operation failed:', err);
+            throw new Error(CONFIG.ERRORS.DB_FAILED);
+        }
+    }
+};
+
+// Content Processing Layer
+const contentProcessor = {
+    createFileContentData(file, fileName, filePath, userId) {
+        return {
+            originalName: file.name,
+            fileName,
+            filePath,
+            fileSize: file.size,
+            fileType: file.type,
+            uploadedBy: userId,
+            isFile: true
+        };
+    },
+
+    createTextContentData(text, userId) {
+        return {
+            text,
+            uploadedBy: userId,
+            isFile: false
+        };
+    },
+
+    async processFileUpload(file, classId, userId, isPublic) {
+        const fileName = generateFileName(userId, file.name);
+        const serverDir = await fileService.createUploadDirectory(classId);
+        const serverPath = join(serverDir, fileName);
+        const publicPath = getPublicFilePath(classId, fileName);
+
+        const buffer = Buffer.from(await file.arrayBuffer());
+        await fileService.saveFile(buffer, serverPath);
+
+        const contentData = this.createFileContentData(file, fileName, publicPath, userId);
+        return await dbService.saveContent('file', contentData, classId, isPublic);
+    },
+
+    async processTextContent(text, classId, userId, isPublic) {
+        const contentData = this.createTextContentData(text, userId);
+        return await dbService.saveContent('text', contentData, classId, isPublic);
+    }
+};
+
+// Request/Response Layer
+const requestHandler = {
+    validateRequest(formData) {
+        const file = formData.get('file');
+        const classId = formData.get('classId');
+        const textContent = formData.get('textContent');
+        const isPublic = formData.get('isPublic') === 'true';
+
+        if (!classId) throw new Error(CONFIG.ERRORS.MISSING_CLASS_ID);
+        if (!file && !textContent) throw new Error(CONFIG.ERRORS.MISSING_CONTENT);
+
+        return { file, classId, textContent, isPublic };
+    },
+
+    createResponse(data, status = 200) {
+        return new Response(JSON.stringify(data), { 
+            status,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    },
+
+    createErrorResponse(message, status) {
+        return this.createResponse({ error: message }, status);
+    },
+
+    handleError(error) {
+        console.error('Error processing upload:', error);
+
+        const errorStatusMap = {
+            [CONFIG.ERRORS.UNAUTHORIZED]: 401,
+            [CONFIG.ERRORS.MISSING_CLASS_ID]: 400,
+            [CONFIG.ERRORS.MISSING_CONTENT]: 400,
+            [CONFIG.ERRORS.DB_FAILED]: 500
+        };
+
+        const status = errorStatusMap[error.message] || 500;
+        const message = errorStatusMap[error.message] ? error.message : CONFIG.ERRORS.INTERNAL;
+
+        return this.createErrorResponse(message, status);
+    }
+};
+
+// Main Handler
 export async function POST(req) {
-  try {
-    // Get the user session
-    const session = await getServerSession(authOptions);
+    try {
+        const user = await authService.getAuthenticatedUser();
+        const formData = await req.formData();
+        const { file, classId, textContent, isPublic } = requestHandler.validateRequest(formData);
+        
+        const canMakePublic = await authService.canUserMakePublic(user.id, user.user_level, classId);
+        const finalIsPublic = canMakePublic && isPublic;
 
-    // Check if the session is valid
-    if (!session) {
-      return new Response(JSON.stringify({ error: 'Unauthorized: User not authenticated' }), { status: 401 });
+        const result = file && file instanceof File
+            ? await contentProcessor.processFileUpload(file, classId, user.id, finalIsPublic)
+            : await contentProcessor.processTextContent(textContent, classId, user.id, finalIsPublic);
+
+        return requestHandler.createResponse(result);
+
+    } catch (error) {
+        return requestHandler.handleError(error);
     }
-
-    // Extract the user ID from the session
-    const userId = session.user.id;
-
-    // Parse the form data
-    const formData = await req.formData();
-    const file = formData.get('file');
-    const classId = formData.get('classId');
-    const textContent = formData.get('textContent'); // For text content uploads
-
-    // Validate input
-    if (!classId) {
-      return new Response(JSON.stringify({ error: 'Missing classId' }), { status: 400 });
-    }
-
-    // Handle different content types
-    if (file && file instanceof File) {
-      // File upload handling
-      return await handleFileUpload(file, classId, userId);
-    } else if (textContent) {
-      // Text content handling
-      return await handleTextContent(textContent, classId, userId);
-    } else {
-      return new Response(JSON.stringify({ error: 'Missing file or textContent' }), { status: 400 });
-    }
-  } catch (error) {
-    console.error('Error processing upload:', error);
-
-    // More specific error handling
-    if (error.message === 'Database operation failed') {
-      return new Response(JSON.stringify({ error: 'Database error occurred' }), { status: 503 });
-    }
-
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
-  }
-}
-
-// Handler for file uploads
-async function handleFileUpload(file, classId, userId) {
-  // Generate unique filename
-  const timestamp = Date.now();
-  const originalName = file.name;
-  const fileExtension = originalName.split('.').pop();
-  const fileName = `${userId}_${timestamp}.${fileExtension}`;
-
-  // Create local directory structure: uploads/classes/[classId]
-  const localClassUploadsDir = join(localUploadsDir, 'classes', classId);
-  try {
-    await mkdir(localClassUploadsDir, { recursive: true });
-  } catch (error) {
-    console.error('Failed to create local directory:', error);
-  }
-
-  // Create server directory structure: uploads/classes/[classId]
-  const serverClassUploadsDir = join(serverUploadsDir, 'classes', classId);
-  try {
-    // Using fs.mkdirSync for server directories to ensure they exist
-    if (!fs.existsSync(serverClassUploadsDir)) {
-      fs.mkdirSync(serverClassUploadsDir, { recursive: true });
-    }
-  } catch (error) {
-    console.error('Failed to create server directory:', error);
-  }
-
-  // Convert file to buffer
-  const fileBuffer = Buffer.from(await file.arrayBuffer());
-
-  // Save file to local disk
-  const localFilePath = join(localClassUploadsDir, fileName);
-  await writeFile(localFilePath, fileBuffer);
-
-  // Save file to server disk
-  const serverFilePath = join(serverClassUploadsDir, fileName);
-  try {
-    fs.writeFileSync(serverFilePath, fileBuffer);
-  } catch (error) {
-    console.error('Failed to write file to server:', error);
-    // Continue even if server write fails, as we have the local copy
-  }
-
-  // The public path for URL access
-  const publicPath = `/uploads/classes/${classId}/${fileName}`;
-
-  // Save file metadata to database
-  const result = await saveFileMetadata({
-    userId,
-    classId,
-    originalName,
-    fileName,
-    filePath: publicPath,
-    fileSize: file.size,
-    fileType: file.type,
-  });
-
-  return new Response(JSON.stringify(result), { status: 200 });
-}
-
-// Handler for text content
-async function handleTextContent(textContent, classId, userId) {
-  try {
-    // Save text content to database
-    const result = await saveTextContent({
-      userId,
-      classId,
-      textContent
-    });
-
-    return new Response(JSON.stringify(result), { status: 200 });
-  } catch (error) {
-    console.error('Error saving text content:', error);
-    throw error;
-  }
-}
-
-async function saveFileMetadata({ userId, classId, originalName, fileName, filePath, fileSize, fileType }) {
-  try {
-    // First, insert into the content table
-    const contentData = JSON.stringify({
-      originalName,
-      fileName,
-      filePath,
-      fileSize,
-      fileType,
-      uploadedBy: userId,
-      isFile: true, // Flag to indicate this is a file
-      serverPath: join(serverUploadsDir, 'classes', classId, fileName).replace(/\\/g, '/') // Add server path for fileService
-    });
-
-    const contentResult = await executeQueryWithRetry({
-      query: `
-        INSERT INTO content 
-        (content_type, content_data)
-        VALUES (?, ?)
-      `,
-      values: ['file', contentData],
-    });
-
-    const contentId = contentResult.insertId;
-
-    // Then, create relation in class_content table
-    await executeQueryWithRetry({
-      query: `
-        INSERT INTO class_content 
-        (class_id, content_id)
-        VALUES (?, ?)
-      `,
-      values: [classId, contentId],
-    });
-
-    // Fetch the inserted content with additional information
-    const contentRecord = await executeQueryWithRetry({
-      query: `
-        SELECT 
-          c.content_id, 
-          c.content_type,
-          c.content_data,
-          c.created_at
-        FROM content c
-        JOIN class_content cc ON c.content_id = cc.content_id
-        WHERE c.content_id = ? AND cc.class_id = ?
-      `,
-      values: [contentId, classId],
-    });
-
-    // Parse the JSON data from content_data
-    const contentItem = contentRecord[0];
-    const parsedData = JSON.parse(contentItem.content_data);
-
-    // Return a combined object with data from both the database and the parsed JSON
-    return {
-      content_id: contentItem.content_id,
-      content_type: contentItem.content_type,
-      created_at: contentItem.created_at,
-      ...parsedData
-    };
-  } catch (err) {
-    console.error('Database operation failed:', err);
-    throw new Error('Database operation failed');
-  }
-}
-
-// Function to save text content
-async function saveTextContent({ userId, classId, textContent }) {
-  try {
-    // Insert into the content table
-    const contentData = JSON.stringify({
-      text: textContent,
-      uploadedBy: userId,
-      isFile: false // Flag to indicate this is not a file
-    });
-
-    const contentResult = await executeQueryWithRetry({
-      query: `
-        INSERT INTO content 
-        (content_type, content_data)
-        VALUES (?, ?)
-      `,
-      values: ['text', contentData],
-    });
-
-    const contentId = contentResult.insertId;
-
-    // Create relation in class_content table
-    await executeQueryWithRetry({
-      query: `
-        INSERT INTO class_content 
-        (class_id, content_id)
-        VALUES (?, ?)
-      `,
-      values: [classId, contentId],
-    });
-
-    // Fetch the inserted content
-    const contentRecord = await executeQueryWithRetry({
-      query: `
-        SELECT 
-          c.content_id, 
-          c.content_type,
-          c.content_data,
-          c.created_at
-        FROM content c
-        JOIN class_content cc ON c.content_id = cc.content_id
-        WHERE c.content_id = ? AND cc.class_id = ?
-      `,
-      values: [contentId, classId],
-    });
-
-    // Parse the JSON data
-    const contentItem = contentRecord[0];
-    const parsedData = JSON.parse(contentItem.content_data);
-
-    // Return combined object
-    return {
-      content_id: contentItem.content_id,
-      content_type: contentItem.content_type,
-      created_at: contentItem.created_at,
-      ...parsedData
-    };
-  } catch (err) {
-    console.error('Database operation failed:', err);
-    throw new Error('Database operation failed');
-  }
 }

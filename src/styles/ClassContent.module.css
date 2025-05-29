@@ -69,14 +69,14 @@
 .fileLink {
   display: inline-flex;
   align-items: center;
-  color: #4a90e2;
+  color: var(--tertiary);
   font-weight: 500;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .fileLink:hover {
-  color: #2a65b0;
+  color: var(--tertiary);
   text-decoration: underline;
 }
 
@@ -117,7 +117,7 @@
 }
 
 .addButton {
-  background-color: #4a90e2;
+  background-color: var(--tertiary);
   color: white;
   border: none;
   border-radius: 6px;
@@ -318,6 +318,26 @@
 
 .toastClose:hover {
   opacity: 1;
+}
+
+.visibilityBadge{
+    color: white;
+    padding: 0.2rem 0.4rem;
+    margin-left: 1.4rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+.visibilityBadge.publicBadge {
+    background-color: var(--primary);
+}
+.visibilityBadge.privateBadge {
+    background-color: var(--secondary);
+}
+.visibilityToggle{
+    margin-top: 1rem;
+}
+.visibilityToggle p{
+    font-size: 0.8rem;
 }
 
 @keyframes slideIn {

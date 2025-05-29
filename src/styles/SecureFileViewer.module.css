@@ -1,90 +1,275 @@
+/* ============== CONTAINER STYLES ============== */
 .secureViewerContainer {
   position: relative;
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  height: 100vh;
+  background: #f5f5f5;
   overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
-.loading,
-.error {
-  padding: 20px;
-  text-align: center;
-}
-
-.error {
-  color: #d32f2f;
-}
-
-.imageContainer {
-  position: relative;
+.filePreviewContainer {
   width: 100%;
-  height: 500px;
-  overflow: hidden;
+  height: calc(100vh - 60px);
+  overflow: auto;
+  position: relative;
+}
+
+/* ============== STATE COMPONENTS ============== */
+.loading {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 200px;
+  font-size: 18px;
+  color: #666;
+}
+
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 16px;
+  color: #d32f2f;
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+  border-radius: 4px;
+  margin: 20px;
+  padding: 20px;
+}
+
+/* ============== IMAGE VIEWER STYLES ============== */
+.imageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .filePreview {
   max-width: 100%;
   max-height: 100%;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   pointer-events: none;
 }
 
-.pdfContainer {
-  position: relative;
+/* ============== PDF VIEWER STYLES ============== */
+.pdfViewerContainer {
   width: 100%;
-  height: 600px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pdfContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .pdfViewer {
   width: 100%;
   height: 100%;
   border: none;
+  background: white;
 }
 
-.genericPreview {
-  padding: 40px;
-  text-align: center;
-  background-color: #f5f5f5;
+.pdfControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 15px;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.viewButton {
-  margin-top: 10px;
+.controlButton {
   padding: 8px 16px;
-  background-color: #1976d2;
+  background: #1976d2;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
 }
 
-.watermark {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+.controlButton:hover:not(:disabled) {
+  background: #1565c0;
+}
+
+.controlButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pageInfo, .zoomInfo {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  padding: 0 10px;
+}
+
+.pdfCanvasContainer {
+  flex: 1;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  overflow: auto;
+  background: #f0f0f0;
+}
+
+.pdfCanvas {
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  background: white;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ============== GENERIC FILE VIEWER ============== */
+.genericPreview {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  font-size: 48px;
-  opacity: 0.15;
-  color: #d32f2f;
-  transform: rotate(-30deg);
+  height: 100%;
+  gap: 20px;
+  color: #666;
+  font-size: 16px;
+}
+
+.viewButton {
+  padding: 12px 24px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.viewButton:hover {
+  background: #1565c0;
+}
+
+/* ============== SECURITY ELEMENTS ============== */
+.watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 72px;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.05);
   pointer-events: none;
+  z-index: 1000;
   user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .securityNotice {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--offWhite);
+  color: #333;
   padding: 10px;
-  background-color: #f8f8f8;
-  border-top: 1px solid #ddd;
   text-align: center;
-  font-size: 12px;
-  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  border-top: 1px solid var(--gray);
+  z-index: 1001;
+}
+
+/* ============== RESPONSIVE DESIGN ============== */
+@media (max-width: 768px) {
+  .pdfControls {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+  }
+  
+  .controlButton {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .pageInfo, .zoomInfo {
+    font-size: 12px;
+  }
+  
+  .pdfCanvasContainer {
+    padding: 10px;
+  }
+  
+  .watermark {
+    font-size: 48px;
+  }
+  
+  .securityNotice {
+    font-size: 12px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pdfControls {
+    justify-content: space-between;
+  }
+  
+  .watermark {
+    font-size: 36px;
+  }
+}
+
+/* ============== SECURITY FEATURES ============== */
+/* Print Prevention */
+@media print {
+  .secureViewerContainer {
+    display: none !important;
+  }
+}
+
+/* Custom Scrollbars */
+.pdfCanvasContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pdfCanvasContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.pdfCanvasContainer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.pdfCanvasContainer::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }

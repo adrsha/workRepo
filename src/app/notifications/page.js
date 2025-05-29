@@ -1,91 +1,156 @@
 'use client';
 import "../global.css";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import styles from '../../styles/Notifications.module.css';
 
-export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all'); // 'all', 'read', 'unread'
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalUnread, setTotalUnread] = useState(0);
+const ITEMS_PER_PAGE = 15;
+const FILTER_TYPES = {
+  ALL: 'all',
+  READ: 'read',
+  UNREAD: 'unread'
+};
+
+// Utility function to build API query parameters
+const buildNotificationParams = (page, filter) => {
+  const params = new URLSearchParams({
+    limit: ITEMS_PER_PAGE,
+    offset: page * ITEMS_PER_PAGE,
+  });
+
+  // API now supports read_status parameter with values: 'read', 'unread', or omitted for 'all'
+  if (filter === FILTER_TYPES.READ) {
+    params.append('read_status', 'read');
+  } else if (filter === FILTER_TYPES.UNREAD) {
+    params.append('read_status', 'unread');
+  }
+  // If filter === 'all', no read_status parameter is added
+
+  return params;
+};
+
+// Utility function to format notification dates
+const formatNotificationDate = (dateString) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now - date;
+  const diffInHours = diffInMs / (1000 * 60 * 60);
+  const diffInDays = diffInHours / 24;
+
+  if (diffInHours < 1) {
+    const minutes = Math.floor(diffInMs / (1000 * 60));
+    return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+  } else if (diffInHours < 24) {
+    const hours = Math.floor(diffInHours);
+    return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+  } else if (diffInDays < 7) {
+    const days = Math.floor(diffInDays);
+    return `${days} day${days !== 1 ? 's' : ''} ago`;
+  } else {
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+};
+
+// Custom hook for authentication check
+const useAuthCheck = () => {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
-  const ITEMS_PER_PAGE = 15;
-
-  // Check if user is authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/registration/login');
     }
   }, [status, router]);
 
-  // Fetch notifications
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchNotifications();
-    }
-  }, [page, filter, status]);
+  return status;
+};
 
-  const fetchNotifications = async () => {
+// Custom hook for notifications data management
+const useNotifications = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState(FILTER_TYPES.ALL);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalUnread, setTotalUnread] = useState(0);
+
+  // Fetch unread count
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const response = await fetch('/api/notifications/count');
+      if (response.ok) {
+        const data = await response.json();
+        setTotalUnread(data.unreadCount);
+      }
+    } catch (err) {
+      console.error('Error fetching unread count:', err);
+    }
+  }, []);
+
+  // Fetch notifications
+  const fetchNotifications = useCallback(async (currentPage, currentFilter, isLoadMore = false) => {
     try {
       setLoading(true);
+      setError(null);
 
-      // Build the query parameters
-      const params = new URLSearchParams({
-        limit: ITEMS_PER_PAGE,
-        offset: page * ITEMS_PER_PAGE,
+      const params = buildNotificationParams(currentPage, currentFilter);
+      const apiUrl = `/api/getNotifs?${params}`;
+      
+      // DEBUG: Log the API call details
+      console.log('🔍 API Call Debug:', {
+        filter: currentFilter,
+        page: currentPage,
+        url: apiUrl,
+        params: Object.fromEntries(params)
       });
 
-      if (filter === 'read') {
-        params.append('status', '1');
-      } else if (filter === 'unread') {
-        params.append('status', '0');
-      }
-
-      const response = await fetch(`/api/getNotifs?${params}`);
+      const response = await fetch(apiUrl);
 
       if (!response.ok) {
         throw new Error('Failed to fetch notifications');
       }
 
       const data = await response.json();
+      
+      // DEBUG: Log the response data
+      console.log('📦 API Response Debug:', {
+        filter: currentFilter,
+        totalReceived: data.notifications?.length || 0,
+        readCount: data.notifications?.filter(n => n.read_status === 1).length || 0,
+        unreadCount: data.notifications?.filter(n => n.read_status === 0).length || 0,
+      });
 
-      // Track if we have more pages
+      // API now handles all filtering server-side
       setHasMore(data.notifications.length === ITEMS_PER_PAGE);
 
-      // Count total unread
-      const countResponse = await fetch('/api/notifications/count');
-      if (countResponse.ok) {
-        const countData = await countResponse.json();
-        setTotalUnread(countData.unreadCount);
+      if (isLoadMore) {
+        setNotifications(prev => [...prev, ...data.notifications]);
+      } else {
+        setNotifications(data.notifications);
       }
 
-      if (page === 0) {
-        setNotifications(data.notifications);
-      } else {
-        setNotifications(prev => [...prev, ...data.notifications]);
-      }
+      // Fetch unread count
+      await fetchUnreadCount();
     } catch (err) {
       setError(err.message);
       console.error('Error fetching notifications:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchUnreadCount]);
 
-  const markAsRead = async (notificationId) => {
+  // Mark single notification as read
+  const markAsRead = useCallback(async (notificationId) => {
     try {
       const response = await fetch('/api/notifications', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           notificationId,
           action: 'mark-read'
@@ -93,93 +158,165 @@ export default function NotificationsPage() {
       });
 
       if (response.ok) {
-        // Update local state
-        setNotifications(prevNotifications =>
-          prevNotifications.map(notif =>
-            notif.notif_id === notificationId ? { ...notif, read_status: 1 } : notif
+        setNotifications(prev =>
+          prev.map(notif =>
+            notif.notif_id === notificationId 
+              ? { ...notif, read_status: 1 } 
+              : notif
           )
         );
-
-        // Update total unread count
         setTotalUnread(prev => Math.max(0, prev - 1));
       }
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
-  };
+  }, []);
 
-  const markAllAsRead = async () => {
+  // Mark all notifications as read
+  const markAllAsRead = useCallback(async () => {
     try {
       const response = await fetch('/api/notifications/markallread', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        headers: { 'Content-Type': 'application/json' }
       });
 
       if (response.ok) {
-        // Update local state
-        setNotifications(prevNotifications =>
-          prevNotifications.map(notif => ({ ...notif, read_status: 1 }))
+        setNotifications(prev =>
+          prev.map(notif => ({ ...notif, read_status: 1 }))
         );
-
-        // Update total unread count
         setTotalUnread(0);
       }
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
     }
-  };
+  }, []);
 
-  const handleNotificationClick = (notif) => {
-    // Mark as read if unread
+  // Change filter and reset pagination
+  const changeFilter = useCallback((newFilter) => {
+    setFilter(newFilter);
+    setPage(0);
+    setNotifications([]);
+    setHasMore(true);
+  }, []);
+
+  // Load more notifications
+  const loadMore = useCallback(() => {
+    setPage(prev => prev + 1);
+  }, []);
+
+  return {
+    notifications,
+    loading,
+    error,
+    filter,
+    page,
+    hasMore,
+    totalUnread,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+    changeFilter,
+    loadMore
+  };
+};
+
+// Filter buttons component
+const FilterButtons = ({ filter, totalUnread, onFilterChange }) => (
+  <div className={styles.filterBar}>
+    <button
+      className={`${styles.filterBtn} ${filter === FILTER_TYPES.ALL ? styles.active : ''}`}
+      onClick={() => onFilterChange(FILTER_TYPES.ALL)}
+    >
+      All
+    </button>
+    <button
+      className={`${styles.filterBtn} ${filter === FILTER_TYPES.UNREAD ? styles.active : ''}`}
+      onClick={() => onFilterChange(FILTER_TYPES.UNREAD)}
+    >
+      Unread {totalUnread > 0 && `(${totalUnread})`}
+    </button>
+    <button
+      className={`${styles.filterBtn} ${filter === FILTER_TYPES.READ ? styles.active : ''}`}
+      onClick={() => onFilterChange(FILTER_TYPES.READ)}
+    >
+      Read
+    </button>
+  </div>
+);
+
+// Notification item component
+const NotificationItem = ({ notification, onNotificationClick }) => (
+  <li
+    className={`${styles.notificationItem} ${notification.read_status === 0 ? styles.unread : ''}`}
+    onClick={() => onNotificationClick(notification)}
+  >
+    <div className={styles.notificationContent}>
+      <p className={styles.notificationMessage}>{notification.message}</p>
+      <span className={styles.notificationTime}>
+        {formatNotificationDate(notification.created_at)}
+      </span>
+    </div>
+  </li>
+);
+
+// Empty state component
+const EmptyState = () => (
+  <div className={styles.emptyState}>
+    <div className={styles.emptyIcon}>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="currentColor" />
+      </svg>
+    </div>
+    <p>No notifications to display</p>
+  </div>
+);
+
+// Loading state component
+const LoadingState = () => (
+  <div className={styles.loadingState}>
+    <div className={styles.loader}></div>
+    <p>Loading notifications...</p>
+  </div>
+);
+
+// Main component
+export default function NotificationsPage() {
+  const router = useRouter();
+  const authStatus = useAuthCheck();
+  const {
+    notifications,
+    loading,
+    error,
+    filter,
+    page,
+    hasMore,
+    totalUnread,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+    changeFilter,
+    loadMore
+  } = useNotifications();
+
+  // Fetch notifications when dependencies change
+  useEffect(() => {
+    if (authStatus === 'authenticated') {
+      fetchNotifications(page, filter, page > 0);
+    }
+  }, [page, filter, authStatus, fetchNotifications]);
+
+  // Handle notification click
+  const handleNotificationClick = useCallback((notif) => {
     if (notif.read_status === 0) {
       markAsRead(notif.notif_id);
     }
 
-    // Navigate if there's a link
     if (notif.link) {
       router.push(notif.link);
     }
-  };
+  }, [markAsRead, router]);
 
-  const formatNotificationDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now - date;
-    const diffInHours = diffInMs / (1000 * 60 * 60);
-    const diffInDays = diffInHours / 24;
-
-    if (diffInHours < 1) {
-      const minutes = Math.floor(diffInMs / (1000 * 60));
-      return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
-    } else if (diffInHours < 24) {
-      const hours = Math.floor(diffInHours);
-      return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
-    } else if (diffInDays < 7) {
-      const days = Math.floor(diffInDays);
-      return `${days} day${days !== 1 ? 's' : ''} ago`;
-    } else {
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    }
-  };
-
-  const loadMore = () => {
-    setPage(prevPage => prevPage + 1);
-  };
-
-  const changeFilter = (newFilter) => {
-    setFilter(newFilter);
-    setPage(0); // Reset to first page when changing filters
-    setNotifications([]); // Clear notifications when changing filters
-  };
-
-  // If not authenticated, return null (will redirect)
-  if (status === 'unauthenticated') {
+  if (authStatus === 'unauthenticated') {
     return null;
   }
 
@@ -199,26 +336,11 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      <div className={styles.filterBar}>
-        <button
-          className={`${styles.filterBtn} ${filter === 'all' ? styles.active : ''}`}
-          onClick={() => changeFilter('all')}
-        >
-          All
-        </button>
-        <button
-          className={`${styles.filterBtn} ${filter === 'unread' ? styles.active : ''}`}
-          onClick={() => changeFilter('unread')}
-        >
-          Unread {totalUnread > 0 && `(${totalUnread})`}
-        </button>
-        <button
-          className={`${styles.filterBtn} ${filter === 'read' ? styles.active : ''}`}
-          onClick={() => changeFilter('read')}
-        >
-          Read
-        </button>
-      </div>
+      <FilterButtons 
+        filter={filter} 
+        totalUnread={totalUnread} 
+        onFilterChange={changeFilter} 
+      />
 
       {error && (
         <div className={styles.error}>
@@ -227,43 +349,21 @@ export default function NotificationsPage() {
       )}
 
       {!error && notifications.length === 0 && !loading ? (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="currentColor" />
-            </svg>
-          </div>
-          <p>No notifications to display</p>
-        </div>
+        <EmptyState />
       ) : (
         <ul className={styles.notificationsList}>
           {notifications.map((notif) => (
-            <li
+            <NotificationItem
               key={notif.notif_id}
-              className={`${styles.notificationItem} ${notif.read_status === 0 ? styles.unread : ''}`}
-              onClick={() => handleNotificationClick(notif)}
-            >
-              <div className={styles.notificationContent}>
-                <p className={styles.notificationMessage}>{notif.message}</p>
-                <span className={styles.notificationTime}>
-                  {formatNotificationDate(notif.created_at)}
-                </span>
-              </div>
-            </li>
+              notification={notif}
+              onNotificationClick={handleNotificationClick}
+            />
           ))}
 
-          {loading && (
-            <div className={styles.loadingState}>
-              <div className={styles.loader}></div>
-              <p>Loading notifications...</p>
-            </div>
-          )}
+          {loading && <LoadingState />}
 
           {!loading && hasMore && (
-            <button
-              className={styles.loadMoreBtn}
-              onClick={loadMore}
-            >
+            <button className={styles.loadMoreBtn} onClick={loadMore}>
               Load more
             </button>
           )}
