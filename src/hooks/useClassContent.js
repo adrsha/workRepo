@@ -12,6 +12,7 @@ export const useClassContent = (classId, session) => {
         try {
             const data = await contentService.fetchClassContent(classId, session?.accessToken);
             const sortedContents = sortContentsByDate(data, 'asc');
+            
             setContents(sortedContents);
         } catch (err) {
             console.error('Error fetching class content:', err);

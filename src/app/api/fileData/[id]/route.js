@@ -58,10 +58,10 @@ export async function GET(req, { params }) {
     }
 
     const contentItem = contentRecord[0];
-    const contentData = JSON.parse(contentItem.content_data);
+    const content_data = JSON.parse(contentItem.content_data);
 
     // Verify this is a file type content
-    if (!contentData.isFile) {
+    if (!content_data.isFile) {
       return new Response(JSON.stringify({ error: 'Requested content is not a file' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -73,10 +73,10 @@ export async function GET(req, { params }) {
       content_id: contentItem.content_id,
       content_type: contentItem.content_type,
       created_at: contentItem.created_at,
-      file_name: contentData.originalName,
-      file_size: formatFileSize(contentData.fileSize),
-      mime_type: contentData.fileType,
-      uploaded_by: contentData.uploadedBy
+      file_name: content_data.originalName,
+      file_size: formatFileSize(content_data.fileSize),
+      mime_type: content_data.fileType,
+      uploaded_by: content_data.uploadedBy
     };
 
     return new Response(JSON.stringify(fileMetadata), {

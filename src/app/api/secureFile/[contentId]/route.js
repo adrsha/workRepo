@@ -38,9 +38,9 @@ const dbService = {
         return rows;
     },
 
-    parseContentData(contentData) {
+    parseContentData(content_data) {
         try {
-            const op = JSON.parse(contentData);
+            const op = JSON.parse(content_data);
             return op;
         } catch (error) {
             throw new Error(CONFIG.ERRORS.INVALID_FILE_DATA);

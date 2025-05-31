@@ -43,9 +43,9 @@ export async function POST(request) {
     }
 
     try {
-        const { classId, contentType, contentData } = await request.json();
+        const { classId, contentType, content_data } = await request.json();
 
-        if (!classId || !contentType || !contentData) {
+        if (!classId || !contentType || !content_data) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
@@ -77,7 +77,7 @@ export async function POST(request) {
 
         const contentResult = await executeQueryWithRetry({
             query: insertContentQuery,
-            values: [contentType, contentData]
+            values: [contentType, content_data]
         });
 
         const newContentId = contentResult.insertId;

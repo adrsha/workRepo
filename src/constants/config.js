@@ -16,7 +16,7 @@ export const CONFIG = {
 };
 
 export const INITIAL_CONTENT_FORM = {
-    contentType: 'text',
-    contentData: '',
-    isPublic: false
+    content_type: 'text',
+    content_data: '',
+    is_public: false
 };

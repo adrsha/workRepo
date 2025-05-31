@@ -1,7 +1,7 @@
 export const validateTextContent = (contentForm) => {
-    return contentForm.contentType === 'text' &&
-        contentForm.contentData &&
-        contentForm.contentData.trim().length > 0;
+    return contentForm.content_type === 'text' &&
+        contentForm.content_data &&
+        contentForm.content_data.trim().length > 0;
 };
 
 export const sortContentsByDate = (contents, order = 'asc') => {
@@ -12,16 +12,16 @@ export const sortContentsByDate = (contents, order = 'asc') => {
     });
 };
 
-export const parseContentData = (contentData) => {
-    if (typeof contentData === 'string' && contentData.trim().startsWith('{')) {
+export const parseContentData = (content_data) => {
+    if (typeof content_data === 'string' && content_data.trim().startsWith('{')) {
         try {
-            return JSON.parse(contentData);
+            return JSON.parse(content_data);
         } catch (err) {
-            console.warn('Invalid JSON in content_data:', contentData);
+            console.warn('Invalid JSON in content_data:', content_data);
             return {};
         }
     }
-    return contentData;
+    return content_data;
 };
 
 export const generateFileName = (userId, originalName) => {

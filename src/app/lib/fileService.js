@@ -204,7 +204,7 @@ export async function saveFile(fileBuffer, originalName, fileType, userId, class
     const publicPath = `/uploads/classes/${classId}/${fileName}`;
 
     // Prepare file metadata with both paths
-    const contentData = JSON.stringify({
+    const content_data = JSON.stringify({
       originalName,
       fileName,
       filePath: publicPath,
@@ -222,7 +222,7 @@ export async function saveFile(fileBuffer, originalName, fileType, userId, class
         (content_type, content_data)
         VALUES (?, ?)
       `,
-      values: ['file', contentData],
+      values: ['file', content_data],
     });
 
     const contentId = contentResult.insertId;

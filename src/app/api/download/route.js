@@ -11,21 +11,21 @@ const parseContentData = (contentType, rawData) => {
 };
 
 // Content transformers
-const transformFileContent = (item, contentData) => ({
+const transformFileContent = (item, content_data) => ({
   content_id: item.content_id,
   content_type: item.content_type,
   created_at: item.created_at,
   is_public: item.is_public,
-  originalName: contentData.originalName || 'Unknown file',
-  fileSize: contentData.fileSize || 0,
-  fileType: contentData.fileType || 'application/octet-stream',
-  fileName: contentData.fileName || '',
+  originalName: content_data.originalName || 'Unknown file',
+  fileSize: content_data.fileSize || 0,
+  fileType: content_data.fileType || 'application/octet-stream',
+  fileName: content_data.fileName || '',
   isFile: true,
-  url: `/uploads/classes/${item.class_id}/${contentData.fileName}`
+  url: `/uploads/classes/${item.class_id}/${content_data.fileName}`
 });
 
-const transformTextContent = (item, contentData) => {
-  const text = typeof contentData === 'string' ? contentData : '';
+const transformTextContent = (item, content_data) => {
+  const text = typeof content_data === 'string' ? content_data : '';
   const truncatedText = text.length > 100 ? text.substring(0, 100) + '...' : text;
   
   return {
@@ -39,11 +39,11 @@ const transformTextContent = (item, contentData) => {
 };
 
 const transformContentItem = (item) => {
-  const contentData = parseContentData(item.content_type, item.content_data);
+  const content_data = parseContentData(item.content_type, item.content_data);
   
   return item.content_type === 'file'
-    ? transformFileContent(item, contentData)
-    : transformTextContent(item, contentData);
+    ? transformFileContent(item, content_data)
+    : transformTextContent(item, content_data);
 };
 
 // Database operations

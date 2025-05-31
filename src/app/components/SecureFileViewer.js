@@ -20,9 +20,9 @@ const buildAuthHeaders = (accessToken) => ({
     Authorization: `Bearer ${accessToken}`,
 });
 
-const parseContentData = (contentData) => {
+const parseContentData = (content_data) => {
     try {
-        return typeof contentData === 'string' ? JSON.parse(contentData) : contentData;
+        return typeof content_data === 'string' ? JSON.parse(content_data) : content_data;
     } catch (error) {
         console.error('Failed to parse content data:', error);
         return {};
@@ -108,7 +108,6 @@ const SecurityOverlay = () => (
 // ============== PREVIEW SELECTOR ==============
 const FilePreview = ({ fileContent, fileType, contentId }) => {
     if (!fileContent) return null;
-    console.log(fileType)
 
     if (isImageType(fileType)) {
         return <ImagePreview fileContent={fileContent} />;

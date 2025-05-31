@@ -720,7 +720,7 @@ export default function AdminControl({ pendingTeachersData: initialPendingTeache
                 ))}
             </nav>
 
-            <div className="tab-content">
+            <div className={styles.tabeContent}>
                 {activeTab === TABS.TEACHERS && renderTeachersTab()}
                 {activeTab === TABS.CLASSES && renderClassesTab()}
                 {activeTab === TABS.STUDENTS && renderStudentsTab()}

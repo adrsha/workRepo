@@ -66,7 +66,6 @@ export async function PUT(req) {
       return new Response(JSON.stringify({ error: 'Unauthorized: User not authenticated' }), { status: 401 });
     }
 
-    console.log(session);
     const userId = session.user.id;
     const userLevel = session.user.level;
     // Strict enforcement of admin level (2)

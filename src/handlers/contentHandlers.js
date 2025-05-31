@@ -1,5 +1,5 @@
-import { contentService } from '../../../../Codes/workRepo/src/app/api/contentService';
-import { validateTextContent } from '../../../../Codes/workRepo/src/utils/contentUtils';
+import { contentService } from '../app/api/contentService';
+import { validateTextContent } from '../utils/contentUtils';
 
 export const createContentHandlers = (
     classId, 
@@ -7,40 +7,45 @@ export const createContentHandlers = (
     contents, 
     setContents, 
     { showSuccess, showError },
-    { resetForm }
+    { resetForm },
+    refetch // Add refetch from useClassContent
 ) => {
     const handleAddTextContent = async (contentForm) => {
+        console.log("BeforeContent", contentForm)
         if (!validateTextContent(contentForm)) {
             showError('Content cannot be empty');
             return;
         }
 
         try {
-            const data = await contentService.addTextContent(
+            await contentService.addTextContent(
                 classId,
                 contentForm,
                 session?.accessToken
             );
 
-            setContents([...contents, data]);
+            // Refetch to ensure data consistency
+            await refetch();
             resetForm();
             showSuccess('Content added successfully');
         } catch (err) {
             console.error('Error adding content:', err);
             showError(err.message || 'Network error. Please try again.');
         }
+        console.log("AfterContent", contentForm)
     };
 
-    const handleFileUpload = async (file, isPublic) => {
+    const handleFileUpload = async (file, is_public) => {
         try {
-            const data = await contentService.uploadFile(
+            await contentService.uploadFile(
                 classId,
                 file,
-                isPublic,
+                is_public,
                 session?.accessToken
             );
 
-            setContents([...contents, data]);
+            // Refetch to ensure data consistency
+            await refetch();
             resetForm();
             showSuccess('File uploaded successfully');
         } catch (err) {
@@ -52,11 +57,15 @@ export const createContentHandlers = (
     const handleDeleteContent = async (contentId) => {
         try {
             await contentService.deleteContent(contentId, session?.accessToken);
+            
+            // Optimistic update for delete (safer since we're removing)
             setContents(contents.filter(content => content.content_id !== contentId));
             showSuccess('Content deleted successfully');
         } catch (err) {
             console.error('Error deleting content:', err);
             showError(err.message || 'Network error. Please try again.');
+            // Refetch on error to restore state
+            await refetch();
         }
     };
 

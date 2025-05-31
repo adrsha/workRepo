@@ -1,4 +1,3 @@
-
 // ============== REFACTORED UPLOAD API ==============
 // api/upload/route.js
 import { getServerSession } from 'next-auth';
@@ -20,7 +19,7 @@ const authService = {
         return session.user;
     },
 
-    async canUserMakePublic(userId, userLevel, classId) {
+    async canUserUpload(userId, userLevel, classId) {
         if (userLevel === CONFIG.USER_LEVELS.ADMIN) return true;
         if (userLevel === CONFIG.USER_LEVELS.TEACHER) {
             return await this.isClassOwner(userId, classId);
@@ -30,9 +29,10 @@ const authService = {
 
     async isClassOwner(userId, classId) {
         const result = await executeQueryWithRetry({
-            query: 'SELECT class_id FROM class WHERE class_id = ? AND created_by = ?',
+            query: 'SELECT class_id FROM class WHERE class_id = ? AND teacher_id = ?',
             values: [classId, userId]
         });
+        console.log("CLASS OWNER", classId, userId)
         return result.length > 0;
     }
 };
@@ -52,10 +52,10 @@ const fileService = {
 
 // Database Layer
 const dbService = {
-    async insertContent(contentType, contentData, isPublic) {
+    async insertContent(contentType, content_data, is_public) {
         const result = await executeQueryWithRetry({
             query: 'INSERT INTO content (content_type, content_data, is_public) VALUES (?, ?, ?)',
-            values: [contentType, contentData, isPublic ? 1 : 0]
+            values: [contentType, content_data, is_public ? 1 : 0]
         });
         return result.insertId;
     },
@@ -92,18 +92,18 @@ const dbService = {
         };
     },
 
-    parseContentData(contentData) {
+    parseContentData(content_data) {
         try {
-            return JSON.parse(contentData);
+            return JSON.parse(content_data);
         } catch (err) {
             console.error('Failed to parse content data:', err);
             return {};
         }
     },
 
-    async saveContent(contentType, contentData, classId, isPublic) {
+    async saveContent(contentType, content_data, classId, is_public) {
         try {
-            const contentId = await this.insertContent(contentType, JSON.stringify(contentData), isPublic);
+            const contentId = await this.insertContent(contentType, JSON.stringify(content_data), is_public);
             await this.linkContentToClass(classId, contentId);
             return await this.getContentById(contentId, classId);
         } catch (err) {
@@ -135,7 +135,7 @@ const contentProcessor = {
         };
     },
 
-    async processFileUpload(file, classId, userId, isPublic) {
+    async processFileUpload(file, classId, userId, is_public) {
         const fileName = generateFileName(userId, file.name);
         const serverDir = await fileService.createUploadDirectory(classId);
         const serverPath = join(serverDir, fileName);
@@ -144,13 +144,13 @@ const contentProcessor = {
         const buffer = Buffer.from(await file.arrayBuffer());
         await fileService.saveFile(buffer, serverPath);
 
-        const contentData = this.createFileContentData(file, fileName, publicPath, userId);
-        return await dbService.saveContent('file', contentData, classId, isPublic);
+        const content_data = this.createFileContentData(file, fileName, publicPath, userId);
+        return await dbService.saveContent('file', content_data, classId, is_public);
     },
 
-    async processTextContent(text, classId, userId, isPublic) {
-        const contentData = this.createTextContentData(text, userId);
-        return await dbService.saveContent('text', contentData, classId, isPublic);
+    async processTextContent(text, classId, userId, is_public) {
+        const content_data = this.createTextContentData(text, userId);
+        return await dbService.saveContent('text', content_data, classId, is_public);
     }
 };
 
@@ -160,12 +160,12 @@ const requestHandler = {
         const file = formData.get('file');
         const classId = formData.get('classId');
         const textContent = formData.get('textContent');
-        const isPublic = formData.get('isPublic') === 'true';
+        const is_public = formData.get('is_public') === 'true';
 
         if (!classId) throw new Error(CONFIG.ERRORS.MISSING_CLASS_ID);
         if (!file && !textContent) throw new Error(CONFIG.ERRORS.MISSING_CONTENT);
 
-        return { file, classId, textContent, isPublic };
+        return { file, classId, textContent, is_public };
     },
 
     createResponse(data, status = 200) {
@@ -201,14 +201,18 @@ export async function POST(req) {
     try {
         const user = await authService.getAuthenticatedUser();
         const formData = await req.formData();
-        const { file, classId, textContent, isPublic } = requestHandler.validateRequest(formData);
+        const { file, classId, textContent, is_public } = requestHandler.validateRequest(formData);
         
-        const canMakePublic = await authService.canUserMakePublic(user.id, user.user_level, classId);
-        const finalIsPublic = canMakePublic && isPublic;
+        // Check if user can upload - if they can upload, they can make it public
+        const canUpload = await authService.canUserUpload(user.id, user.user_level, classId);
+        
+        if (!canUpload) {
+            throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
+        }
 
         const result = file && file instanceof File
-            ? await contentProcessor.processFileUpload(file, classId, user.id, finalIsPublic)
-            : await contentProcessor.processTextContent(textContent, classId, user.id, finalIsPublic);
+            ? await contentProcessor.processFileUpload(file, classId, user.id, is_public)
+            : await contentProcessor.processTextContent(textContent, classId, user.id, is_public);
 
         return requestHandler.createResponse(result);
 

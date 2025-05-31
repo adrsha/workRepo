@@ -6,6 +6,7 @@ import { useClassContent } from '../../hooks/useClassContent';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useContentForm } from '../../hooks/useContentForm';
 import { createContentHandlers } from '../../handlers/contentHandlers';
+
 import styles from '../../styles/ClassContent.module.css';
 import { LoadingState, EmptyState, NotificationToasts } from './ui';
 import { ContentList } from './content';
@@ -13,7 +14,7 @@ import { ContentEditor } from './editor';
 
 export default function ClassContent({ classId, isTeacher }) {
     const { data: session } = useSession();
-    const { contents, setContents, loading } = useClassContent(classId, session);
+    const { contents, setContents, loading, refetch } = useClassContent(classId, session);
     const notifications = useNotifications();
     const formControls = useContentForm();
     
@@ -23,7 +24,8 @@ export default function ClassContent({ classId, isTeacher }) {
         contents,
         setContents,
         notifications,
-        formControls
+        formControls,
+        refetch
     );
 
     if (loading) return <LoadingState />;

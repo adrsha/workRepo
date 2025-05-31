@@ -1,7 +1,7 @@
-const createFormData = (classId, isPublic, additionalData = {}) => {
+const createFormData = (classId, is_public, additionalData = {}) => {
     const formData = new FormData();
     formData.append('classId', classId);
-    formData.append('isPublic', isPublic.toString());
+    formData.append('is_public', is_public.toString());
     
     Object.entries(additionalData).forEach(([key, value]) => {
         formData.append(key, value);
@@ -23,9 +23,12 @@ const makeRequest = async (url, options) => {
 
 export const contentService = {
     async addTextContent(classId, contentForm, accessToken) {
-        const formData = createFormData(classId, contentForm.isPublic, {
-            textContent: contentForm.contentData
+        {console.log("Adding text content:", contentForm)}
+        
+        const formData = createFormData(classId, contentForm.is_public, {
+            textContent: contentForm.content_data
         });
+        {console.log("Adding text content Form data:", formData)}
 
         return makeRequest('/api/upload', {
             method: 'POST',
@@ -34,8 +37,8 @@ export const contentService = {
         });
     },
 
-    async uploadFile(classId, file, isPublic, accessToken) {
-        const formData = createFormData(classId, isPublic, { file });
+    async uploadFile(classId, file, is_public, accessToken) {
+        const formData = createFormData(classId, is_public, { file });
 
         return makeRequest('/api/upload', {
             method: 'POST',
