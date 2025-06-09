@@ -14,25 +14,19 @@
 .contentList {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0rem;
 }
 
 .contentItem {
   position: relative;
   background-color: #f9fbfd;
-  border-radius: 6px;
+  margin: 0;
   padding: 1.5rem;
-  border: 1px solid #edf1f7;
   transition: all 0.2s ease;
 }
 
 .contentItem:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.textContent {
-  line-height: 1.6;
-  color: #435365;
 }
 
 .imageContent img {
@@ -339,6 +333,245 @@
 .visibilityToggle p{
     font-size: 0.8rem;
 }
+
+/* Enhanced Editor Styles */
+.markdownToolbar {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  flex-wrap: wrap;
+}
+
+.toolButton {
+  padding: 4px 8px;
+  border: 1px solid #dee2e6;
+  background: white;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.toolButton:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.viewModeButtons {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.viewButton {
+  padding: 4px 12px;
+  border: 1px solid #dee2e6;
+  background: white;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.viewButton:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.viewButton:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+.viewButton.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.editorControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+
+.editorContainer {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e9ecef;
+  border-radius: 0 0 4px 4px;
+  overflow: hidden;
+}
+
+.editorContainer.splitView {
+  flex-direction: row;
+  height: 400px;
+}
+
+.contentTextarea {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+
+.splitView .contentTextarea {
+  width: 50%;
+  border-right: 1px solid #e9ecef;
+  resize: none;
+  height: 100%;
+}
+
+/* Shared markdown styles for both preview and content display */
+.markdownPreview,
+.textContent :global(.markdown-content),
+.defaultContent :global(.markdown-content) {
+  padding: 12px;
+  background: white;
+  overflow-y: auto;
+  flex: 1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+.splitView .markdownPreview {
+  width: 50%;
+  border-left: 1px solid #e9ecef;
+}
+
+/* Remove padding for content display (already handled by parent) */
+.textContent, 
+.defaultContent {
+  padding: 0;
+  background: transparent;
+}
+
+.markdownPreview h1,
+.textContent h1,
+.defaultContent h1 {
+  font-size: 24px;
+  margin: 16px 0 12px 0;
+  color: #333;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 8px;
+}
+
+.markdownPreview h2,
+.textContent h2,
+.defaultContent h2 {
+  font-size: 20px;
+  margin: 14px 0 10px 0;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 6px;
+}
+
+.markdownPreview h3,
+.textContent h3,
+.defaultContent h3 {
+  font-size: 16px;
+  margin: 12px 0 8px 0;
+  color: #333;
+}
+
+.markdownPreview code,
+.textContent code,
+.defaultContent code {
+  background: #f8f9fa;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  color: #e83e8c;
+}
+
+.markdownPreview pre,
+.textContent pre,
+.defaultContent pre {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+
+.markdownPreview pre code,
+.textContent  pre code,
+.defaultContent  pre code {
+  background: none;
+  padding: 0;
+  color: #333;
+}
+
+.markdownPreview blockquote,
+.textContent  blockquote,
+.defaultContent  blockquote {
+  margin: 12px 0;
+  padding: 8px 16px;
+  background: #f8f9fa;
+  border-left: 4px solid #007bff;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.markdownPreview ul, .markdownPreview ol,
+.textContent  ul, .textContent :global(.markdown-content) ol,
+.defaultContent  ul, .defaultContent :global(.markdown-content) ol {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.markdownPreview li,
+.textContent  li,
+.defaultContent  li {
+  margin: 4px 0;
+}
+
+.markdownPreview a,
+.textContent  a,
+.defaultContent  a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.markdownPreview a:hover,
+.textContent  a:hover,
+.defaultContent  a:hover {
+  text-decoration: underline;
+}
+
+.markdownPreview hr,
+.textContent  hr,
+.defaultContent  hr {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid #eee;
+}
+
+.markdownPreview del,
+.textContent  del,
+.defaultContent  del {
+  color: #6c757d;
+  text-decoration: line-through;
+}
+
+.markdownPreview img,
+.textContent  img,
+.defaultContent  img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
 
 @keyframes slideIn {
   from {

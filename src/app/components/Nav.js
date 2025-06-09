@@ -5,24 +5,48 @@ import { signOut, useSession } from 'next-auth/react';
 import { useState, useEffect, useRef } from 'react';
 import styles from '../../styles/Nav.module.css';
 
+// Constants
 const USER_NAV_ITEMS = [
     { name: 'Edit profile', path: '/settings' }
 ];
 
-// Custom hooks for separation of concerns
+const UNAUTHENTICATED_NAV_ITEMS = [
+    { name: 'Classes', path: '/registration/login' },
+    { name: 'Preparation', path: '/registration/login' },
+    { name: 'Language Classes', path: '/registration/login' },
+    { name: 'Other Classes', path: '/registration/login' },
+    { name: 'Downloads', path: '/registration/login' },
+    { name: 'Login', path: '/registration/login' }
+];
+
+// API utilities
+const fetchNotifications = async () => {
+    const response = await fetch('/api/getNotifs?limit=5');
+    if (!response.ok) throw new Error('Failed to fetch notifications');
+    return response.json();
+};
+
+const markNotificationRead = async (notificationId) => {
+    const response = await fetch('/api/getNotifs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationId, action: 'mark-read' })
+    });
+    if (!response.ok) throw new Error('Failed to mark notification as read');
+    return response.json();
+};
+
+// Hooks
 const useNotifications = (isAuthenticated) => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [showNotifications, setShowNotifications] = useState(false);
 
-    const fetchNotifications = async () => {
+    const refreshNotifications = async () => {
         try {
-            const response = await fetch('/api/getNotifs?limit=5');
-            if (response.ok) {
-                const data = await response.json();
-                setNotifications(data.notifications);
-                setUnreadCount(data.notifications.filter(n => n.read_status === 0).length);
-            }
+            const data = await fetchNotifications();
+            setNotifications(data.notifications);
+            setUnreadCount(data.notifications.filter(n => n.read_status === 0).length);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
         }
@@ -30,74 +54,58 @@ const useNotifications = (isAuthenticated) => {
 
     const markAsRead = async (notificationId) => {
         try {
-            const response = await fetch('/api/getNotifs', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ notificationId, action: 'mark-read' }),
-            });
-
-            if (response.ok) {
-                setNotifications(prev =>
-                    prev.map(notif =>
-                        notif.notif_id === notificationId ? { ...notif, read_status: 1 } : notif
-                    )
-                );
-                setUnreadCount(prev => Math.max(0, prev - 1));
-            }
+            await markNotificationRead(notificationId);
+            setNotifications(prev =>
+                prev.map(notif =>
+                    notif.notif_id === notificationId ? { ...notif, read_status: 1 } : notif
+                )
+            );
+            setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
             console.error('Failed to mark notification as read:', error);
         }
     };
 
     useEffect(() => {
-        if (isAuthenticated) {
-            fetchNotifications();
-            const interval = setInterval(fetchNotifications, 30000);
-            return () => clearInterval(interval);
-        }
+        if (!isAuthenticated) return;
+        
+        refreshNotifications();
+        const interval = setInterval(refreshNotifications, 30000);
+        return () => clearInterval(interval);
     }, [isAuthenticated]);
 
-    return {
-        notifications,
-        unreadCount,
-        showNotifications,
-        setShowNotifications,
-        markAsRead
-    };
+    return { notifications, unreadCount, showNotifications, setShowNotifications, markAsRead };
 };
 
-const useClickOutside = (refs, callbacks) => {
+const useClickOutside = (ref, callback) => {
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            refs.forEach((ref, index) => {
-                if (ref.current && !ref.current.contains(event.target)) {
-                    callbacks[index]();
-                }
-            });
+        const handleClick = (event) => {
+            if (ref.current && !ref.current.contains(event.target)) {
+                callback();
+            }
         };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [refs, callbacks]);
+        
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [ref, callback]);
 };
 
-const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+// Utilities
+const formatDate = (dateString) => 
+    new Date(dateString).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
     });
-};
 
-// Component: Logo
+// Components
 const Logo = ({ onNavigate }) => (
     <div className={styles.logo} onClick={onNavigate('/')}>
         <img src="/logo.png" alt="MeroTuition Logo" />
     </div>
 );
 
-// Component: Hamburger Button
 const HamburgerButton = ({ isOpen, onToggle }) => (
     <button 
         className={`${styles.hamburgerButton} ${isOpen ? styles.active : ''}`} 
@@ -111,10 +119,9 @@ const HamburgerButton = ({ isOpen, onToggle }) => (
     </button>
 );
 
-// Component: Notification Bell
 const NotificationBell = ({ unreadCount, onToggle }) => (
     <button className={styles.notificationButton} onClick={onToggle} aria-label="Notifications">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="currentColor" />
         </svg>
         {unreadCount > 0 && (
@@ -123,7 +130,6 @@ const NotificationBell = ({ unreadCount, onToggle }) => (
     </button>
 );
 
-// Component: Notification Item
 const NotificationItem = ({ notification, onNavigate, onMarkRead }) => {
     const handleClick = () => {
         if (notification.read_status === 0) {
@@ -149,7 +155,6 @@ const NotificationItem = ({ notification, onNavigate, onMarkRead }) => {
     );
 };
 
-// Component: Notifications Dropdown
 const NotificationsDropdown = ({ notifications, unreadCount, onNavigate, onMarkRead, onClose }) => (
     <div className={styles.notificationsDropdown}>
         <div className={styles.notificationHeader}>
@@ -159,7 +164,7 @@ const NotificationsDropdown = ({ notifications, unreadCount, onNavigate, onMarkR
 
         {notifications.length > 0 ? (
             <ul className={styles.notificationsList}>
-                {notifications.map((notif) => (
+                {notifications.map(notif => (
                     <NotificationItem
                         key={notif.notif_id}
                         notification={notif}
@@ -180,7 +185,6 @@ const NotificationsDropdown = ({ notifications, unreadCount, onNavigate, onMarkR
     </div>
 );
 
-// Component: User Dropdown
 const UserDropdown = ({ session, onNavigate, onSignOut }) => (
     <span className={styles.dropdown}>
         <a
@@ -202,90 +206,109 @@ const UserDropdown = ({ session, onNavigate, onSignOut }) => (
     </span>
 );
 
-// Component: Navigation Links
-const NavLinks = ({ 
+const NavButton = ({ children, onClick, className = styles.navButton }) => (
+    <button className={className} onClick={onClick}>
+        {children}
+    </button>
+);
+
+const AuthenticatedNav = ({ 
     isStudent, 
     isHomePage, 
     isLmsHomePage, 
-    isAuthenticated, 
+    session, 
+    onNavigate, 
+    onSignOut, 
+    notificationProps, 
+    notificationRef 
+}) => (
+    <>
+        {isStudent && !isHomePage && (
+            <NavButton onClick={onNavigate('/classes')}>Courses</NavButton>
+        )}
+        
+        <NavButton onClick={onNavigate('/classes')}>Classes</NavButton>
+        <NavButton onClick={onNavigate('/preparation')}>Preparation</NavButton>
+        <NavButton onClick={onNavigate('/language-classes')}>Language Classes</NavButton>
+        <NavButton onClick={onNavigate('/other-classes')}>Other Classes</NavButton>
+        <NavButton onClick={onNavigate('/downloads')}>Downloads</NavButton>
+        
+        {!isLmsHomePage && (
+            <NavButton onClick={onNavigate('/lmshome')}>Dashboard</NavButton>
+        )}
+
+        <div className={styles.notificationContainer} ref={notificationRef}>
+            <NotificationBell
+                unreadCount={notificationProps.unreadCount}
+                onToggle={() => notificationProps.setShowNotifications(!notificationProps.showNotifications)}
+            />
+
+            {notificationProps.showNotifications && (
+                <NotificationsDropdown
+                    notifications={notificationProps.notifications}
+                    unreadCount={notificationProps.unreadCount}
+                    onNavigate={onNavigate}
+                    onMarkRead={notificationProps.markAsRead}
+                    onClose={() => notificationProps.setShowNotifications(false)}
+                />
+            )}
+        </div>
+
+        <UserDropdown session={session} onNavigate={onNavigate} onSignOut={onSignOut} />
+    </>
+);
+
+const UnauthenticatedNav = ({ onNavigate }) => (
+    <>
+        {UNAUTHENTICATED_NAV_ITEMS.map(({ name, path }) => (
+            <NavButton key={name} onClick={onNavigate(path)}>
+                {name}
+            </NavButton>
+        ))}
+        <NavButton 
+            className={styles.specialNavButton} 
+            onClick={onNavigate('/registration/signup')}
+        >
+            Sign Up
+        </NavButton>
+    </>
+);
+
+const NavLinks = ({ 
+    isAuthenticated,
+    isStudent,
+    isHomePage,
+    isLmsHomePage,
     session,
-    menuOpen, 
+    menuOpen,
     onNavigate,
     onSignOut,
     notificationProps,
     notificationRef
 }) => (
     <div className={`${styles.navLinks} ${menuOpen ? styles.showMobileMenu : ''}`}>
-        {isStudent && !isHomePage && (
-            <button className={styles.navButton} onClick={onNavigate('/classes')}>
-                Courses
-            </button>
-        )}
-
-        <button className={styles.navButton} onClick={onNavigate('/')}>Home</button>
-        <button className={styles.navButton} onClick={onNavigate('/aboutus')}>About Us</button>
-        <button className={styles.navButton} onClick={onNavigate('/contactus')}>Contact Us</button>
+        <NavButton onClick={onNavigate('/')}>Home</NavButton>
+        <NavButton onClick={onNavigate('/aboutus')}>About Us</NavButton>
+        <NavButton onClick={onNavigate('/contactus')}>Contact Us</NavButton>
 
         {isAuthenticated ? (
-            <>
-                {!isLmsHomePage && (
-                    <button className={styles.navButton} onClick={onNavigate('/lmshome')}>
-                        Dashboard
-                    </button>
-                )}
-
-                <div className={styles.notificationContainer} ref={notificationRef}>
-                    <NotificationBell
-                        unreadCount={notificationProps.unreadCount}
-                        onToggle={() => notificationProps.setShowNotifications(!notificationProps.showNotifications)}
-                    />
-
-                    {notificationProps.showNotifications && (
-                        <NotificationsDropdown
-                            notifications={notificationProps.notifications}
-                            unreadCount={notificationProps.unreadCount}
-                            onNavigate={onNavigate}
-                            onMarkRead={notificationProps.markAsRead}
-                            onClose={() => notificationProps.setShowNotifications(false)}
-                        />
-                    )}
-                </div>
-
-                <UserDropdown
-                    session={session}
-                    onNavigate={onNavigate}
-                    onSignOut={onSignOut}
-                />
-            </>
+            <AuthenticatedNav
+                isStudent={isStudent}
+                isHomePage={isHomePage}
+                isLmsHomePage={isLmsHomePage}
+                session={session}
+                onNavigate={onNavigate}
+                onSignOut={onSignOut}
+                notificationProps={notificationProps}
+                notificationRef={notificationRef}
+            />
         ) : (
-            <>
-                <button className={styles.navButton} onClick={onNavigate('/registration/login')}>
-                    Classes
-                </button>
-                <button className={styles.navButton} onClick={onNavigate('/registration/login')}>
-                    Preparation
-                </button>
-                <button className={styles.navButton} onClick={onNavigate('/registration/login')}>
-                    Language Classes
-                </button>
-                <button className={styles.navButton} onClick={onNavigate('/registration/login')}>
-                    Other Classes
-                </button>
-                <button className={styles.navButton} onClick={onNavigate('/registration/login')}>
-                    Downloads
-                </button>
-                <button className={styles.navButton} onClick={onNavigate('/registration/login')}>
-                    Login
-                </button>
-                <button className={styles.specialNavButton} onClick={onNavigate('/registration/signup')}>
-                    Sign Up
-                </button>
-            </>
+            <UnauthenticatedNav onNavigate={onNavigate} />
         )}
     </div>
 );
 
-// Main Nav Component
+// Main Component
 export default function Nav() {
     const router = useRouter();
     const pathname = usePathname();
@@ -313,13 +336,13 @@ export default function Nav() {
         setMenuOpen(false);
     };
 
-    useClickOutside(
-        [notificationRef, hamburgerRef],
-        [
-            () => notificationProps.setShowNotifications(false),
-            () => setMenuOpen(false)
-        ]
-    );
+    const closeMenus = () => {
+        setMenuOpen(false);
+        notificationProps.setShowNotifications(false);
+    };
+
+    useClickOutside(notificationRef, () => notificationProps.setShowNotifications(false));
+    useClickOutside(hamburgerRef, () => setMenuOpen(false));
 
     return (
         <nav className={styles.navbar}>
@@ -332,10 +355,10 @@ export default function Nav() {
                 />
                 
                 <NavLinks
+                    isAuthenticated={isAuthenticated}
                     isStudent={isStudent}
                     isHomePage={isHomePage}
                     isLmsHomePage={isLmsHomePage}
-                    isAuthenticated={isAuthenticated}
                     session={session}
                     menuOpen={menuOpen}
                     onNavigate={navigateTo}

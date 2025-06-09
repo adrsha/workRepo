@@ -3,9 +3,9 @@ const publicTables = ['grades', 'classes', 'courses', 'classes_users', 'notices'
 const allowedTables = [
   ...publicTables,
   'users',
-  'classes_users',
-  'class_joining_pending',
-  'grades'
+  'teachers',
+  'students',
+  'class_joining_pending'
 ];
 
 import { executeQueryWithRetry } from '../../lib/db';
@@ -14,57 +14,90 @@ import { getServerSession } from 'next-auth/next';
 
 export async function GET(req) {
   try {
-    const { searchParams } = new URL(req.url);
-    const tableName = searchParams.get('table');
-
-    // Validate if the table name is valid
-    if (!tableName || !/^[a-zA-Z0-9_]+$/.test(tableName)) {
-      return new Response(JSON.stringify({ error: 'Invalid table name' }), { status: 400 });
-    }
-
-    // Check if the requested table is allowed
-    if (!allowedTables.includes(tableName)) {
-      return new Response(JSON.stringify({ error: 'Table access not permitted' }), { status: 403 });
-    }
-
-    // Authorization check for non-public tables
-    if (!publicTables.includes(tableName)) {
-      const session = await getServerSession(authOptions);
-      if (!session) {
-        return new Response(JSON.stringify({ error: 'Unauthorized access' }), { status: 401 });
-      }
-    }
-
-    // Process the query
+    const tableName = getTableName(req);
     const session = await getServerSession(authOptions);
-    const userId = session?.user?.id;
-
-    const results = await fetchDataFromDB(tableName, userId);
-    return new Response(JSON.stringify(results), { status: 200 });
+    
+    validateTableName(tableName);
+    await validateAccess(tableName, session);
+    
+    const results = await fetchData(tableName, session?.user);
+    return createResponse(results);
   } catch (error) {
-    console.error('Database query failed:', error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    return handleError(error);
   }
 }
 
-async function fetchDataFromDB(tableName, userId) {
+function getTableName(req) {
+  const { searchParams } = new URL(req.url);
+  return searchParams.get('table');
+}
+
+function validateTableName(tableName) {
+  if (!tableName || !/^[a-zA-Z0-9_]+$/.test(tableName)) {
+    throw new ValidationError('Invalid table name');
+  }
+  
+  if (!allowedTables.includes(tableName)) {
+    throw new AccessError('Table access not permitted');
+  }
+}
+
+async function validateAccess(tableName, session) {
+  const isPublic = publicTables.includes(tableName);
+  const isAdmin = session?.user?.level === 0;
+  
+  if (!isPublic && !session) {
+    throw new AuthError('Unauthorized access');
+  }
+  
+  // Admin can access everything, others follow normal rules
+  if (isAdmin) return;
+}
+
+async function fetchData(tableName, user) {
+  const isAdmin = user?.level === 0;
+  const userId = user?.id;
+  
+  if (isAdmin) {
+    return executeQuery(`SELECT * FROM ${tableName}`);
+  }
+  
+  if (tableName === 'users' && userId) {
+    return executeQuery(`SELECT * FROM ${tableName} WHERE user_id = ?`, [userId]);
+  }
+  
+  return executeQuery(`SELECT * FROM ${tableName}`);
+}
+
+async function executeQuery(query, values = []) {
   try {
-    let query;
-    let values = [];
-
-    // Special case for users table - only return current user data
-    if (tableName === 'users' && userId) {
-      query = `SELECT * FROM ${tableName} WHERE user_id = ?`;
-      values = [userId];
-    } else {
-      // For other tables, return all rows
-      query = `SELECT * FROM ${tableName}`;
-    }
-
-    const results = await executeQueryWithRetry({ query, values });
-    return results;
+    return await executeQueryWithRetry({ query, values });
   } catch (error) {
     console.error('Database query failed:', error);
-    throw new Error(error.message);
+    throw new DatabaseError(error.message);
   }
 }
+
+function createResponse(data, status = 200) {
+  return new Response(JSON.stringify(data), { status });
+}
+
+function handleError(error) {
+  console.error('API Error:', error);
+  
+  const errorMap = {
+    ValidationError: 400,
+    AccessError: 403,
+    AuthError: 401,
+    DatabaseError: 500
+  };
+  
+  const status = errorMap[error.constructor.name] || 500;
+  return createResponse({ error: error.message }, status);
+}
+
+// Custom error classes
+class ValidationError extends Error {}
+class AccessError extends Error {}
+class AuthError extends Error {}
+class DatabaseError extends Error {}

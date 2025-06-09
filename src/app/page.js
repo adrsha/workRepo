@@ -62,7 +62,7 @@ const FEATURES_DATA = [
         desc: 'Check out all of our available Teachers',
         img: '/others.png',
         color: '--quaternary',
-        route: '/others',
+        route: '/teachers',
     },
 ];
 
@@ -91,6 +91,7 @@ export default function HomePage() {
 
     const handleMainFeatureClick = (feature, index) => {
         if (index === 2 || index === 3) {
+        // if (index === 2 ) {
             handleFullscreenToggle();
         } else {
             navigateToRoute(feature.route);

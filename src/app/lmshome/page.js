@@ -37,8 +37,9 @@ async function removeClass(classId) {
   }
 }
 
-async function addClass(courseId, startTime, endTime, classDescription, grade) {
+async function addClass(courseId, startTime, endTime, repeatEveryNDay, classDescription, grade) {
   try {
+    console.log(repeatEveryNDay);
     const token = localStorage.getItem('authToken');
     const response = await fetch('/api/addteachersCourses', {
       method: 'POST',
@@ -51,6 +52,7 @@ async function addClass(courseId, startTime, endTime, classDescription, grade) {
         gradeId: grade,
         startTime,
         endTime,
+        repeatEveryNDay,
         classDescription,
       }),
     });
@@ -187,7 +189,7 @@ export default function LMSHome() {
 
     const start = startDate + 'T' + startTime;
     const end = endDate + 'T' + endTime;
-
+    console.log("cleint", repeatEveryNDay)
     try {
       await addClass(courseId, start, end, repeatEveryNDay, classDescription, grade);
       setAddClassError('Successfully added class');

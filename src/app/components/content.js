@@ -1,5 +1,6 @@
 import styles from '../../styles/ClassContent.module.css';
 import SecureFileViewer from './SecureFileViewer';
+import { MarkdownContent } from '../../utils/markdown';
 
 export const VisibilityBadge = ({ is_public }) => (
     <span className={`${styles.visibilityBadge} ${is_public ? styles.publicBadge : styles.privateBadge}`}>
@@ -15,11 +16,17 @@ const parseContentData = (content_data) => {
     }
 };
 
-const TextContent = ({ data }) => (
-    <div className={styles.textContent}>
-        {data.text}
-    </div>
-);
+const TextContent = ({ data }) => {
+    // Handle both old format (data.text) and new format (direct string)
+    const textContent = typeof data === 'string' ? data : data.text;
+    
+    return (
+        <MarkdownContent 
+            content={textContent}
+            className={styles.textContent}
+        />
+    );
+};
 
 const FileContent = ({ content }) => (
     <SecureFileViewer
@@ -28,9 +35,15 @@ const FileContent = ({ content }) => (
     />
 );
 
-const DefaultContent = ({ content_data }) => (
-    <div>{content_data}</div>
-);
+const DefaultContent = ({ content_data }) => {
+    // Also apply markdown parsing to default content
+    return (
+        <MarkdownContent 
+            content={content_data}
+            className={styles.defaultContent}
+        />
+    );
+};
 
 export const ContentRenderer = ({ content }) => {
     if (!content) return null;
@@ -38,7 +51,7 @@ export const ContentRenderer = ({ content }) => {
     switch (content.content_type) {
         case 'text':
             const data = parseContentData(content.content_data);
-            console.log("Content.js render", content)
+            console.log("Content.js render", content);
             return <TextContent data={data} />;
         case 'file':
             return <FileContent content={content} />;

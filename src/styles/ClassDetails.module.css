@@ -213,12 +213,12 @@
 }
 
 .errorCard h2 {
-    color: #e53935;
+    color: var(--primary);
     margin-top: 0;
 }
 
 .backButton {
-    background-color: #ff6b81;
+    background-color: var(--primary);
     color: white;
     border: none;
     border-radius: 6px;
@@ -230,7 +230,7 @@
 }
 
 .backButton:hover {
-    background-color: #ff5268;
+    background-color: var(--primary)
 }
 
 .toast {
@@ -246,8 +246,8 @@
 
 .toastContent {
     background-color: #fff0f0;
-    color: #db3a34;
-    border-left: 3px solid #db3a34;
+    color: var(--primary);
+    border-left: 3px solid var(--primary);
     border-radius: 4px;
     padding: 0.8rem 1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -265,7 +265,7 @@
 .toastClose {
     background: none;
     border: none;
-    color: var(--error, #e53935);
+    color: var(--error, var(--primary));
     cursor: pointer;
     font-size: 1.2rem;
     padding: 0.2rem;
@@ -279,7 +279,7 @@
 }
 
 .meetingButton {
-    background-color: #4a90e2;
+    background-color: var(--secondary);
 }
 
 .meetingButton:disabled {
@@ -288,7 +288,7 @@
 }
 
 .generateButton {
-    background-color: #009688;
+    background-color: var(--tertiary);
 }
 
 .generateButton:disabled {
@@ -307,12 +307,12 @@
 
 .active {
     background-color: #c8e6c9;
-    color: #2e7d32;
+    color: var(--tertiary);
 }
 
 .inactive {
     background-color: #ffccbc;
-    color: #d84315;
+    color: var(--primary);
 }
 
 .scheduleBadgeContainer {
@@ -322,7 +322,7 @@
 }
 
 .successToast {
-    background-color: #4caf50;
+    background-color: var(--tertiary);
 }
 
 .buttonGroup {
@@ -530,6 +530,12 @@
     background-color: var(--backgroundGreen);
     color: var(--darkGreen);
     border-left-color: var(--quaternary);
+}
+
+.disabledMessage {
+    color: var(--quaternary);
+    border: 2px solid var(--offWhite);
+    padding: 1rem;
 }
 
 /* Responsive adjustments for new elements */

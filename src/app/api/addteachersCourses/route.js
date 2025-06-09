@@ -6,7 +6,8 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const { courseId, gradeId, startTime, endTime, repeatEveryNDay, classDescription } = body;
-
+    console.log(body)
+        
     // Get the session using NextAuth
     const session = await getServerSession(authOptions); // Fetch session using NextAuth.js session management
     if (!session) {
@@ -26,7 +27,8 @@ export async function POST(req) {
     if (!session.accessToken) {
       return new Response(JSON.stringify({ error: 'Unauthorized: Token not valid' }), { status: 401 });
     }
-
+    console.log("INP", repeatEveryNDay);
+        
     const response = await insertClasses(teacherId, courseId, gradeId, startTime, endTime, repeatEveryNDay, classDescription);
     return new Response(JSON.stringify(response), { status: 200 });
   } catch (error) {
@@ -38,7 +40,7 @@ export async function POST(req) {
 async function insertClasses(userId, courseId, gradeId, startTime, endTime, repeatEveryNDay, classDescription) {
   try {
     const result = await executeQueryWithRetry({
-      query: `INSERT INTO classes (course_id, teacher_id, grade_id, start_time, end_time, repeat_every_n_day, class_description) VALUES (?, ?, ?, ?, ?, ?)`,
+      query: `INSERT INTO classes (course_id, teacher_id, grade_id, start_time, end_time, repeat_every_n_day, class_description) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       values: [courseId, userId, gradeId, startTime, endTime, repeatEveryNDay, classDescription],
     });
     return result;

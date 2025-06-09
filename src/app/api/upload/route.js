@@ -1,5 +1,3 @@
-// ============== REFACTORED UPLOAD API ==============
-// api/upload/route.js
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/authOptions';
 import { executeQueryWithRetry } from '../../lib/db';
@@ -29,7 +27,7 @@ const authService = {
 
     async isClassOwner(userId, classId) {
         const result = await executeQueryWithRetry({
-            query: 'SELECT class_id FROM class WHERE class_id = ? AND teacher_id = ?',
+            query: 'SELECT class_id FROM classes WHERE class_id = ? AND teacher_id = ?',
             values: [classId, userId]
         });
         console.log("CLASS OWNER", classId, userId)
@@ -202,9 +200,9 @@ export async function POST(req) {
         const user = await authService.getAuthenticatedUser();
         const formData = await req.formData();
         const { file, classId, textContent, is_public } = requestHandler.validateRequest(formData);
-        
+        {console.log(user)}
         // Check if user can upload - if they can upload, they can make it public
-        const canUpload = await authService.canUserUpload(user.id, user.user_level, classId);
+        const canUpload = await authService.canUserUpload(user.id, user.level, classId);
         
         if (!canUpload) {
             throw new Error(CONFIG.ERRORS.UNAUTHORIZED);

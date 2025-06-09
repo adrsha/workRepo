@@ -1,0 +1,156 @@
+const API_BASE_URL = '/api/changeData';
+
+export const createCrudHandlers = (updateArrayState, updateState, startAction, endAction, session) => {
+
+    const makeApiCall = async (method, data) => {
+        const response = await fetch(API_BASE_URL, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session?.accessToken}`,
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+    };
+
+    const handleAddRecord = async (tableName, recordData) => {
+        const actionKey = `add-${tableName}`;
+
+        try {
+            startAction(actionKey);
+
+            const result = await makeApiCall('POST', {
+                table: tableName,
+                data: recordData,
+                bulk: false
+            });
+
+            // Update the local state with the new record
+            // Note: We'll need to fetch the created record with its ID
+            if (result.success && result.insertId) {
+                const newRecord = { ...recordData, id: result.insertId };
+                updateArrayState(tableName, prev => [...prev, newRecord]);
+            }
+
+            return { success: true, message: result.message };
+        } catch (error) {
+            console.error(`Error adding ${tableName} record:`, error);
+            throw error;
+        } finally {
+            endAction(actionKey);
+        }
+    };
+
+    const handleBulkAddRecords = async (tableName, recordsData) => {
+        const actionKey = `bulk-add-${tableName}`;
+
+        try {
+            startAction(actionKey);
+
+            const result = await makeApiCall('POST', {
+                table: tableName,
+                data: recordsData,
+                bulk: true
+            });
+
+            // For bulk operations, we might need to refetch the data
+            // since we don't get individual IDs back
+            if (result.success) {
+                // Trigger a data refresh for this table
+                updateState('needsRefresh', { [tableName]: true });
+            }
+
+            return { success: true, message: result.message };
+        } catch (error) {
+            console.error(`Error bulk adding ${tableName} records:`, error);
+            throw error;
+        } finally {
+            endAction(actionKey);
+        }
+    };
+
+    const handleDeleteRecord = async (tableName, recordId) => {
+        const actionKey = `delete-${tableName}-${recordId}`;
+
+        try {
+            startAction(actionKey);
+
+            const result = await makeApiCall('DELETE', {
+                table: tableName,
+                id: recordId
+            });
+
+            // Remove the record from local state
+            if (result.success) {
+                updateArrayState(tableName, prev =>
+                    prev.filter(item => {
+                        const itemId = item.id || item.user_id || item.class_id || item.pending_id;
+                        return itemId !== recordId;
+                    })
+                );
+            }
+
+            return { success: true, message: result.message };
+        } catch (error) {
+            console.error(`Error deleting ${tableName} record:`, error);
+            throw error;
+        } finally {
+            endAction(actionKey);
+        }
+    };
+
+    return {
+        handleAddRecord,
+        handleBulkAddRecords,
+        handleDeleteRecord
+    };
+};
+
+// Enhanced adminActions.js additions
+export const enhanceActionHandlers = (existingHandlers, crudHandlers) => {
+    return {
+        ...existingHandlers,
+        ...crudHandlers,
+
+        // Enhanced wrapper functions for each table type
+        handleAddUser: (userData) => crudHandlers.handleAddRecord('users', userData),
+        handleBulkAddUsers: (usersData) => crudHandlers.handleBulkAddRecords('users', usersData),
+        handleDeleteUser: (userId) => crudHandlers.handleDeleteRecord('users', userId),
+
+        handleAddTeacher: (teacherData) => crudHandlers.handleAddRecord('teachers', teacherData),
+        handleBulkAddTeachers: (teachersData) => crudHandlers.handleBulkAddRecords('teachers', teachersData),
+        handleDeleteTeacher: (teacherId) => crudHandlers.handleDeleteRecord('teachers', teacherId),
+
+        handleAddStudent: (studentData) => crudHandlers.handleAddRecord('students', studentData),
+        handleBulkAddStudents: (studentsData) => crudHandlers.handleBulkAddRecords('students', studentsData),
+        handleDeleteStudent: (studentId) => crudHandlers.handleDeleteRecord('students', studentId),
+
+        handleAddClass: (classData) => crudHandlers.handleAddRecord('classes', classData),
+        handleBulkAddClasses: (classesData) => crudHandlers.handleBulkAddRecords('classes', classesData),
+        handleDeleteClass: (classId) => crudHandlers.handleDeleteRecord('classes', classId),
+    };
+};
+
+// Error handling utilities
+export const handleCrudError = (error, operation, tableName) => {
+    let message = `Failed to ${operation} ${tableName}`;
+
+    if (error.message.includes('Unauthorized')) {
+        message = 'You are not authorized to perform this action';
+    } else if (error.message.includes('Missing required fields')) {
+        message = `Missing required information: ${error.message.split(': ')[1]}`;
+    } else if (error.message.includes('duplicate')) {
+        message = 'A record with this information already exists';
+    } else if (error.message.includes('foreign key constraint')) {
+        message = 'Cannot delete: this record is referenced by other data';
+    }
+
+    return message;
+};

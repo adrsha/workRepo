@@ -26,7 +26,7 @@ const MAX_LENGTHS = {
 const REQUIRED_FIELDS = {
     base: ['username', 'email', 'password', 'contact'],
     student: ['guardianName', 'guardianRelation', 'guardianContact', 'school', 'class', 'dateOfBirth'],
-    teacher: ['qualification', 'experience']
+    teacher: ['qualification', 'experience', 'certificate_path']
 };
 
 // Validation functions

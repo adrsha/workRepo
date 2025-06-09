@@ -6,7 +6,6 @@
     background-color: var(--background);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--card-shadow);
-    padding: 0;
     transition: var(--transition-normal);
 }
 
@@ -33,7 +32,7 @@
 }
 
 .contentItem {
-    margin-bottom: 1rem;
+    margin: 1rem;
     transition: var(--transition-fast);
 }
 

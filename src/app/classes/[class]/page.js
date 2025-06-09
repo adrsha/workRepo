@@ -5,10 +5,10 @@ import { useSession } from 'next-auth/react';
 import '../../global.css';
 import styles from '../../../styles/ClassDetails.module.css';
 import Loading from '../../components/Loading';
-import { fetchData, fetchViewData, fetchJoinableData } from '../../lib/helpers';
+import { fetchJoinableData, fetchViewData } from '../../lib/helpers';
 import ClassContent from '../../components/ClassContent';
 
-// Utils
+// Date and time utilities
 const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return 'TBD';
 
@@ -18,14 +18,15 @@ const formatDateTime = (dateTimeString) => {
         }
 
         const date = new Date(dateTimeString);
-        const datePart = new Intl.DateTimeFormat('en-US', {
-            month: 'short', day: 'numeric', year: 'numeric'
+        return new Intl.DateTimeFormat('en-US', {
+            weekday: 'long',
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true
         }).format(date);
-        const timePart = new Intl.DateTimeFormat('en-US', {
-            hour: '2-digit', minute: '2-digit', hour12: true
-        }).format(date);
-
-        return `${datePart} at ${timePart}`;
     } catch (e) {
         console.error('Error formatting date:', e);
         return dateTimeString;
@@ -38,6 +39,12 @@ const isClassActive = (startTime, endTime) => {
     return now >= new Date(startTime) && now <= new Date(endTime);
 };
 
+const isClassInPast = (endTime) => {
+    if (!endTime) return false;
+    return new Date() > new Date(endTime);
+};
+
+// Validation utilities
 const isValidUrl = (string) => {
     try {
         new URL(string);
@@ -47,8 +54,8 @@ const isValidUrl = (string) => {
     }
 };
 
-// API calls
-const apiCall = async (endpoint, method, body, token) => {
+// API utilities
+const makeApiCall = async (endpoint, method, body, token) => {
     const response = await fetch(endpoint, {
         method,
         headers: {
@@ -91,10 +98,7 @@ const useClassData = (classId, session) => {
 
                 if (classData?.length > 0) {
                     setClassDetails(classData[0]);
-
-                    const teacherData = await fetchViewData('teachers_view');
-                    const matchedTeacher = teacherData?.find(t => t.user_id === classData[0].teacher_id);
-                    if (matchedTeacher) setTeacher(matchedTeacher);
+                    await fetchTeacherData(classData[0].teacher_id);
                 } else {
                     setError('Class not found');
                 }
@@ -106,47 +110,56 @@ const useClassData = (classId, session) => {
             }
         };
 
+        const fetchTeacherData = async (teacherId) => {
+            try {
+                const teacherData = await fetchViewData('teachers_view');
+                const matchedTeacher = teacherData?.find(t => t.user_id === teacherId);
+                if (matchedTeacher) setTeacher(matchedTeacher);
+            } catch (err) {
+                console.error('Error fetching teacher data:', err);
+            }
+        };
+
         fetchClassData();
     }, [classId, session?.accessToken]);
 
     return { classDetails, setClassDetails, teacher, loading, error };
 };
 
-const useStudents = (classId, session, classDetails) => {
+const useStudents = (classId, session, isTeacher) => {
     const [students, setStudents] = useState([]);
 
     useEffect(() => {
-        if (!classId || !session || session.user?.level !== 1) return;
+        if (!classId || !session || !isTeacher) return;
 
         const fetchStudentData = async () => {
             try {
                 const [studentsData, classesData] = await Promise.all([
                     fetchViewData('students_view'),
-                    fetchData('classes_users')
+                    fetchViewData('classes_users')
                 ]);
 
-                const classMap = new Map(classesData.map(entry => [entry.user_id, entry]));
-                const studentData = studentsData.map(student => ({
-                    ...student,
-                    ...classMap.get(student.user_id) || {}
-                }));
+                const registeredStudents = classesData
+                    .filter(entry => parseInt(entry.class_id) === parseInt(classId))
+                    .map(entry => {
+                        const student = studentsData.find(s => s.user_id === entry.user_id);
+                        return student ? { ...student, ...entry } : null;
+                    })
+                    .filter(Boolean);
 
-                const classStudents = studentData.filter(
-                    student => parseInt(student.class_id) === parseInt(classId)
-                );
-                setStudents(classStudents);
+                setStudents(registeredStudents);
             } catch (err) {
                 console.error('Error fetching student data:', err);
             }
         };
 
         fetchStudentData();
-    }, [classId, session, classDetails]);
+    }, [classId, session, isTeacher]);
 
-    return { students, setStudents };
+    return { students };
 };
 
-// Components
+// Toast notification component
 const Toast = ({ message, type = 'error', onClose }) => (
     <div className={`${styles.toast} ${type === 'success' ? styles.successToast : ''}`}>
         <div className={styles.toastContent}>
@@ -156,12 +169,14 @@ const Toast = ({ message, type = 'error', onClose }) => (
     </div>
 );
 
+// Meeting URL editor component
 const MeetingUrlEditor = ({
     meetingUrl,
     onUpdate,
     onRegenerate,
     isUpdating,
-    isRegenerating
+    isRegenerating,
+    canEdit
 }) => {
     const [editMode, setEditMode] = useState(false);
     const [urlInput, setUrlInput] = useState(meetingUrl || '');
@@ -188,6 +203,21 @@ const MeetingUrlEditor = ({
         setUrlError('');
         setEditMode(false);
     };
+
+    if (!canEdit) {
+        return (
+            <div className={styles.meetingUrlEditor}>
+                <div className={styles.urlDisplay}>
+                    <span className={styles.urlText}>
+                        {meetingUrl || 'No meeting URL set'}
+                    </span>
+                    <div className={styles.disabledMessage}>
+                        Meeting URL cannot be edited for past classes
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.meetingUrlEditor}>
@@ -240,48 +270,24 @@ const MeetingUrlEditor = ({
     );
 };
 
-const ActionButtons = ({
-    isTeacher,
-    isEnrolled,
-    classActive,
-    hasMeetingLink,
-    isJoining,
-    status,
-    onJoinClass,
-    onJoinMeeting
-}) => (
-    <div className={styles.buttonGroup}>
-        {!isTeacher && (
-            <button
-                className={`${styles.joinButton} ${isEnrolled ? styles.enrolled : ''}`}
-                onClick={status === 'authenticated' && !isJoining && !isEnrolled ? onJoinClass : null}
-                disabled={isJoining || isEnrolled}
-                title={status !== 'authenticated' ? 'Login to join class' : ''}
-            >
-                {isJoining ? 'Joining...' :
-                    isEnrolled ? 'Enrolled' :
-                        status === 'authenticated' ? 'Join Class' : 'Login to Join'}
-            </button>
-        )}
-
-        {(isEnrolled || isTeacher) && (
-            <button
-                className={`${styles.joinButton} ${styles.meetingButton}`}
-                onClick={onJoinMeeting}
-                disabled={!hasMeetingLink || !classActive}
-                title={!hasMeetingLink ? 'No meeting link available' :
-                    !classActive ? 'Class is not currently active' :
-                        'Join online meeting'}
-            >
-                Join Meeting
-            </button>
-        )}
-    </div>
+// Meeting join button component
+const MeetingButton = ({ onJoinMeeting, hasMeetingLink, classActive }) => (
+    <button
+        className={`${styles.joinButton} ${styles.meetingButton}`}
+        onClick={onJoinMeeting}
+        disabled={!hasMeetingLink || !classActive}
+        title={!hasMeetingLink ? 'No meeting link available' :
+            !classActive ? 'Class is not currently active' :
+                'Join online meeting'}
+    >
+        Join Meeting
+    </button>
 );
 
+// Students list component (for teachers only)
 const StudentsList = ({ students }) => (
     <div className={styles.studentsSection}>
-        <h3>Enrolled Students ({students.length})</h3>
+        <h3>Registered Students ({students.length})</h3>
         {students.length > 0 ? (
             <ul className={styles.studentList}>
                 {students.map((student) => (
@@ -292,8 +298,55 @@ const StudentsList = ({ students }) => (
                 ))}
             </ul>
         ) : (
-            <p className={styles.emptyState}>No students enrolled yet.</p>
+            <p className={styles.emptyState}>No students registered yet.</p>
         )}
+    </div>
+);
+
+// Class info section component
+const ClassInfo = ({ classDetails, teacher, router }) => (
+    <div className={styles.infoSection}>
+        <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>Teacher</span>
+            <div
+                className={styles.teacherBadge}
+                onClick={() => router.push(`/profile/${teacher?.user_id}`)}
+            >
+                {teacher ? teacher.user_name : 'Unavailable'}
+            </div>
+        </div>
+
+        <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>Start Time</span>
+            <div className={styles.scheduleBadge}>
+                {formatDateTime(classDetails.start_time)}
+            </div>
+        </div>
+
+        <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>End Time</span>
+            <div className={styles.scheduleBadge}>
+                {formatDateTime(classDetails.end_time)}
+            </div>
+        </div>
+
+        <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>Meeting Status</span>
+            <div className={`${styles.statusBadge} ${
+                isClassActive(classDetails.start_time, classDetails.end_time) 
+                    ? styles.active 
+                    : isClassInPast(classDetails.end_time) 
+                        ? styles.inactive 
+                        : styles.scheduled
+            }`}>
+                {isClassActive(classDetails.start_time, classDetails.end_time) 
+                    ? 'Active' 
+                    : isClassInPast(classDetails.end_time) 
+                        ? 'Ended' 
+                        : 'Scheduled'
+                }
+            </div>
+        </div>
     </div>
 );
 
@@ -304,9 +357,9 @@ export default function ClassDetailsPage({ params }) {
     const { data: session, status } = useSession();
 
     const { classDetails, setClassDetails, teacher, loading, error } = useClassData(classId, session);
-    const { students, setStudents } = useStudents(classId, session, classDetails);
+    const isTeacher = session?.user?.id === classDetails?.teacher_id;
+    const { students } = useStudents(classId, session, isTeacher);
 
-    const [isJoining, setIsJoining] = useState(false);
     const [isUpdatingUrl, setIsUpdatingUrl] = useState(false);
     const [isRegenerating, setIsRegenerating] = useState(false);
     const [toastMessage, setToastMessage] = useState(null);
@@ -318,39 +371,10 @@ export default function ClassDetailsPage({ params }) {
         setTimeout(() => setToastMessage(null), 3000);
     };
 
-    const isTeacher = session?.user?.id === classDetails?.teacher_id;
     const classActive = classDetails ? isClassActive(classDetails.start_time, classDetails.end_time) : false;
+    const classInPast = classDetails ? isClassInPast(classDetails.end_time) : false;
     const hasMeetingLink = classDetails?.meeting_url && classDetails.meeting_url !== '';
-    const isEnrolled = students.some(s => s.user_id === session?.user?.id);
-
-    const joinClass = async () => {
-        if (!session) {
-            router.push('/registration/login');
-            return;
-        }
-
-        setIsJoining(true);
-        try {
-            await apiCall('/api/joinClass', 'POST', {
-                classId,
-                userId: session.user.id
-            }, session.accessToken);
-
-            if (!students.some(s => s.user_id === session.user.id)) {
-                setStudents(prev => [...prev, {
-                    user_id: session.user.id,
-                    class_id: classId,
-                    user_name: session.user.name,
-                    user_email: session.user.email
-                }]);
-            }
-        } catch (err) {
-            console.error('Error joining class:', err);
-            showToast(err.message || 'Failed to join class. Please try again.');
-        } finally {
-            setIsJoining(false);
-        }
-    };
+    const canEditMeetingUrl = isTeacher && !classInPast;
 
     const updateMeetingUrl = async (newUrl) => {
         if (!session || !isTeacher) {
@@ -390,9 +414,14 @@ export default function ClassDetailsPage({ params }) {
             return;
         }
 
+        if (classInPast) {
+            showToast('Cannot regenerate meeting link for past classes');
+            return;
+        }
+
         setIsRegenerating(true);
         try {
-            const data = await apiCall('/api/createMeeting', 'POST', {
+            const data = await makeApiCall('/api/createMeeting', 'POST', {
                 classId,
                 startDate: classDetails.start_time,
                 endDate: classDetails.end_time,
@@ -442,56 +471,32 @@ export default function ClassDetailsPage({ params }) {
                             {classDetails.course_name} ({classDetails.grade_name})
                         </h1>
 
-                        <ActionButtons
-                            isTeacher={isTeacher}
-                            isEnrolled={isEnrolled}
-                            classActive={classActive}
-                            hasMeetingLink={hasMeetingLink}
-                            isJoining={isJoining}
-                            status={status}
-                            onJoinClass={joinClass}
+                        <MeetingButton
                             onJoinMeeting={joinMeeting}
+                            hasMeetingLink={hasMeetingLink}
+                            classActive={classActive}
                         />
                     </div>
 
-                    <div className={styles.infoSection}>
-                        <div className={styles.infoRow}>
-                            <span className={styles.infoLabel}>Teacher</span>
-                            <div
-                                className={styles.teacherBadge}
-                                onClick={() => router.push(`/profile/${teacher?.user_id}`)}
-                            >
-                                {teacher ? teacher.user_name : 'Unavailable'}
-                            </div>
-                        </div>
+                    <ClassInfo 
+                        classDetails={classDetails} 
+                        teacher={teacher} 
+                        router={router} 
+                    />
 
+                    {isTeacher && (
                         <div className={styles.infoRow}>
-                            <span className={styles.infoLabel}>Schedule</span>
-                            <div className={styles.scheduleBadge}>
-                                {formatDateTime(classDetails.start_time)} - {formatDateTime(classDetails.end_time)}
-                            </div>
+                            <span className={styles.infoLabel}>Meeting URL</span>
+                            <MeetingUrlEditor
+                                meetingUrl={classDetails.meeting_url}
+                                onUpdate={updateMeetingUrl}
+                                onRegenerate={regenerateMeetingLink}
+                                isUpdating={isUpdatingUrl}
+                                isRegenerating={isRegenerating}
+                                canEdit={canEditMeetingUrl}
+                            />
                         </div>
-
-                        <div className={styles.infoRow}>
-                            <span className={styles.infoLabel}>Meeting Status</span>
-                            <div className={`${styles.statusBadge} ${classActive ? styles.active : styles.inactive}`}>
-                                {classActive ? 'Active' : 'Inactive'}
-                            </div>
-                        </div>
-
-                        {isTeacher && (
-                            <div className={styles.infoRow}>
-                                <span className={styles.infoLabel}>Meeting URL</span>
-                                <MeetingUrlEditor
-                                    meetingUrl={classDetails.meeting_url}
-                                    onUpdate={updateMeetingUrl}
-                                    onRegenerate={regenerateMeetingLink}
-                                    isUpdating={isUpdatingUrl}
-                                    isRegenerating={isRegenerating}
-                                />
-                            </div>
-                        )}
-                    </div>
+                    )}
 
                     <div className={styles.courseDescription}>
                         <h3>Course Description</h3>
@@ -500,7 +505,7 @@ export default function ClassDetailsPage({ params }) {
 
                     <ClassContent classId={classId} isTeacher={isTeacher} />
 
-                    {session.user?.level === 1 && (
+                    {isTeacher && (
                         <StudentsList students={students} />
                     )}
                 </div>
