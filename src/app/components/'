@@ -6,11 +6,11 @@ export default function Input({ label, type, name, id, value, onChange, checked,
         e.preventDefault();
         if (passwordInput.type == 'password'){
             passwordInput.type = 'text';
-            e.currentTarget.textContent = '🚫';
+            console.log(passwordInput.type)
         }
         else{
-            passwordInput.type = 'password';
-            e.currentTarget.textContent = '👁️';
+            e.currentTarget.type = 'password';
+            console.log(type);
         }
     }
     return (
@@ -56,10 +56,10 @@ export default function Input({ label, type, name, id, value, onChange, checked,
                     {...(type !== 'radio' && type !== 'checkbox' ? { defaultChecked: checked } : {})}
                 />
             )}
-                <label htmlFor={id} className={styles.inputLabel}>
-                    {label} {required && <span className={styles.required}>*</span>}
-                </label>
-                { type == 'password' ?  <button onClick={togglevisibility} className={styles.toggleVisibleButton}>👁️</button> : <></>}
+            <label htmlFor={id} className={styles.inputLabel}>
+                {label} {required && <span className={styles.required}>*</span>}
+            </label>
+            { type == 'password' ?  <button onClick={togglevisibility}>👁️</button> : <></>}
         </div>
     );
 }

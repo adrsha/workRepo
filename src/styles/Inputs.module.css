@@ -29,7 +29,7 @@
 .inputLabel {
     position: absolute;
     padding: 0.5rem;
-    margin-left: var(--inputThickness);
+    margin-right: var(--inputThickness);
     font-size: 1rem;
     left: 0;
     color: var(--gray);
@@ -37,6 +37,25 @@
     white-space: nowrap;
     border-radius: 4px;
     cursor: text;
+}
+
+.toggleVisibleButton{
+    position: absolute;
+    padding: 0.5rem;
+    height: 100%;
+    background: none;
+    font-size: 1rem;
+    right : 0;
+    color: var(--gray);
+    transition: 0.2s ease-in-out;
+    white-space: nowrap;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+}
+.toggleVisibleButton:active{
+    border: none;
+    outline: none;
 }
 
 .input:not([type="checkbox"]):not([type="radio"]) {
@@ -64,7 +83,7 @@
   + .inputLabel {
       font-size: 0.75rem;
       top: calc(0.5 * var(--inputThickness));
-      left: calc(100% - var(--inputThickness) * 1.5);
+      left: calc(100% - var(--inputThickness) * 2);
       background-color: var(--background);
       box-shadow: -20px 0 10px -10px var(--background);
       transform: translateX(-100%);
