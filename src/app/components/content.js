@@ -51,7 +51,6 @@ export const ContentRenderer = ({ content }) => {
     switch (content.content_type) {
         case 'text':
             const data = parseContentData(content.content_data);
-            console.log("Content.js render", content);
             return <TextContent data={data} />;
         case 'file':
             return <FileContent content={content} />;

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 
 // Project-specific imports
 import Input from '../../components/Input.js';
+import FileUpload from '../../components/FileUpload.js'; // Add this import
 import styles from '../../../styles/Registration.module.css';
 import '../../global.css';
 
@@ -26,7 +27,13 @@ export default function Signup() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [userLevel, setUserLevel] = useState('student');
+    const [certificateUploaded, setCertificateUploaded] = useState(false);
     const router = useRouter();
+
+    const handleCertificateUpload = (fileData) => {
+        setCertificateUploaded(true);
+        setError(''); // Clear any previous errors
+    };
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -52,13 +59,20 @@ export default function Signup() {
             return;
         }
 
+        // Check certificate upload for teachers
+        if (userLevel === 'teacher' && !formData.get('certificate_path')) {
+            setError('Please upload your certificate');
+            setLoading(false);
+            return;
+        }
+
         // Check password match
         if (formData.get('password') !== formData.get('repeat-password')) {
             setError('Passwords do not match');
             setLoading(false);
             return;
         }
-
+        
         // Base user data (common for all user types)
         let payload = {
             username: formData.get('username'),
@@ -86,9 +100,9 @@ export default function Signup() {
                 ...payload,
                 experience: formData.get('experience') || '',
                 qualification: formData.get('qualification') || '',
+                certificatePath: formData.get('certificate_path') || '', // Add certificate path
             };
         }
-
         try {
             const response = await fetch('/api/signup', {
                 method: 'POST',
@@ -298,6 +312,19 @@ export default function Signup() {
                                 id="qualification"
                                 maxLength={MAX_LENGTHS.qualification}
                             />
+                            
+                            {/* Certificate Upload Section */}
+                            <div className={styles.formGroup}>
+                                <label className={styles.inputLabel}>Certificate Upload *</label>
+                                <FileUpload
+                                    onFileUpload={handleCertificateUpload}
+                                    classId="teacher-certificates" // You can use a generic classId for teacher certificates
+                                    hiddenInputName="certificate_path"
+                                />
+                                <p className={styles.helpText}>
+                                    Please upload your teaching certificate or relevant qualification document (PDF, JPG, PNG)
+                                </p>
+                            </div>
                         </>
                     )}
 

@@ -1,0 +1,192 @@
+/* Modern File Viewer CSS Module */
+.container {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Loading State */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e9ecef;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    color: #dc3545;
+    text-align: center;
+    padding: 20px;
+}
+
+.error h4 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.error p {
+    margin: 0;
+    color: #6c757d;
+}
+
+/* PDF Viewer */
+.pdfContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.pdf {
+    flex: 1;
+    width: 100%;
+    border: none;
+    min-height: 500px;
+}
+
+/* Image Viewer */
+.imageContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    align-items: center;
+    padding: 20px;
+}
+
+.image {
+    max-width: 100%;
+    max-height: 70%;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Text Viewer */
+.textContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.text {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: white;
+    padding: 16px;
+    font-family: 'Courier New', monospace;
+}
+
+/* Document and Unknown File Containers */
+.documentContainer,
+.unknownContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.placeholder {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.placeholder h4 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    color: #495057;
+}
+
+.placeholder p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* Action Buttons */
+.actions {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border-top: 1px solid #dee2e6;
+    justify-content: center;
+}
+
+.actionBtn {
+    padding: 8px 16px;
+    background: #6c757d;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.actionBtn:hover {
+    background: #5a6268;
+    color: white;
+    text-decoration: none;
+}
+
+.actionBtn.primary {
+    background: #007bff;
+}
+
+.actionBtn.primary:hover {
+    background: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .actionBtn {
+        width: 100%;
+        max-width: 200px;
+        text-align: center;
+    }
+    
+    .image {
+        max-height: 60%;
+    }
+}

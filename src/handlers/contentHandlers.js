@@ -54,6 +54,31 @@ export const createContentHandlers = (
         }
     };
 
+    // New handleFileSave function that matches the expected interface
+    const handleFileSave = async (file, is_public = false) => {
+        if (!file) {
+            showError('Please select a file to upload');
+            return;
+        }
+
+        try {
+            await contentService.uploadFile(
+                classId,
+                file,
+                is_public,
+                session?.accessToken
+            );
+
+            // Refetch to ensure data consistency
+            await refetch();
+            resetForm();
+            showSuccess('File uploaded successfully');
+        } catch (err) {
+            console.error('Error uploading file:', err);
+            showError(err.message || 'Network error. Please try again.');
+        }
+    };
+
     const handleDeleteContent = async (contentId) => {
         try {
             await contentService.deleteContent(contentId, session?.accessToken);
@@ -72,6 +97,7 @@ export const createContentHandlers = (
     return {
         handleAddTextContent,
         handleFileUpload,
+        handleFileSave, // Add this to the returned object
         handleDeleteContent
     };
 };

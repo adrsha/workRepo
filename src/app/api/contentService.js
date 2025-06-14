@@ -1,7 +1,6 @@
-const createFormData = (classId, is_public, additionalData = {}) => {
+const createFormData = (classId, additionalData = {}) => {
     const formData = new FormData();
     formData.append('classId', classId);
-    formData.append('is_public', is_public.toString());
     
     Object.entries(additionalData).forEach(([key, value]) => {
         formData.append(key, value);
@@ -14,7 +13,8 @@ const makeRequest = async (url, options) => {
     const response = await fetch(url, options);
     
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const data = await response.json();
+        const errorData = data.catch(() => ({}));
         throw new Error(errorData.error || `Request failed with status ${response.status}`);
     }
     
@@ -23,27 +23,50 @@ const makeRequest = async (url, options) => {
 
 export const contentService = {
     async addTextContent(classId, contentForm, accessToken) {
-        {console.log("Adding text content:", contentForm)}
+        console.log("Adding text content:", contentForm);
         
-        const formData = createFormData(classId, contentForm.is_public, {
-            textContent: contentForm.content_data
-        });
-        {console.log("Adding text content Form data:", formData)}
+        const payload = {
+            contentType: 'text',
+            contentData: { text: contentForm.content_data },
+            classId,
+            isPublic: contentForm.is_public
+        };
 
-        return makeRequest('/api/upload', {
+        return makeRequest('/api/content/save', {
             method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}` },
-            body: formData,
+            headers: { 
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload),
         });
     },
 
     async uploadFile(classId, file, is_public, accessToken) {
-        const formData = createFormData(classId, is_public, { file });
-
-        return makeRequest('/api/upload', {
+        // Step 1: Upload file
+        const formData = createFormData(classId, { file });
+        
+        const fileData = await makeRequest('/api/upload/file', {
             method: 'POST',
             headers: { Authorization: `Bearer ${accessToken}` },
             body: formData,
+        });
+
+        // Step 2: Save file metadata to database
+        const payload = {
+            contentType: 'file',
+            contentData: fileData,
+            classId,
+            isPublic: is_public
+        };
+
+        return makeRequest('/api/content/save', {
+            method: 'POST',
+            headers: { 
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload),
         });
     },
 

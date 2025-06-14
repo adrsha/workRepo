@@ -4,6 +4,63 @@ import { EditableDropdown } from '../EditableDropdown';
 import { EditableStartTime } from '../EditableTimeSchedule';
 import { Table } from './Table/index.js';
 import { formatColName } from '../../lib/utils';
+import { useState } from 'react';
+
+// EnrolledStudentsCell Component
+const EnrolledStudentsCell = ({ classId, enrolledCount, enrolledStudents }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const handleToggle = () => {
+        setIsExpanded(!isExpanded);
+    };
+
+    const handleStudentClick = (userId, e) => {
+        e.stopPropagation(); // Prevent triggering the expand/collapse
+        window.open(`/profile/${userId}`, '_blank');
+    };
+
+    return (
+        <div className="enrolled-students-container">
+            <div 
+                className="enrolled-students-count clickable" 
+                onClick={handleToggle}
+                title="Click to view enrolled students"
+            >
+                <span className="student-count-badge">
+                    {enrolledCount} student{enrolledCount !== 1 ? 's' : ''}
+                    <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
+                        {isExpanded ? '▼' : '▶'}
+                    </span>
+                </span>
+            </div>
+            
+            {isExpanded && (
+                <div className="enrolled-students-list">
+                    {enrolledStudents.length > 0 ? (
+                        <div className="students-grid">
+                            {enrolledStudents.map((student) => (
+                                <div
+                                    key={student.user_id}
+                                    className="student-item"
+                                    onClick={(e) => handleStudentClick(student.user_id, e)}
+                                    title={`Click to view ${student.user_name}'s profile`}
+                                >
+                                    <div className="student-name">{student.user_name}</div>
+                                    {student.user_email && (
+                                        <div className="student-email">{student.user_email}</div>
+                                    )}
+                                    <div className="profile-link-icon">👤</div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="no-students">No students enrolled</div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
 
 const createOptions = (data, valueKey, labelKey) =>
     data.map(item => ({ value: item[valueKey], label: item[labelKey] }));
@@ -15,6 +72,34 @@ const getTableForColumn = (schemas, column) => {
         }
     }
     return 'classes';
+};
+
+// Utility function to calculate user count for each class
+const getUserCountForClass = (classId, classesUsersData) => {
+    return classesUsersData.filter(relation => relation.class_id === classId).length;
+};
+
+// Utility function to get enrolled students for a class with their details
+const getEnrolledStudentsForClass = (classId, classesUsersData, usersData) => {
+    const classUserRelations = classesUsersData.filter(relation => relation.class_id === classId);
+    return classUserRelations.map(relation => {
+        const user = usersData.find(user => user.user_id === relation.user_id);
+        return {
+            user_id: relation.user_id,
+            user_name: user?.user_name || 'Unknown User',
+            user_email: user?.user_email || '',
+            ...user
+        };
+    }).filter(student => student.user_name !== 'Unknown User');
+};
+
+// Utility function to enrich classes data with user counts and student lists
+const enrichClassesWithUserCount = (classesData, classesUsersData, usersData = []) => {
+    return classesData.map(classItem => ({
+        ...classItem,
+        enrolled_students: getUserCountForClass(classItem.class_id, classesUsersData),
+        enrolledStudentsList: getEnrolledStudentsForClass(classItem.class_id, classesUsersData, usersData)
+    }));
 };
 
 const createFieldRenderer = (teachersData, courseData, gradesData, onSaveData, onMultiSaveData) => {
@@ -82,6 +167,13 @@ const createFieldRenderer = (teachersData, courseData, gradesData, onSaveData, o
                     onSave={onSave}
                     label={formatColName(col)}
                 />
+            ),
+            enrolled_students: () => (
+                <EnrolledStudentsCell 
+                    classId={classItem.class_id}
+                    enrolledCount={classItem.enrolled_students || 0}
+                    enrolledStudents={classItem.enrolledStudentsList || []}
+                />
             )
         };
 
@@ -103,6 +195,11 @@ const createFormFieldRenderer = (teachersData, courseData, gradesData) => {
     return (field, value, onChange, { error }) => {
         const onSave = (newValue) => onChange(field, newValue);
         const fieldWithError = { [field]: value, className: error ? 'error' : '' };
+
+        // Don't render enrolled_students in forms since it's calculated
+        if (field === 'enrolled_students') {
+            return null;
+        }
 
         const fieldMap = {
             class_description: () => (
@@ -206,6 +303,8 @@ const ApprovedClassesTable = ({
     teachersData,
     courseData,
     gradesData,
+    classesUsersData = [], // New prop
+    usersData = [], // New prop for all users
     onSaveData,
     onMultiSaveData,
     onAddClass,
@@ -213,6 +312,9 @@ const ApprovedClassesTable = ({
     onBulkAddClasses,
     schemas = {}
 }) => {
+    // Enrich classes data with user counts
+    const enrichedClasses = enrichClassesWithUserCount(classes, classesUsersData, usersData);
+    
     const renderCell = createFieldRenderer(teachersData, courseData, gradesData, onSaveData, onMultiSaveData);
     const renderFormField = createFormFieldRenderer(teachersData, courseData, gradesData);
 
@@ -232,7 +334,7 @@ const ApprovedClassesTable = ({
 
     return (
         <Table
-            data={classes}
+            data={enrichedClasses} // Use enriched data
             className="classes-table"
             keyField="class_id"
             renderCell={renderCell}
@@ -242,6 +344,7 @@ const ApprovedClassesTable = ({
             allowAdd={true}
             allowDelete={true}
             allowBulkAdd={true}
+            hiddenColumns={['enrolledStudentsList']}
             onAdd={handleAdd}
             onDelete={handleDelete}
             onBulkAdd={handleBulkAdd}
@@ -266,6 +369,8 @@ export const ClassesTab = ({
             teachersData={state.teachersData}
             courseData={state.courseData}
             gradesData={state.gradesData}
+            classesUsersData={state.classesUsersData} // Pass the junction table data
+            usersData={state.usersData} // Pass all users data
             onSaveData={handleSaveData}
             onMultiSaveData={handleMultiSaveData}
             onAddClass={handleAddClass}

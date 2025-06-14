@@ -15,7 +15,6 @@ export function EditableField({ initialValue, onSave, label, placeholder }) {
       setIsEditing(false)
     } catch (error) {
       console.error("Failed to save:", error)
-      // Optionally, show an error message to the user
     }
   }, [tempValue, onSave])
 

@@ -5,6 +5,8 @@ import { createActionButtons } from './Table/utils.js';
 import { Table } from './Table/index.js';
 import { formatColName } from '../../lib/utils';
 
+import FullScreenableImage from '../FullScreenableImage.js';
+
 const PendingTeachersTable = ({ 
     pendingTeachers, 
     actionInProgress, 
@@ -22,7 +24,7 @@ const PendingTeachersTable = ({
         title: 'Actions',
         render: (teacher) => renderActionButtons(teacher, 'teacher')
     }];
-
+    
     return (
         <Table
             data={pendingTeachers}
@@ -52,6 +54,13 @@ const createFieldRenderer = (schemas, onSaveData) => {
     return (teacher, col) => {
         const saveHandler = handleSave(col, teacher.user_id);
         const fieldMap = {
+            certificate_path: () =>(
+                <FullScreenableImage 
+                    src={teacher.certificate_path} 
+                    alt="certificate" 
+                    className="certificate-img" 
+                />
+            ),
             experience: () => (
                 <EditableField
                     initialValue={teacher.experience || 'No experience listed'}

@@ -1,4 +1,3 @@
-// ============== MAIN COMPONENT ==============
 // components/ClassContent.js
 'use client';
 import { useSession } from 'next-auth/react';
@@ -17,7 +16,7 @@ export default function ClassContent({ classId, isTeacher }) {
     const { contents, setContents, loading, refetch } = useClassContent(classId, session);
     const notifications = useNotifications();
     const formControls = useContentForm();
-    
+
     const contentHandlers = createContentHandlers(
         classId,
         session,
@@ -46,16 +45,18 @@ export default function ClassContent({ classId, isTeacher }) {
             {isTeacher && (
                 <div className={styles.addContentSection}>
                     {formControls.isEditing ? (
+                        // In your main ClassContent component, update the prop name:
                         <ContentEditor
+                            classId={classId}
                             contentForm={formControls.contentForm}
                             onUpdateForm={formControls.updateForm}
                             onSaveText={() => contentHandlers.handleAddTextContent(formControls.contentForm)}
-                            onFileUpload={contentHandlers.handleFileUpload}
+                            onFileSave={contentHandlers.handleFileSave} // Changed from onFileUpload
                             onCancel={formControls.resetForm}
                         />
                     ) : (
                         <div className={styles.actionButtons}>
-                            <button 
+                            <button
                                 className={styles.addButton}
                                 onClick={() => formControls.setIsEditing(true)}
                             >

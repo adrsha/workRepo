@@ -117,7 +117,6 @@ export const getSchema = async (tableName) => {
             schema: await fetchTableSchema(name)
         }))
     );
-    
     results.forEach(result => {
         if (result.status === 'fulfilled') {
             schemas[result.value.name] = result.value.schema;

@@ -1,4 +1,4 @@
-// Table/index.js - Enhanced Table Component with File Upload Support
+// Table/index.js - Enhanced Table Component with Column Hiding Support
 import { useState } from 'react';
 import "../../innerStyles/Table.css"
 import { getCols } from '../../../lib/utils';
@@ -7,12 +7,13 @@ import { TableActions } from './TableActions';
 import { TableGrid } from './TableGrid';
 import { AddRecordForm } from './forms/AddRecordForm';
 import { BulkAddForm } from './forms/BulkAddForm';
-import TeacherVideoUpload from '../../teacherUpload';
 
-export const Table = ({ 
-    data, 
-    className = '', 
-    renderCell, 
+const DISALLOWED_COLUMNS = ["user_level"]
+
+export const Table = ({
+    data,
+    className = '',
+    renderCell,
     additionalColumns = [],
     keyField = 'id',
     allowAdd = false,
@@ -25,46 +26,53 @@ export const Table = ({
     onBulkDelete,
     requiredFields = [],
     tableName = '',
-    // renderFormField,
     dropdownOptions = {},
-    uploadEndpoints = {} // New prop for file upload endpoints
+    uploadEndpoints = {},
+    hiddenColumns = [], // New prop for columns to hide from display
+    showColumnToggle = false // New prop to show/hide column toggle UI
 }) => {
     const [showAddForm, setShowAddForm] = useState(false);
     const [showBulkForm, setShowBulkForm] = useState(false);
     const [selectedRows, setSelectedRows] = useState(new Set());
+    const [userHiddenColumns, setUserHiddenColumns] = useState(new Set(hiddenColumns));
+    
+    // Remove disallowed columns from data
+    DISALLOWED_COLUMNS.forEach(col => {
+        data.forEach((row) => {
+            delete row[col]
+        })
+    });
 
-    const columns = data?.length ? getCols(data) : [];
-    const editableFields = getEditableFields(columns);
+    const allColumns = data?.length ? getCols(data) : [];
+    const editableFields = getEditableFields(allColumns);
     const editableRequiredFields = requiredFields.filter(field => !isSystemField(field));
+    
+    // Filter columns for display (remove hidden ones)
+    const visibleColumns = allColumns.filter(col => !userHiddenColumns.has(col));
+    const visibleEditableFields = editableFields.filter(field => !userHiddenColumns.has(field));
 
     // Enhanced renderFormField with file upload support
     const enhancedRenderFormField = (field, value, onChange, options) => {
-        // Handle file upload fields
         let caption = '';
         if (field === 'video_path' || field === 'certificate_path') {
             return (
                 <div>Need to first create the ID</div>
-                // <TeacherVideoUpload />
             );
         }
-        
-        if (field === 'user_passkey'){
+
+        if (field === 'user_passkey') {
             caption = "Make sure to encrypt this!"
         }
-        // Use custom renderFormField if provided
-        // if (renderFormField) {
-        //     return renderFormField(field, value, onChange, options);
-        // }
-        
-        // Default rendering for other fields
-        return (<>
-            <span>{caption}</span>
-            <input
-                type={getInputType(field)}
-                onChange={(e) => onChange(e.target)}
-                className="form-input"
-                placeholder={getPlaceholder(field)}
-            />
+
+        return (
+            <>
+                <span>{caption}</span>
+                <input
+                    type={getInputType(field)}
+                    onChange={(e) => onChange(e.target)}
+                    className="form-input"
+                    placeholder={getPlaceholder(field)}
+                />
             </>
         );
     };
@@ -96,6 +104,27 @@ export const Table = ({
         }
     };
 
+    // Column visibility toggle handlers
+    const toggleColumnVisibility = (columnName) => {
+        const newHiddenColumns = new Set(userHiddenColumns);
+        if (newHiddenColumns.has(columnName)) {
+            newHiddenColumns.delete(columnName);
+        } else {
+            newHiddenColumns.add(columnName);
+        }
+        setUserHiddenColumns(newHiddenColumns);
+    };
+
+    const showAllColumns = () => {
+        setUserHiddenColumns(new Set());
+    };
+
+    const hideAllNonEssentialColumns = () => {
+        const essentialColumns = [keyField, 'name', 'user_name', 'title', 'email', 'user_email'];
+        const columnsToHide = allColumns.filter(col => !essentialColumns.includes(col));
+        setUserHiddenColumns(new Set(columnsToHide));
+    };
+
     if (!data?.length) {
         return null;
     }
@@ -111,10 +140,22 @@ export const Table = ({
                 onShowBulkAdd={() => setShowBulkForm(true)}
                 onBulkDelete={handleBulkDelete}
             />
-            
+
+            {/* Column Toggle Controls */}
+            {showColumnToggle && (
+                <ColumnToggleControls
+                    allColumns={allColumns}
+                    hiddenColumns={userHiddenColumns}
+                    onToggleColumn={toggleColumnVisibility}
+                    onShowAll={showAllColumns}
+                    onHideNonEssential={hideAllNonEssentialColumns}
+                />
+            )}
+
             <TableGrid
                 data={data}
-                columns={editableFields}
+                columns={visibleEditableFields}
+                allColumns={allColumns} // Pass all columns for access by other components
                 additionalColumns={additionalColumns}
                 className={className}
                 renderCell={renderCell}
@@ -129,7 +170,7 @@ export const Table = ({
 
             {showAddForm && (
                 <AddRecordForm
-                    fields={editableFields}
+                    fields={editableFields} // Use all editable fields for forms
                     requiredFields={editableRequiredFields}
                     onSave={handleAdd}
                     onCancel={() => setShowAddForm(false)}
@@ -141,7 +182,7 @@ export const Table = ({
 
             {showBulkForm && (
                 <BulkAddForm
-                    fields={editableFields}
+                    fields={editableFields} // Use all editable fields for forms
                     requiredFields={editableRequiredFields}
                     onSave={handleBulkAdd}
                     onCancel={() => setShowBulkForm(false)}
@@ -153,6 +194,62 @@ export const Table = ({
         </div>
     );
 };
+
+// Column Toggle Controls Component
+const ColumnToggleControls = ({
+    allColumns,
+    hiddenColumns,
+    onToggleColumn,
+    onShowAll,
+    onHideNonEssential
+}) => {
+    const [showDropdown, setShowDropdown] = useState(false);
+
+    return (
+        <div className="column-toggle-controls">
+            <div className="column-toggle-header">
+                <button
+                    className="toggle-dropdown-btn"
+                    onClick={() => setShowDropdown(!showDropdown)}
+                >
+                    Show/Hide Columns ({allColumns.length - hiddenColumns.size}/{allColumns.length})
+                </button>
+                <div className="quick-actions">
+                    <button onClick={onShowAll} className="quick-action-btn">
+                        Show All
+                    </button>
+                    <button onClick={onHideNonEssential} className="quick-action-btn">
+                        Hide Non-Essential
+                    </button>
+                </div>
+            </div>
+            
+            {showDropdown && (
+                <div className="column-toggle-dropdown">
+                    <div className="column-list">
+                        {allColumns.map(column => (
+                            <label key={column} className="column-toggle-item">
+                                <input
+                                    type="checkbox"
+                                    checked={!hiddenColumns.has(column)}
+                                    onChange={() => onToggleColumn(column)}
+                                />
+                                <span className="column-name">
+                                    {formatColumnName(column)}
+                                </span>
+                                {hiddenColumns.has(column) && (
+                                    <span className="hidden-indicator">(Hidden)</span>
+                                )}
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
 
 // Helper functions
 const getInputType = (field) => {

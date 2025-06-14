@@ -1,7 +1,7 @@
 // AdminControl.jsx
 'use client';
 import './innerStyles/AdminControl.css';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useAdminData } from '../../hooks/useAdminData';
 import { usePersistedTab, useAsyncAction, useAdminLookups } from '../../hooks/useAdminHooks';
@@ -46,25 +46,46 @@ const TabContent = ({ activeTab, props }) => {
         [TABS.CLASSES]: <ClassesTab {...props.classes} />,
         [TABS.STUDENTS]: <StudentsTab {...props.students} />
     };
-    
+
     return <div className="table-content">{tabs[activeTab]}</div>;
 };
 
 export default function AdminControl({ pendingTeachersData = [] }) {
-    const [activeTab, setActiveTab] = usePersistedTab();
+    const [ activeTab, setActiveTab ] = usePersistedTab();
     const { actionInProgress, startAction, endAction } = useAsyncAction();
     const { data: session, update } = useSession();
-    
+    const [ schemas, setSchemas ] = useState({});
+    const [ schemasLoading, setSchemasLoading ] = useState(true);
     const {
         state,
         updateState,
+        loadLookupData,
         updateArrayState,
         loadInitialData,
         loadTabData,
         resetData
     } = useAdminData(pendingTeachersData);
-    const { getUserName, getClassName } = useAdminLookups(state);
-    
+
+    useEffect(() => {
+        async function loadSchemas() {
+            try {
+                setSchemasLoading(true);
+                const loadedSchemas = await getSchema();
+                setSchemas(loadedSchemas);
+            } catch (error) {
+                console.error('Failed to load schemas:', error);
+            } finally {
+                setSchemasLoading(false);
+            }
+        }
+        
+        if (session) {
+            loadSchemas();
+        }
+    }, [session]);
+
+    const { getUserName, getClassName } = useAdminLookups(state, loadLookupData);
+
     const actionHandlers = createActionHandlers(
         { updateArrayState, updateState },
         { startAction, endAction },
@@ -85,14 +106,14 @@ export default function AdminControl({ pendingTeachersData = [] }) {
         loadTabData(activeTab);
     };
 
-    if (state.isLoading) {
+    // Show loading while either data or schemas are loading
+    if (state.isLoading || schemasLoading) {
         return <LoadingSpinner tabIndex={activeTab} />;
     }
 
     if (state.error) {
         return <ErrorMessage error={state.error} onRetry={handleRetry} />;
     }
-
     const tabProps = {
         teachers: {
             state,
@@ -102,7 +123,7 @@ export default function AdminControl({ pendingTeachersData = [] }) {
             handleAddTeacher: actionHandlers.handleAddTeacher,
             handleDeleteTeacher: actionHandlers.handleDeleteTeacher,
             handleBulkAddTeachers: actionHandlers.handleBulkAddTeachers,
-            schemas: getSchema()
+            schemas,
         },
         classes: {
             state,
@@ -112,7 +133,7 @@ export default function AdminControl({ pendingTeachersData = [] }) {
             handleAddClass: actionHandlers.handleAddClass,
             handleDeleteClass: actionHandlers.handleDeleteClass,
             handleBulkAddClasses: actionHandlers.handleBulkAddClasses,
-            schemas: getSchema()
+            schemas,
         },
         students: {
             state,
@@ -125,7 +146,7 @@ export default function AdminControl({ pendingTeachersData = [] }) {
             handleAddStudent: actionHandlers.handleAddStudent,
             handleDeleteStudent: actionHandlers.handleDeleteStudent,
             handleBulkAddStudents: actionHandlers.handleBulkAddStudents,
-            schemas: getSchema()
+            schemas,
         }
     };
 

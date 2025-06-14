@@ -127,7 +127,6 @@ export async function DELETE(request, { params }) {
 
     const { classId } = await params;
     let contentId = classId
-    console.log(contentId, params)
     if (!contentId) {
         return NextResponse.json({ error: 'Content ID is required' }, { status: 400 });
     }

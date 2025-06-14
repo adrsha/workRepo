@@ -1,220 +1,157 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/authOptions';
-import { executeQueryWithRetry } from '../../lib/db';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { CONFIG } from '../../../constants/config';
-import { 
-    generateFileName, 
-    getPublicFilePath 
-} from '../../../utils/contentUtils';
+import { generateFileName, getPublicFilePath } from '../../../utils/contentUtils';
 
-// Authentication Layer
+const SIGNUP_FILE_CONFIG = {
+    allowedTypes: ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
+    maxSize: 10 * 1024 * 1024, // 10MB
+    typeError: 'Invalid file type. Only PDF and image files are allowed for certificates.',
+    sizeError: 'File size too large. Maximum size is 10MB.'
+};
+
 const authService = {
-    async getAuthenticatedUser() {
-        const session = await getServerSession(authOptions);
-        if (!session) throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
-        return session.user;
+    async getSession() {
+        return await getServerSession(authOptions);
     },
 
-    async canUserUpload(userId, userLevel, classId) {
-        if (userLevel === CONFIG.USER_LEVELS.ADMIN) return true;
-        if (userLevel === CONFIG.USER_LEVELS.TEACHER) {
-            return await this.isClassOwner(userId, classId);
-        }
-        return false;
-    },
-
-    async isClassOwner(userId, classId) {
-        const result = await executeQueryWithRetry({
-            query: 'SELECT class_id FROM classes WHERE class_id = ? AND teacher_id = ?',
-            values: [classId, userId]
-        });
-        console.log("CLASS OWNER", classId, userId)
-        return result.length > 0;
+    async getUserId() {
+        const session = await this.getSession();
+        return session?.user?.id || 'anonymous';
     }
 };
 
-// File System Layer
+const getFileConfig = (classId) => ({
+    isCertificate: classId === 'teacher-certificates',
+    config: classId === 'teacher-certificates' ? SIGNUP_FILE_CONFIG : null
+});
+
+const pathService = {
+    buildServerPath(classId, isSignupForm) {
+        const { isCertificate } = getFileConfig(classId);
+        
+        if (isSignupForm && isCertificate) {
+            return join(CONFIG.SERVER_UPLOADS_DIR, 'signup-certificates', 'teacher-certificates');
+        }
+        return join(CONFIG.SERVER_UPLOADS_DIR, classId);
+    },
+
+    buildPublicPath(classId, fileName, isSignupForm) {
+        const { isCertificate } = getFileConfig(classId);
+        
+        if (isSignupForm && isCertificate) {
+            return `/uploads/signup-certificates/teacher-certificates/${fileName}`;
+        }
+        return getPublicFilePath(classId, fileName);
+    }
+};
+
+const validateFile = (file, classId, isSignupForm) => {
+    if (!file?.name || !file?.size || !file?.type) {
+        throw new Error(CONFIG.ERRORS.MISSING_FILE);
+    }
+
+    const { config } = getFileConfig(classId);
+    
+    if (isSignupForm && config) {
+        if (!config.allowedTypes.includes(file.type)) {
+            throw new Error(config.typeError);
+        }
+        if (file.size > config.maxSize) {
+            throw new Error(config.sizeError);
+        }
+    }
+};
+
 const fileService = {
-    async createUploadDirectory(classId) {
-        const serverDir = join(CONFIG.SERVER_UPLOADS_DIR, 'classes', classId);
-        await mkdir(serverDir, { recursive: true });
-        return serverDir;
+    async createDirectory(path) {
+        await mkdir(path, { recursive: true });
+        return path;
     },
 
-    async saveFile(buffer, filePath) {
-        await writeFile(filePath, buffer);
-    }
-};
-
-// Database Layer
-const dbService = {
-    async insertContent(contentType, content_data, is_public) {
-        const result = await executeQueryWithRetry({
-            query: 'INSERT INTO content (content_type, content_data, is_public) VALUES (?, ?, ?)',
-            values: [contentType, content_data, is_public ? 1 : 0]
-        });
-        return result.insertId;
+    async save(file, serverPath) {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        await writeFile(serverPath, buffer);
     },
 
-    async linkContentToClass(classId, contentId) {
-        await executeQueryWithRetry({
-            query: 'INSERT INTO class_content (class_id, content_id) VALUES (?, ?)',
-            values: [classId, contentId]
-        });
-    },
-
-    async getContentById(contentId, classId) {
-        const result = await executeQueryWithRetry({
-            query: `
-                SELECT c.content_id, c.content_type, c.content_data, c.created_at, c.is_public
-                FROM content c
-                JOIN class_content cc ON c.content_id = cc.content_id
-                WHERE c.content_id = ? AND cc.class_id = ?
-            `,
-            values: [contentId, classId]
-        });
-
-        if (!result.length) return null;
-
-        const record = result[0];
-        const parsedData = this.parseContentData(record.content_data);
-
-        return {
-            content_id: record.content_id,
-            content_type: record.content_type,
-            created_at: record.created_at,
-            is_public: record.is_public,
-            ...parsedData
-        };
-    },
-
-    parseContentData(content_data) {
-        try {
-            return JSON.parse(content_data);
-        } catch (err) {
-            console.error('Failed to parse content data:', err);
-            return {};
-        }
-    },
-
-    async saveContent(contentType, content_data, classId, is_public) {
-        try {
-            const contentId = await this.insertContent(contentType, JSON.stringify(content_data), is_public);
-            await this.linkContentToClass(classId, contentId);
-            return await this.getContentById(contentId, classId);
-        } catch (err) {
-            console.error('Database operation failed:', err);
-            throw new Error(CONFIG.ERRORS.DB_FAILED);
-        }
-    }
-};
-
-// Content Processing Layer
-const contentProcessor = {
-    createFileContentData(file, fileName, filePath, userId) {
+    buildFileData(file, fileName, publicPath, userId, isSignupForm) {
         return {
             originalName: file.name,
             fileName,
-            filePath,
+            filePath: publicPath,
             fileSize: file.size,
             fileType: file.type,
             uploadedBy: userId,
-            isFile: true
+            isSignupUpload: isSignupForm
         };
     },
 
-    createTextContentData(text, userId) {
-        return {
-            text,
-            uploadedBy: userId,
-            isFile: false
-        };
-    },
-
-    async processFileUpload(file, classId, userId, is_public) {
+    async processUpload(file, classId, userId, isSignupForm = false) {
         const fileName = generateFileName(userId, file.name);
-        const serverDir = await fileService.createUploadDirectory(classId);
+        const serverDir = pathService.buildServerPath(classId, isSignupForm);
         const serverPath = join(serverDir, fileName);
-        const publicPath = getPublicFilePath(classId, fileName);
-
-        const buffer = Buffer.from(await file.arrayBuffer());
-        await fileService.saveFile(buffer, serverPath);
-
-        const content_data = this.createFileContentData(file, fileName, publicPath, userId);
-        return await dbService.saveContent('file', content_data, classId, is_public);
-    },
-
-    async processTextContent(text, classId, userId, is_public) {
-        const content_data = this.createTextContentData(text, userId);
-        return await dbService.saveContent('text', content_data, classId, is_public);
+        const publicPath = pathService.buildPublicPath(classId, fileName, isSignupForm);
+        
+        await this.createDirectory(serverDir);
+        await this.save(file, serverPath);
+        
+        return this.buildFileData(file, fileName, publicPath, userId, isSignupForm);
     }
 };
 
-// Request/Response Layer
-const requestHandler = {
-    validateRequest(formData) {
-        const file = formData.get('file');
-        const classId = formData.get('classId');
-        const textContent = formData.get('textContent');
-        const is_public = formData.get('is_public') === 'true';
-
-        if (!classId) throw new Error(CONFIG.ERRORS.MISSING_CLASS_ID);
-        if (!file && !textContent) throw new Error(CONFIG.ERRORS.MISSING_CONTENT);
-
-        return { file, classId, textContent, is_public };
-    },
-
-    createResponse(data, status = 200) {
-        return new Response(JSON.stringify(data), { 
-            status,
-            headers: { 'Content-Type': 'application/json' }
-        });
-    },
-
-    createErrorResponse(message, status) {
-        return this.createResponse({ error: message }, status);
-    },
-
-    handleError(error) {
-        console.error('Error processing upload:', error);
-
-        const errorStatusMap = {
-            [CONFIG.ERRORS.UNAUTHORIZED]: 401,
-            [CONFIG.ERRORS.MISSING_CLASS_ID]: 400,
-            [CONFIG.ERRORS.MISSING_CONTENT]: 400,
-            [CONFIG.ERRORS.DB_FAILED]: 500
-        };
-
-        const status = errorStatusMap[error.message] || 500;
-        const message = errorStatusMap[error.message] ? error.message : CONFIG.ERRORS.INTERNAL;
-
-        return this.createErrorResponse(message, status);
+const createResponse = (data, status = 200) => new Response(
+    JSON.stringify(data), 
+    { 
+        status, 
+        headers: { 'Content-Type': 'application/json' } 
     }
+);
+
+const createErrorResponse = (error) => {
+    console.error('File upload error:', error);
+    
+    const errorMap = {
+        [CONFIG.ERRORS.UNAUTHORIZED]: 401,
+        [CONFIG.ERRORS.MISSING_CLASS_ID]: 400,
+        [CONFIG.ERRORS.MISSING_FILE]: 400,
+        [SIGNUP_FILE_CONFIG.typeError]: 400,
+        [SIGNUP_FILE_CONFIG.sizeError]: 400
+    };
+    
+    const status = errorMap[error.message] || 500;
+    const message = errorMap[error.message] ? error.message : CONFIG.ERRORS.INTERNAL;
+    
+    return createResponse({ error: message }, status);
 };
 
-// Main Handler
 export async function POST(req) {
     try {
-        const user = await authService.getAuthenticatedUser();
         const formData = await req.formData();
-        const { file, classId, textContent, is_public } = requestHandler.validateRequest(formData);
-        {console.log(user)}
-        // Check if user can upload - if they can upload, they can make it public
-        const canUpload = await authService.canUserUpload(user.id, user.level, classId);
-        
-        if (!canUpload) {
-            throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
+        const file = formData.get('file');
+        const classId = formData.get('classId');
+        const isSignupForm = formData.get('isSignupForm') === 'true';
+
+        if (!classId) {
+            throw new Error(CONFIG.ERRORS.MISSING_CLASS_ID);
         }
 
-        const result = file && file instanceof File
-            ? await contentProcessor.processFileUpload(file, classId, user.id, is_public)
-            : await contentProcessor.processTextContent(textContent, classId, user.id, is_public);
+        // Check auth only for non-signup forms
+        if (!isSignupForm) {
+            const session = await authService.getSession();
+            if (!session?.user) {
+                throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
+            }
+        }
 
-        return requestHandler.createResponse(result);
-
+        validateFile(file, classId, isSignupForm);
+        
+        const userId = await authService.getUserId();
+        const fileData = await fileService.processUpload(file, classId, userId, isSignupForm);
+        
+        return createResponse(fileData);
     } catch (error) {
-        return requestHandler.handleError(error);
+        return createErrorResponse(error);
     }
 }

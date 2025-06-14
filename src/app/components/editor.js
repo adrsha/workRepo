@@ -1,105 +1,173 @@
-import styles from "../../styles/ClassContent.module.css";
-import Input from "./Input";
-import FileUpload from './FileUpload';
 import { useState } from 'react';
+import FileUpload from './FileUpload';
+import Input from "./Input";
+import styles from "../../styles/ClassContent.module.css";
 
-// Markdown parser - handles most common markdown features
-const parseMarkdown = (text) => {
-    if (!text) return '';
-    
-    return text
-        // Headers
-        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-        
-        // Bold and Italic
-        .replace(/\*\*\*(.*)\*\*\*/gim, '<strong><em>$1</em></strong>')
-        .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-        .replace(/\*(.*)\*/gim, '<em>$1</em>')
-        .replace(/__(.*?)__/gim, '<strong>$1</strong>')
-        .replace(/_(.*?)_/gim, '<em>$1</em>')
-        
-        // Code
-        .replace(/`([^`]+)`/gim, '<code>$1</code>')
-        .replace(/```([^```]+)```/gim, '<pre><code>$1</code></pre>')
-        
-        // Links
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-        
-        // Images
-        .replace(/!\[([^\]]*)\]\(([^)]+)\)/gim, '<img src="$2" alt="$1" style="max-width: 100%; height: auto;" />')
-        
-        // Strikethrough
-        .replace(/~~(.*)~~/gim, '<del>$1</del>')
-        
-        // Horizontal Rule
-        .replace(/^---$/gim, '<hr>')
-        
-        // Lists
-        .replace(/^\* (.*)$/gim, '<li>$1</li>')
-        .replace(/^- (.*)$/gim, '<li>$1</li>')
-        .replace(/^\+ (.*)$/gim, '<li>$1</li>')
-        .replace(/^\d+\. (.*)$/gim, '<li>$1</li>')
-        
-        // Blockquotes
-        .replace(/^> (.*)$/gim, '<blockquote>$1</blockquote>')
-        
-        // Line breaks
-        .replace(/\n/gim, '<br>');
-};
+const UploadSuccess = ({ file, onSave }) => (
+    <div className={styles.uploadSuccess}>
+        <p>✓ File uploaded: {file.originalName}</p>
+        <button className={styles.saveButton} onClick={onSave}>
+            Save File Content
+        </button>
+    </div>
+);
 
-// Toolbar for quick markdown insertion
-const MarkdownToolbar = ({ onInsert }) => {
-    const tools = [
-        { label: 'B', action: '**bold**', title: 'Bold' },
-        { label: 'I', action: '*italic*', title: 'Italic' },
-        { label: 'H1', action: '# ', title: 'Header 1' },
-        { label: 'H2', action: '## ', title: 'Header 2' },
-        { label: 'H3', action: '### ', title: 'Header 3' },
-        { label: 'Code', action: '`code`', title: 'Inline Code' },
-        { label: 'Link', action: '[text](url)', title: 'Link' },
-        { label: 'List', action: '- ', title: 'List Item' },
-        { label: 'Quote', action: '> ', title: 'Blockquote' },
-    ];
+export const FileUploadSection = ({ classId, onFileSave, isPublic }) => {
+    const [uploadedFile, setUploadedFile] = useState(null);
+
+    const handleSave = () => {
+        console.log('handleSave called, uploadedFile:', uploadedFile);
+        if (uploadedFile) {
+            console.log('Calling onFileSave with:', uploadedFile, isPublic);
+            onFileSave(uploadedFile, isPublic);
+            setUploadedFile(null);
+        } else {
+            console.log('No uploaded file found');
+        }
+    };
 
     return (
-        <div className={styles.markdownToolbar}>
-            {tools.map(({ label, action, title }) => (
-                <button
-                    key={label}
-                    type="button"
-                    className={styles.toolButton}
-                    onClick={() => onInsert(action)}
-                    title={title}
-                >
-                    {label}
-                </button>
-            ))}
+        <div className={styles.fileUploadSection}>
+            <FileUpload
+                classId={classId}
+                onUploadComplete={setUploadedFile}
+            />
+
+            {uploadedFile && (
+                <UploadSuccess
+                    file={uploadedFile}
+                    onSave={handleSave}
+                />
+            )}
+
+            <p className={styles.uploadHelp}>
+                Upload a file and click save to add it as content.
+            </p>
         </div>
     );
 };
+// Markdown parsing utilities
+const markdownRules = [
+    [/^### (.*$)/gim, '<h3>$1</h3>'],
+    [/^## (.*$)/gim, '<h2>$1</h2>'],
+    [/^# (.*$)/gim, '<h1>$1</h1>'],
+    [/\*\*\*(.*)\*\*\*/gim, '<strong><em>$1</em></strong>'],
+    [/\*\*(.*)\*\*/gim, '<strong>$1</strong>'],
+    [/\*(.*)\*/gim, '<em>$1</em>'],
+    [/__(.*?)__/gim, '<strong>$1</strong>'],
+    [/_(.*?)_/gim, '<em>$1</em>'],
+    [/`([^`]+)`/gim, '<code>$1</code>'],
+    [/```([^```]+)```/gim, '<pre><code>$1</code></pre>'],
+    [/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank" rel="noopener">$1</a>'],
+    [/!\[([^\]]*)\]\(([^)]+)\)/gim, '<img src="$2" alt="$1" style="max-width: 100%; height: auto;" />'],
+    [/~~(.*)~~/gim, '<del>$1</del>'],
+    [/^---$/gim, '<hr>'],
+    [/^\* (.*)$/gim, '<li>$1</li>'],
+    [/^- (.*)$/gim, '<li>$1</li>'],
+    [/^\+ (.*)$/gim, '<li>$1</li>'],
+    [/^\d+\. (.*)$/gim, '<li>$1</li>'],
+    [/^> (.*)$/gim, '<blockquote>$1</blockquote>'],
+    [/\n/gim, '<br>']
+];
 
-// Preview toggle button
-const PreviewToggle = ({ showPreview, onToggle }) => (
-    <button
-        type="button"
-        className={`${styles.previewToggle} ${showPreview ? styles.active : ''}`}
-        onClick={onToggle}
-    >
-        {showPreview ? 'Edit' : 'Preview'}
-    </button>
+const parseMarkdown = (text) => {
+    if (!text) return '';
+    return markdownRules.reduce((result, [regex, replacement]) =>
+        result.replace(regex, replacement), text
+    );
+};
+
+// Toolbar configuration
+const toolbarConfig = [
+    { label: 'B', action: '**bold**', title: 'Bold' },
+    { label: 'I', action: '*italic*', title: 'Italic' },
+    { label: 'H1', action: '# ', title: 'Header 1' },
+    { label: 'H2', action: '## ', title: 'Header 2' },
+    { label: 'H3', action: '### ', title: 'Header 3' },
+    { label: 'Code', action: '`code`', title: 'Inline Code' },
+    { label: 'Link', action: '[text](url)', title: 'Link' },
+    { label: 'List', action: '- ', title: 'List Item' },
+    { label: 'Quote', action: '> ', title: 'Blockquote' },
+];
+
+const MarkdownToolbar = ({ onInsert }) => (
+    <div className={styles.markdownToolbar}>
+        {toolbarConfig.map(({ label, action, title }) => (
+            <button
+                key={label}
+                type="button"
+                className={styles.toolButton}
+                onClick={() => onInsert(action)}
+                title={title}
+            >
+                {label}
+            </button>
+        ))}
+    </div>
 );
 
-// Live preview component
 const MarkdownPreview = ({ content }) => (
-    <div 
+    <div
         className={styles.markdownPreview}
         dangerouslySetInnerHTML={{ __html: parseMarkdown(content) }}
     />
 );
 
-// Enhanced text editor with split view option
+// Text insertion logic
+const TextInsertion = {
+    insertAtSelection: (content, syntax, start, end, selectedText) => {
+        const insertions = {
+            '[text](url)': selectedText
+                ? { text: `[${selectedText}](url)`, cursor: start + selectedText.length + 3 }
+                : { text: '[text](url)', cursor: start + 1 },
+            '**bold**': selectedText
+                ? { text: `**${selectedText}**`, cursor: end + 4 }
+                : { text: '**bold**', cursor: start + 2 },
+            '*italic*': selectedText
+                ? { text: `*${selectedText}*`, cursor: end + 2 }
+                : { text: '*italic*', cursor: start + 1 },
+            '`code`': selectedText
+                ? { text: `\`${selectedText}\``, cursor: end + 2 }
+                : { text: '`code`', cursor: start + 1 }
+        };
+
+        if (insertions[syntax]) {
+            const { text, cursor } = insertions[syntax];
+            return {
+                newContent: content.substring(0, start) + text + content.substring(end),
+                newCursor: cursor
+            };
+        }
+
+        return this.insertAtLineStart(content, syntax, start);
+    },
+
+    insertAtLineStart: (content, syntax, start) => {
+        if (syntax.startsWith('#')) {
+            const lineStart = content.lastIndexOf('\n', start - 1) + 1;
+            const lineEnd = content.indexOf('\n', start);
+            const actualEnd = lineEnd === -1 ? content.length : lineEnd;
+            const currentLine = content.substring(lineStart, actualEnd);
+            const cleanLine = currentLine.replace(/^#+\s*/, '');
+
+            return {
+                newContent: content.substring(0, lineStart) + syntax + cleanLine + content.substring(actualEnd),
+                newCursor: lineStart + syntax.length + cleanLine.length
+            };
+        }
+
+        if (syntax === '- ' || syntax === '> ') {
+            const lineStart = content.lastIndexOf('\n', start - 1) + 1;
+            return {
+                newContent: content.substring(0, lineStart) + syntax + content.substring(lineStart),
+                newCursor: start + syntax.length
+            };
+        }
+
+        return { newContent: content, newCursor: start };
+    }
+};
+
 const EnhancedTextEditor = ({ content, onChange, onSave }) => {
     const [showPreview, setShowPreview] = useState(false);
     const [splitView, setSplitView] = useState(true);
@@ -111,82 +179,15 @@ const EnhancedTextEditor = ({ content, onChange, onSave }) => {
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const selectedText = content.substring(start, end);
-        
-        let newContent;
-        let newCursorPos = start;
-        
-        if (syntax === '[text](url)') {
-            // For links
-            if (selectedText) {
-                newContent = content.substring(0, start) + 
-                           `[${selectedText}](url)` + 
-                           content.substring(end);
-                newCursorPos = start + selectedText.length + 3; // Position cursor at 'url'
-            } else {
-                newContent = content.substring(0, start) + '[text](url)' + content.substring(end);
-                newCursorPos = start + 1; // Position cursor at 'text'
-            }
-        } else if (syntax === '**bold**') {
-            // For bold
-            if (selectedText) {
-                newContent = content.substring(0, start) + 
-                           `**${selectedText}**` + 
-                           content.substring(end);
-                newCursorPos = end + 4; // Position after the closing **
-            } else {
-                newContent = content.substring(0, start) + '**bold**' + content.substring(end);
-                newCursorPos = start + 2; // Position cursor inside the **
-            }
-        } else if (syntax === '*italic*') {
-            // For italic
-            if (selectedText) {
-                newContent = content.substring(0, start) + 
-                           `*${selectedText}*` + 
-                           content.substring(end);
-                newCursorPos = end + 2; // Position after the closing *
-            } else {
-                newContent = content.substring(0, start) + '*italic*' + content.substring(end);
-                newCursorPos = start + 1; // Position cursor inside the *
-            }
-        } else if (syntax === '`code`') {
-            // For inline code
-            if (selectedText) {
-                newContent = content.substring(0, start) + 
-                           `\`${selectedText}\`` + 
-                           content.substring(end);
-                newCursorPos = end + 2; // Position after the closing `
-            } else {
-                newContent = content.substring(0, start) + '`code`' + content.substring(end);
-                newCursorPos = start + 1; // Position cursor inside the `
-            }
-        } else if (syntax.startsWith('#')) {
-            // For headers
-            const lineStart = content.lastIndexOf('\n', start - 1) + 1;
-            const lineEnd = content.indexOf('\n', start);
-            const actualEnd = lineEnd === -1 ? content.length : lineEnd;
-            const currentLine = content.substring(lineStart, actualEnd);
-            
-            // Remove existing header syntax
-            const cleanLine = currentLine.replace(/^#+\s*/, '');
-            newContent = content.substring(0, lineStart) + 
-                        syntax + cleanLine + 
-                        content.substring(actualEnd);
-            newCursorPos = lineStart + syntax.length + cleanLine.length;
-        } else if (syntax === '- ' || syntax === '> ') {
-            // For list items and blockquotes
-            const lineStart = content.lastIndexOf('\n', start - 1) + 1;
-            newContent = content.substring(0, lineStart) + 
-                        syntax + 
-                        content.substring(lineStart);
-            newCursorPos = start + syntax.length;
-        }
-        
+
+        const { newContent, newCursor } = TextInsertion.insertAtSelection(
+            content, syntax, start, end, selectedText
+        );
+
         onChange(newContent);
-        
-        // Restore cursor position after state update
         setTimeout(() => {
             textarea.focus();
-            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            textarea.setSelectionRange(newCursor, newCursor);
         }, 0);
     };
 
@@ -222,7 +223,7 @@ const EnhancedTextEditor = ({ content, onChange, onSave }) => {
                 <MarkdownToolbar onInsert={insertMarkdown} />
                 <ViewModeButtons />
             </div>
-            
+
             <div className={`${styles.editorContainer} ${splitView ? styles.splitView : ''}`}>
                 {(!showPreview || splitView) && (
                     <textarea
@@ -241,20 +242,25 @@ const EnhancedTextEditor = ({ content, onChange, onSave }) => {
                         rows={splitView ? 15 : 12}
                     />
                 )}
-                
+
                 {(showPreview || splitView) && (
                     <MarkdownPreview content={content} />
                 )}
             </div>
-            
+
             <div className={styles.editorFooter}>
-                <SaveButton content={content} onSave={onSave} />
+                <button
+                    className={styles.saveButton}
+                    onClick={onSave}
+                    disabled={!content?.trim()}
+                >
+                    Save Text Content
+                </button>
             </div>
         </div>
     );
 };
 
-// Type selector buttons
 const TypeButton = ({ type, isActive, onClick, children }) => (
     <button
         className={`${styles.typeButton} ${isActive ? styles.active : ''}`}
@@ -264,7 +270,7 @@ const TypeButton = ({ type, isActive, onClick, children }) => (
     </button>
 );
 
-export const ContentTypeSelector = ({ selectedType, onSelectType }) => (
+const ContentTypeSelector = ({ selectedType, onSelectType }) => (
     <div className={styles.contentTypeSelector}>
         <TypeButton type="text" isActive={selectedType === 'text'} onClick={onSelectType}>
             Text
@@ -275,7 +281,7 @@ export const ContentTypeSelector = ({ selectedType, onSelectType }) => (
     </div>
 );
 
-export const VisibilityToggle = ({ is_public, onToggle }) => (
+const VisibilityToggle = ({ is_public, onToggle }) => (
     <div className={styles.visibilityToggle}>
         <Input
             type="checkbox"
@@ -287,26 +293,7 @@ export const VisibilityToggle = ({ is_public, onToggle }) => (
             label="Make this content public"
         />
         <p className={styles.visibilityHelp}>
-            {is_public
-                ? "Visible to everyone"
-                : "Visible to class members only"
-            }
-        </p>
-    </div>
-);
-
-const SaveButton = ({ content, onSave }) => 
-    typeof content === "string" ? (
-        <button className={styles.saveButton} onClick={onSave}>
-            Save Content
-        </button>
-    ) : null;
-
-export const FileUploadSection = ({ onFileUpload }) => (
-    <div className={styles.fileUploadSection}>
-        <FileUpload onFileUpload={onFileUpload} />
-        <p className={styles.uploadHelp}>
-            File will be saved immediately upon selection.
+            {is_public ? "Visible to everyone" : "Visible to class members only"}
         </p>
     </div>
 );
@@ -320,29 +307,17 @@ const EditorHeader = ({ onCancel }) => (
     </div>
 );
 
-const ContentBody = ({ contentForm, onUpdateForm, onSaveText, onFileUpload }) => 
-    contentForm.content_type === 'text' ? (
-        <EnhancedTextEditor
-            content={contentForm.content_data}
-            onChange={(data) => onUpdateForm('content_data', data)}
-            onSave={onSaveText}
-        />
-    ) : (
-        <FileUploadSection
-            onFileUpload={(file) => onFileUpload(file, contentForm.is_public)}
-        />
-    );
-
 export const ContentEditor = ({
+    classId,
     contentForm,
     onUpdateForm,
     onSaveText,
-    onFileUpload,
+    onFileSave,
     onCancel
 }) => (
     <div className={styles.contentEditor}>
         <EditorHeader onCancel={onCancel} />
-        
+
         <ContentTypeSelector
             selectedType={contentForm.content_type}
             onSelectType={(type) => onUpdateForm('content_type', type)}
@@ -353,11 +328,140 @@ export const ContentEditor = ({
             onToggle={(is_public) => onUpdateForm('is_public', is_public)}
         />
 
-        <ContentBody
-            contentForm={contentForm}
-            onUpdateForm={onUpdateForm}
-            onSaveText={onSaveText}
-            onFileUpload={onFileUpload}
-        />
+        {contentForm.content_type === 'text' ? (
+            <EnhancedTextEditor
+                content={contentForm.content_data}
+                onChange={(data) => onUpdateForm('content_data', data)}
+                onSave={onSaveText}
+            />
+        ) : (
+            <FileUploadSection
+                classId={classId}
+                onFileSave={onFileSave}
+                isPublic={contentForm.is_public}
+            />
+        )}
     </div>
 );
+
+// Updated contentHandlers.js
+export const createContentHandlers = (
+    classId,
+    session,
+    contents,
+    setContents,
+    { showSuccess, showError },
+    { resetForm },
+    refetch
+) => {
+    const handleAddTextContent = async (contentForm) => {
+        if (!contentForm.content_data?.trim()) {
+            showError('Content cannot be empty');
+            return;
+        }
+
+        try {
+            await contentService.addTextContent(classId, contentForm, session?.accessToken);
+            await refetch();
+            resetForm();
+            showSuccess('Content added successfully');
+        } catch (err) {
+            console.error('Error adding content:', err);
+            showError(err.message || 'Network error. Please try again.');
+        }
+    };
+
+    const handleFileSave = async (fileData, isPublic) => {
+        try {
+            await contentService.saveFileContent(classId, fileData, isPublic, session?.accessToken);
+            await refetch();
+            resetForm();
+            showSuccess('File saved successfully');
+        } catch (err) {
+            console.error('Error saving file:', err);
+            showError(err.message || 'Network error. Please try again.');
+        }
+    };
+
+    const handleDeleteContent = async (contentId) => {
+        try {
+            await contentService.deleteContent(contentId, session?.accessToken);
+            setContents(contents.filter(content => content.content_id !== contentId));
+            showSuccess('Content deleted successfully');
+        } catch (err) {
+            console.error('Error deleting content:', err);
+            showError(err.message || 'Network error. Please try again.');
+            await refetch();
+        }
+    };
+
+    return {
+        handleAddTextContent,
+        handleFileSave,
+        handleDeleteContent
+    };
+};
+
+export const contentService = {
+    async addTextContent(classId, contentForm, accessToken) {
+        const payload = {
+            contentType: 'text',
+            contentData: { text: contentForm.content_data },
+            classId,
+            isPublic: contentForm.is_public
+        };
+
+        return this.makeRequest('/api/content/save', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload),
+        });
+    },
+
+    async saveFileContent(classId, fileData, isPublic, accessToken) {
+        // fileData should contain the upload result with file path
+        const payload = {
+            contentType: 'file',
+            contentData: fileData, // This contains the file path from upload
+            classId,
+            isPublic
+        };
+
+        return this.makeRequest('/api/content/save', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload),
+        });
+    },
+
+    async deleteContent(contentId, accessToken) {
+        return this.makeRequest(`/api/classContent/${contentId}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+    },
+
+    async fetchClassContent(classId, accessToken) {
+        return this.makeRequest(`/api/classContent/${classId}`, {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+    },
+
+    async makeRequest(url, options) {
+        const response = await fetch(url, options);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Request failed with status ${response.status}`);
+        }
+
+        return response.json();
+    }
+};

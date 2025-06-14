@@ -26,7 +26,7 @@ const MAX_LENGTHS = {
 const REQUIRED_FIELDS = {
     base: ['username', 'email', 'password', 'contact'],
     student: ['guardianName', 'guardianRelation', 'guardianContact', 'school', 'class', 'dateOfBirth'],
-    teacher: ['qualification', 'experience', 'certificate_path']
+    teacher: ['qualification', 'experience', 'certificatePath']
 };
 
 // Validation functions
@@ -100,14 +100,16 @@ async function createStudentProfile(userId, studentData) {
     });
 }
 
+// Fix 1: Update the createPendingTeacher function to include certificate_path
 async function createPendingTeacher(teacherData) {
-    const { username, email, contact, qualification, experience, hashedPassword, secretKey, expirationDate } = teacherData;
+    const { username, email, contact, qualification, experience, hashedPassword, secretKey, expirationDate, certificatePath } = teacherData;
     
     return await executeQueryWithRetry({
-        query: 'INSERT INTO pending_teachers (user_name, user_email, contact, qualification, experience, user_passkey, secret_key, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        values: [username, email, contact, qualification, experience, hashedPassword, secretKey, expirationDate],
+        query: 'INSERT INTO pending_teachers (user_name, user_email, contact, qualification, experience, user_passkey, secret_key, expires_at, certificate_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        values: [username, email, contact, qualification, experience, hashedPassword, secretKey, expirationDate, certificatePath],
     });
 }
+
 
 // Business logic functions
 function generateSecretKey() {
@@ -131,7 +133,7 @@ async function handleStudentRegistration(userData, extraData) {
 }
 
 async function handleTeacherRegistration(userData) {
-    const { username, email, contact, qualification, experience } = userData;
+    const { username, email, contact, qualification, experience, certificatePath } = userData;
     
     // Check if teacher already pending
     if (await checkExistingPendingTeacher(contact)) {
@@ -149,7 +151,8 @@ async function handleTeacherRegistration(userData) {
         experience,
         hashedPassword: userData.hashedPassword,
         secretKey,
-        expirationDate
+        expirationDate,
+        certificatePath  // Add this line
     };
 
     await createPendingTeacher(teacherData);
@@ -160,8 +163,9 @@ async function handleTeacherRegistration(userData) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { username, email, password, userLevel, terms, contact, address, experience, qualification, ...extraData } = body;
-
+        const { username, email, password, userLevel, terms, contact, address, experience, qualification, certificatePath, ...extraData } = body;
+        console.log(certificatePath);
+        
         // Validation chain
         const missingFields = validateRequiredFields(body, userLevel);
         if (missingFields) {
@@ -191,7 +195,7 @@ export async function POST(request) {
         }
 
         const hashedPassword = await hashPassword(password);
-        const userData = { username, email, hashedPassword, userLevel, contact, address, qualification, experience };
+        const userData = { username, email, hashedPassword, userLevel, contact, address, qualification, experience, certificatePath };
 
         if (userLevel === 'teacher') {
             await handleTeacherRegistration(userData);

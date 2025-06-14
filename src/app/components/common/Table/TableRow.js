@@ -1,28 +1,15 @@
+// TableRow.js - Enhanced with hidden column support
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TeacherVideoPlayer } from '../../teacherFetch';
-import SecureFileViewer from '../../SecureFileViewer';
+import FileViewer from '../../FileViewer';
 
-// ============== UTILITY FUNCTIONS ==============
-const isVideoField = (fieldName) =>
-    fieldName === 'video_path' || fieldName.includes('video');
-
-const isCertificateField = (fieldName) =>
-    fieldName === 'certificate_path' || fieldName.includes('certificate');
-
-const isPreviewableField = (fieldName) =>
-    isVideoField(fieldName) || isCertificateField(fieldName);
-
-const hasValue = (value) => value && value.toString().trim() !== '';
-
-// ============== PREVIEW COMPONENTS ==============
-const PreviewButton = ({ onClick, disabled = false }) => (
+const PreviewButton = ({ onClick }) => (
     <>
         <label className="editable-field__label">Preview</label>
         <button
             type="button"
             onClick={onClick}
-            disabled={disabled}
             className="preview-btn"
             title="Preview file"
         >
@@ -31,29 +18,20 @@ const PreviewButton = ({ onClick, disabled = false }) => (
     </>
 );
 
-const PreviewContent = ({ type, item, fieldName }) => {
-    if (type === 'video') {
-        const teacherId = item.user_id || item.teacher_id || item.id;
-        return <TeacherVideoPlayer teacherId={teacherId} />;
-    }
-
-    if (type === 'certificate') {
-        const content = {
-            content_id: item[fieldName],
-            content_data: JSON.stringify({
-                fileType: 'application/pdf'
-            })
-        };
-        return <SecureFileViewer content={content} />;
-    }
-
-    return <div>Preview not available for this file type</div>;
-};
-
 const PreviewModal = ({ previewData, onClose }) => {
     if (!previewData) return null;
 
-    const { type, item, fieldName } = previewData;
+    const { fieldName, item } = previewData;
+    
+    let previewContent;
+    if (fieldName === 'video_path') {
+        const teacherId = item.user_id || item.teacher_id || item.id;
+        previewContent = <TeacherVideoPlayer teacherId={teacherId} />;
+    } else if (fieldName === 'certificate_path') {
+        previewContent = <FileViewer filePath={item[fieldName]} />;
+    } else {
+        previewContent = <div>Preview not available for this file type</div>;
+    }
 
     const modalElement = (
         <div className="modal-overlay">
@@ -69,59 +47,20 @@ const PreviewModal = ({ previewData, onClose }) => {
                     </button>
                 </div>
                 <div className="preview-content">
-                    <PreviewContent
-                        type={type}
-                        item={item}
-                        fieldName={fieldName}
-                    />
+                    {previewContent}
                 </div>
             </div>
         </div>
     );
 
-    // Render modal outside table structure using portal
     return createPortal(modalElement, document.body);
 };
 
-// ============== CELL RENDERER ==============
-const CellContent = ({ item, col, index, renderCell, onPreview }) => {
-    const value = item[col];
-
-    const handlePreview = () => {
-        const previewType = isVideoField(col) ? 'video' : 'certificate';
-        onPreview({
-            type: previewType,
-            item,
-            fieldName: col
-        });
-    };
-
-    // Render custom content if renderCell is provided
-    if (renderCell) {
-        const customContent = renderCell(item, col, index);
-
-        // If it's a previewable field with value, show only preview button
-        if (isPreviewableField(col) && hasValue(value)) {
-            return <PreviewButton onClick={handlePreview} />;
-        }
-
-        return customContent;
-    }
-
-    // Default rendering for previewable fields - show only preview button
-    if (isPreviewableField(col) && hasValue(value)) {
-        return <PreviewButton onClick={handlePreview} />;
-    }
-
-    // Default cell content
-    return value;
-};
-
-// ============== MAIN COMPONENT ==============
 export const TableRow = ({
     item,
     index,
-    columns,
+    columns, // Only visible columns
+    allColumns, // All columns including hidden ones - for data access
     additionalColumns,
     renderCell,
     keyField,
@@ -133,8 +72,54 @@ export const TableRow = ({
 }) => {
     const [previewData, setPreviewData] = useState(null);
 
-    const handlePreview = (data) => setPreviewData(data);
+    const handlePreview = (fieldName) => {
+        setPreviewData({ fieldName, item });
+    };
+
     const closePreview = () => setPreviewData(null);
+
+    // Enhanced renderCell that can access all columns including hidden ones
+    const renderCellContent = (col) => {
+        const value = item[col];
+
+        // Handle custom rendering first - pass allColumns for full data access
+        if (renderCell) {
+            const customContent = renderCell(item, col, index, allColumns);
+
+            // If it's a preview field with value, show preview button
+            if ((col === 'video_path' || col === 'certificate_path') && value && value.toString().trim() !== '') {
+                return <PreviewButton onClick={() => handlePreview(col)} />;
+            }
+
+            return customContent;
+        }
+
+        // Default handling for preview fields
+        if ((col === 'video_path' || col === 'certificate_path') && value && value.toString().trim() !== '') {
+            return <PreviewButton onClick={() => handlePreview(col)} />;
+        }
+
+        // Default cell content
+        return value;
+    };
+
+    // Helper function to get data from hidden columns
+    const getHiddenColumnData = (columnName) => {
+        return item[columnName];
+    };
+
+    // Helper function to check if column exists (visible or hidden)
+    const hasColumn = (columnName) => {
+        return allColumns ? allColumns.includes(columnName) : columns.includes(columnName);
+    };
+
+    // Example usage: Access enrolled students from hidden column
+    const getEnrolledStudents = () => {
+        if (hasColumn('enrolled_students')) {
+            return getHiddenColumnData('enrolled_students');
+        }
+        return null;
+    };
 
     return (
         <>
@@ -150,21 +135,22 @@ export const TableRow = ({
                     </td>
                 )}
 
+                {/* Only render visible columns */}
                 {columns.map(col => (
                     <td key={`${index}-${col}`}>
-                        <CellContent
-                            item={item}
-                            col={col}
-                            index={index}
-                            renderCell={renderCell}
-                            onPreview={handlePreview}
-                        />
+                        {renderCellContent(col)}
                     </td>
                 ))}
 
                 {additionalColumns.map(col => (
                     <td key={`${index}-${col.key}`}>
-                        {col.render(item, index)}
+                        {/* Pass full item data and helper functions to additional columns */}
+                        {col.render(item, index, {
+                            getHiddenColumnData,
+                            hasColumn,
+                            allColumns,
+                            getEnrolledStudents // Example helper
+                        })}
                     </td>
                 ))}
 
@@ -188,3 +174,4 @@ export const TableRow = ({
         </>
     );
 };
+

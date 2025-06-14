@@ -4,6 +4,7 @@ import { TableRow } from './TableRow';
 export const TableGrid = ({
     data,
     columns,
+    allColumns, // All columns including hidden ones
     additionalColumns,
     className,
     renderCell,
@@ -47,6 +48,7 @@ export const TableGrid = ({
                         item={item}
                         index={index}
                         columns={columns}
+                        allColumns={allColumns} // Pass all columns to row
                         additionalColumns={additionalColumns}
                         renderCell={renderCell}
                         keyField={keyField}

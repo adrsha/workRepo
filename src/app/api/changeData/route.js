@@ -2,406 +2,309 @@ import { getServerSession } from "next-auth";
 import { executeQueryWithRetry } from '../../lib/db';
 import { authOptions } from "../auth/[...nextauth]/authOptions";
 
-// Define allowed tables explicitly - now includes underlying tables
 const ALLOWED_TABLES = [
-    'users',
-    'teachers',
-    'students', 
-    'classes',
-    'pending_teachers',
-    'classes_view',
-    'students_view',
-    'teachers_view',
+    'users', 'teachers', 'students', 'classes', 'pending_teachers',
+    'classes_view', 'students_view', 'teachers_view',
 ];
 
 const DISALLOWED_FIELDS = {
-    'users': ['user_passkey'],
-    'pending_teachers': ['user_passkey'],
+    'users': [],
+    'pending_teachers': [],
 };
 
-// Map of table names to their primary key column names
 const TABLE_PRIMARY_KEYS = {
-    'classes_view': 'class_id',
-    'students_view': 'user_id',
+    'classes_view': 'class_id', 
+    'students_view': 'user_id', 
     'teachers_view': 'user_id',
-    'users': 'user_id',
-    'teachers': 'user_id',
+    'users': 'user_id', 
+    'teachers': 'user_id', 
     'students': 'user_id',
-    'classes': 'class_id',
+    'classes': 'class_id', 
     'pending_teachers': 'pending_id',
 };
 
-// Required fields for each table when creating new records (excluding auto-generated IDs)
 const REQUIRED_FIELDS = {
     'classes': ['course_id', 'teacher_id', 'grade_id', 'start_time', 'end_time'],
-    'students': [], // user_id will be auto-generated or handled separately
-    'teachers': [], // user_id will be auto-generated or handled separately
     'users': ['user_name', 'user_email'],
     'pending_teachers': ['user_name', 'user_email'],
 };
 
-const DEFAULT_PRIMARY_KEY = 'id';
+const VIEW_TABLE_MAP = {
+    'teachers_view': {
+        userTable: 'users',
+        relatedTable: 'teachers',
+        userLevel: 1,
+        userFields: ['user_name', 'user_email', 'contact', 'address'],
+        relatedFields: ['experience', 'qualification']
+    },
+    'students_view': {
+        userTable: 'users',
+        relatedTable: 'students',
+        userLevel: 0,
+        userFields: ['user_name', 'user_email', 'contact', 'address'],
+        relatedFields: ['guardian_name', 'guardian_relation', 'guardian_contact', 'school', 'date_of_birth', 'class']
+    },
+    'classes_view': {
+        relatedTable: 'classes',
+        relatedFields: ['course_id', 'teacher_id', 'grade_id', 'start_time', 'end_time', 'class_description']
+    }
+};
 
-// Validation function to prevent SQL injection and ensure field safety
 function validateField(table, field) {
-    if (!/^[a-zA-Z0-9_]+$/.test(field)) {
-        return false;
-    }
-
-    if (DISALLOWED_FIELDS[table] && DISALLOWED_FIELDS[table].includes(field)) {
-        return false;
-    }
-
-    return true;
+    return /^[a-zA-Z0-9_]+$/.test(field) &&
+        !(DISALLOWED_FIELDS[table]?.includes(field));
 }
 
-// Validate table name against SQL injection patterns and ensure it's allowed
 function isValidTable(tableName) {
-    if (!/^[a-zA-Z0-9_\-.$]+$/.test(tableName)) {
-        return false;
-    }
-    return ALLOWED_TABLES.includes(tableName);
+    return /^[a-zA-Z0-9_\-.$]+$/.test(tableName) && ALLOWED_TABLES.includes(tableName);
 }
 
-// Check if required fields are present for creation
 function validateRequiredFields(table, data) {
     const required = REQUIRED_FIELDS[table] || [];
-    const missing = required.filter(field =>
-        data[field] === undefined || data[field] === null || data[field] === ''
-    );
-
-    return {
-        isValid: missing.length === 0,
-        missingFields: missing
-    };
+    const missing = required.filter(field => !data[field]);
+    return { isValid: missing.length === 0, missingFields: missing };
 }
 
-// Helper function to separate data for view insertions
-function separateDataForTables(viewName, data) {
-    switch (viewName) {
-        case 'teachers_view':
-            const teacherUserData = {
-                user_name: data.user_name,
-                user_email: data.user_email,
-                user_level: 1, // Teachers have level 1
-                contact: data.contact,
-                address: data.address
-            };
-            const teacherData = {
-                experience: data.experience,
-                qualification: data.qualification
-            };
-            return { userTable: 'users', userData: teacherUserData, relatedTable: 'teachers', relatedData: teacherData };
+function sanitizeData(table, data, userId) {
+    const sanitized = {};
+    const rejected = [];
 
-        case 'students_view':
-            const studentUserData = {
-                user_name: data.user_name,
-                user_email: data.user_email,
-                user_level: 0, // Students have level 0
-                contact: data.contact,
-                address: data.address
-            };
-            const studentData = {
-                guardian_name: data.guardian_name,
-                guardian_relation: data.guardian_relation,
-                guardian_contact: data.guardian_contact,
-                school: data.school,
-                date_of_birth: data.date_of_birth,
-                class: data.class
-            };
-            return { userTable: 'users', userData: studentUserData, relatedTable: 'students', relatedData: studentData };
-
-        case 'classes_view':
-            // For classes, we only need to insert into the classes table
-            const classData = {
-                course_id: data.course_id,
-                teacher_id: data.teacher_id,
-                grade_id: data.grade_id,
-                start_time: data.start_time,
-                end_time: data.end_time,
-                class_description: data.class_description
-            };
-            return { userTable: null, userData: null, relatedTable: 'classes', relatedData: classData };
-
-        default:
-            return null;
+    for (const [key, value] of Object.entries(data)) {
+        if (validateField(table, key)) {
+            if (typeof value === 'string' && value.length > 5000) {
+                throw new Error(`Field value too large for ${key}`);
+            }
+            sanitized[key] = value;
+        } else {
+            rejected.push(key);
+        }
     }
+
+    if (rejected.length > 0) {
+        console.warn(`Disallowed fields by user ${userId} on ${table}: ${rejected.join(', ')}`);
+    }
+
+    return sanitized;
 }
 
-// Main handler for all CRUD operations
-export async function PUT(req) {
-    return handleRequest(req, 'UPDATE');
+function separateViewData(viewName, data) {
+    const config = VIEW_TABLE_MAP[viewName];
+    if (!config) return null;
+
+    const result = { relatedTable: config.relatedTable };
+
+    if (config.userTable) {
+        result.userTable = config.userTable;
+        result.userData = config.userFields.reduce((acc, field) => {
+            if (data[field] !== undefined) acc[field] = data[field];
+            return acc;
+        }, { user_level: config.userLevel });
+
+        result.relatedData = config.relatedFields.reduce((acc, field) => {
+            if (data[field] !== undefined) acc[field] = data[field];
+            return acc;
+        }, {});
+    } else {
+        result.relatedData = config.relatedFields.reduce((acc, field) => {
+            if (data[field] !== undefined) acc[field] = data[field];
+            return acc;
+        }, {});
+    }
+
+    return result;
 }
 
-export async function POST(req) {
-    return handleRequest(req, 'CREATE');
+async function authenticate(req) {
+    const session = await getServerSession(authOptions);
+    if (!session) throw new Error('User not authenticated');
+    if (session.user.level !== 2) throw new Error('Admin access required');
+    if (!session.accessToken) throw new Error('Token not valid');
+    return session.user.id;
 }
 
-export async function DELETE(req) {
-    return handleRequest(req, 'DELETE');
+function createErrorResponse(message, status) {
+    return new Response(JSON.stringify({ error: message }), { status });
+}
+
+function createSuccessResponse(data, status = 200) {
+    return new Response(JSON.stringify(data), { status });
 }
 
 async function handleRequest(req, operation) {
     try {
-        // Authentication check
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return new Response(JSON.stringify({ error: 'Unauthorized: User not authenticated' }), { status: 401 });
-        }
+        const userId = await authenticate(req);
+        const body = await req.json();
 
-        const userId = session.user.id;
-        const userLevel = session.user.level;
-
-        if (userLevel !== 2) {
-            return new Response(JSON.stringify({ error: 'Unauthorized: Admin access required' }), { status: 403 });
-        }
-
-        if (!session.accessToken) {
-            return new Response(JSON.stringify({ error: 'Unauthorized: Token not valid' }), { status: 401 });
-        }
-
-        // Parse request body
-        let body;
-        try {
-            body = await req.json();
-        } catch (e) {
-            return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), { status: 400 });
-        }
-        // Route to appropriate handler based on operation
         switch (operation) {
-            case 'UPDATE':
-                return handleUpdate(body, userId);
-            case 'CREATE':
-                return handleCreate(body, userId);
-            case 'DELETE':
-                return handleDelete(body, userId);
-            default:
-                return new Response(JSON.stringify({ error: 'Invalid operation' }), { status: 400 });
+            case 'UPDATE': return handleUpdate(body, userId);
+            case 'CREATE': return handleCreate(body, userId);
+            case 'DELETE': return handleDelete(body, userId);
+            default: return createErrorResponse('Invalid operation', 400);
         }
     } catch (error) {
-        console.error(`Error processing ${operation} request:`, error);
-        return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
+        console.error(`Error processing ${operation}:`, error);
+        return createErrorResponse(error.message.includes('not authenticated') ? error.message : 'Internal Server Error',
+            error.message.includes('not authenticated') ? 401 :
+                error.message.includes('Admin access') ? 403 : 500);
     }
 }
 
-// Handle UPDATE operations
 async function handleUpdate(body, userId) {
     const { table, id, updates } = body;
 
     if (!table || id === undefined || !updates || typeof updates !== 'object') {
-        return new Response(JSON.stringify({ error: 'Invalid request parameters' }), { status: 400 });
+        return createErrorResponse('Invalid request parameters', 400);
     }
 
     if (!isValidTable(table)) {
-        console.warn(`Invalid table access attempt: ${table} by user ${userId}`);
-        return new Response(JSON.stringify({ error: 'Invalid or disallowed table name' }), { status: 403 });
+        console.warn(`Invalid table access: ${table} by user ${userId}`);
+        return createErrorResponse('Invalid or disallowed table name', 403);
     }
 
     const numericId = parseInt(id, 10);
     if (isNaN(numericId) || numericId <= 0) {
-        return new Response(JSON.stringify({ error: 'Invalid ID parameter' }), { status: 400 });
+        return createErrorResponse('Invalid ID parameter', 400);
     }
 
     if (Object.keys(updates).length > 50) {
-        return new Response(JSON.stringify({ error: 'Too many fields in update request' }), { status: 400 });
+        return createErrorResponse('Too many fields in update request', 400);
     }
 
-    const sanitizedUpdates = {};
-    const rejectedFields = [];
-
-    for (const [key, value] of Object.entries(updates)) {
-        if (validateField(table, key)) {
-            if (typeof value === 'string' && value.length > 5000) {
-                return new Response(JSON.stringify({ error: `Field value too large for ${key}` }), { status: 400 });
-            }
-            sanitizedUpdates[key] = value;
-        } else {
-            rejectedFields.push(key);
-        }
+    const sanitized = sanitizeData(table, updates, userId);
+    if (Object.keys(sanitized).length === 0) {
+        return createErrorResponse('No valid fields to update', 400);
     }
 
-    if (rejectedFields.length > 0) {
-        console.warn(`Disallowed field update attempt by user ${userId} on table ${table}: ${rejectedFields.join(', ')}`);
+    const primaryKey = TABLE_PRIMARY_KEYS[table] || 'id';
+
+    if (!(await checkRecordExists(table, numericId, primaryKey))) {
+        return createErrorResponse(`Record with ID ${numericId} not found in ${table}`, 404);
     }
 
-    if (Object.keys(sanitizedUpdates).length === 0) {
-        return new Response(JSON.stringify({ error: 'No valid fields to update' }), { status: 400 });
+    const duplicate = await checkForDuplicates(table, numericId, sanitized, primaryKey);
+    if (duplicate.hasDuplicate) {
+        return createErrorResponse(`Cannot update: ${duplicate.field} with value "${duplicate.value}" already exists`, 409);
     }
 
-    const primaryKeyColumn = TABLE_PRIMARY_KEYS[table] || DEFAULT_PRIMARY_KEY;
+    const result = await updateTableData(table, numericId, sanitized, primaryKey);
+    await logAdminAction(userId, 'UPDATE', table, numericId, sanitized);
 
-    const recordExists = await checkRecordExists(table, numericId, primaryKeyColumn);
-    if (!recordExists) {
-        return new Response(JSON.stringify({
-            error: `Record with ID ${numericId} not found in ${table}`
-        }), { status: 404 });
-    }
-
-    const duplicateCheck = await checkForDuplicates(table, numericId, sanitizedUpdates, primaryKeyColumn);
-    if (duplicateCheck.hasDuplicate) {
-        return new Response(JSON.stringify({
-            error: `Cannot update: ${duplicateCheck.field} with value "${duplicateCheck.value}" already exists in the table`
-        }), { status: 409 });
-    }
-    const response = await updateTableData(table, numericId, sanitizedUpdates, primaryKeyColumn);
-    await logAdminAction(userId, 'UPDATE', table, numericId, sanitizedUpdates);
-
-    return new Response(JSON.stringify(response), { status: 200 });
+    return createSuccessResponse(result);
 }
 
-// Handle CREATE operations (single and bulk)
 async function handleCreate(body, userId) {
     const { table, data, bulk = false } = body;
 
     if (!table || !data) {
-        return new Response(JSON.stringify({ error: 'Missing table or data parameters' }), { status: 400 });
+        return createErrorResponse('Missing table or data parameters', 400);
     }
 
     if (!isValidTable(table)) {
-        console.warn(`Invalid table access attempt: ${table} by user ${userId}`);
-        return new Response(JSON.stringify({ error: 'Invalid or disallowed table name' }), { status: 403 });
+        console.warn(`Invalid table access: ${table} by user ${userId}`);
+        return createErrorResponse('Invalid or disallowed table name', 403);
     }
 
-    if (bulk) {
-        return handleBulkCreate(table, data, userId);
-    } else {
-        return handleSingleCreate(table, data, userId);
-    }
+    return bulk ? handleBulkCreate(table, data, userId) : handleSingleCreate(table, data, userId);
 }
 
-// Handle single record creation
 async function handleSingleCreate(table, data, userId) {
     if (typeof data !== 'object' || Array.isArray(data)) {
-        return new Response(JSON.stringify({ error: 'Data must be an object for single creation' }), { status: 400 });
+        return createErrorResponse('Data must be an object for single creation', 400);
     }
-    
-    // Check if this is a view that needs special handling
+
     if (table.endsWith('_view')) {
         return handleViewInsertion(table, data, userId);
     }
 
-    // Remove primary key from data if it exists (let database auto-generate)
-    const primaryKeyColumn = TABLE_PRIMARY_KEYS[table] || DEFAULT_PRIMARY_KEY;
+    const primaryKey = TABLE_PRIMARY_KEYS[table] || 'id';
     const cleanData = { ...data };
-    delete cleanData[primaryKeyColumn];
+    delete cleanData[primaryKey];
 
     const validation = validateRequiredFields(table, cleanData);
     if (!validation.isValid) {
-        return new Response(JSON.stringify({
-            error: `Missing required fields: ${validation.missingFields.join(', ')}`
-        }), { status: 400 });
+        return createErrorResponse(`Missing required fields: ${validation.missingFields.join(', ')}`, 400);
     }
 
-    const sanitizedData = {};
-    const rejectedFields = [];
-
-    for (const [key, value] of Object.entries(cleanData)) {
-        if (validateField(table, key)) {
-            if (typeof value === 'string' && value.length > 5000) {
-                return new Response(JSON.stringify({ error: `Field value too large for ${key}` }), { status: 400 });
-            }
-            sanitizedData[key] = value;
-        } else {
-            rejectedFields.push(key);
-        }
-    }
-
-    if (rejectedFields.length > 0) {
-        console.warn(`Disallowed field create attempt by user ${userId} on table ${table}: ${rejectedFields.join(', ')}`);
-    }
-
-    if (Object.keys(sanitizedData).length === 0) {
-        return new Response(JSON.stringify({ error: 'No valid fields to create' }), { status: 400 });
+    const sanitized = sanitizeData(table, cleanData, userId);
+    if (Object.keys(sanitized).length === 0) {
+        return createErrorResponse('No valid fields to create', 400);
     }
 
     try {
-        const result = await createRecord(table, sanitizedData);
-        await logAdminAction(userId, 'CREATE', table, result.insertId, sanitizedData);
+        const result = await createRecord(table, sanitized);
+        await logAdminAction(userId, 'CREATE', table, result.insertId, sanitized);
 
-        return new Response(JSON.stringify({
+        return createSuccessResponse({
             success: true,
             message: `Created new record in ${table}`,
             insertId: result.insertId,
             affectedRows: result.affectedRows
-        }), { status: 201 });
+        }, 201);
     } catch (error) {
         if (error.message.includes('Duplicate entry')) {
-            return new Response(JSON.stringify({
-                error: 'Cannot create record: duplicate value for unique field'
-            }), { status: 409 });
+            return createErrorResponse('Cannot create record: duplicate value for unique field', 409);
         }
         throw error;
     }
 }
 
-// Handle view insertions (insert into underlying tables)
 async function handleViewInsertion(viewName, data, userId) {
-    const tableInfo = separateDataForTables(viewName, data);
-    
+    const tableInfo = separateViewData(viewName, data);
     if (!tableInfo) {
-        return new Response(JSON.stringify({ error: 'Unsupported view for insertion' }), { status: 400 });
+        return createErrorResponse('Unsupported view for insertion', 400);
     }
 
     try {
-        if (tableInfo.userTable && tableInfo.userData) {
-            // First insert into users table
-            const userResult = await createRecord(tableInfo.userTable, tableInfo.userData);
-            const userId = userResult.insertId;
+        let insertId;
+        let totalAffected = 0;
 
-            // Then insert into related table with the user_id
+        if (tableInfo.userTable && tableInfo.userData) {
+            const userResult = await createRecord(tableInfo.userTable, tableInfo.userData);
+            insertId = userResult.insertId;
+            totalAffected += userResult.affectedRows;
+
             if (tableInfo.relatedTable && tableInfo.relatedData) {
-                tableInfo.relatedData.user_id = userId;
+                tableInfo.relatedData.user_id = insertId;
                 const relatedResult = await createRecord(tableInfo.relatedTable, tableInfo.relatedData);
-                
-                await logAdminAction(userId, 'CREATE', viewName, userId, data);
-                
-                return new Response(JSON.stringify({
-                    success: true,
-                    message: `Created new record in ${viewName}`,
-                    insertId: userId,
-                    affectedRows: userResult.affectedRows + relatedResult.affectedRows
-                }), { status: 201 });
+                totalAffected += relatedResult.affectedRows;
             }
         } else if (tableInfo.relatedTable && tableInfo.relatedData) {
-            // For classes_view, only insert into classes table
             const result = await createRecord(tableInfo.relatedTable, tableInfo.relatedData);
-            
-            await logAdminAction(userId, 'CREATE', viewName, result.insertId, data);
-            
-            return new Response(JSON.stringify({
-                success: true,
-                message: `Created new record in ${viewName}`,
-                insertId: result.insertId,
-                affectedRows: result.affectedRows
-            }), { status: 201 });
+            insertId = result.insertId;
+            totalAffected = result.affectedRows;
         }
+
+        await logAdminAction(userId, 'CREATE', viewName, insertId, data);
+
+        return createSuccessResponse({
+            success: true,
+            message: `Created new record in ${viewName}`,
+            insertId,
+            affectedRows: totalAffected
+        }, 201);
     } catch (error) {
         if (error.message.includes('Duplicate entry')) {
-            return new Response(JSON.stringify({
-                error: 'Cannot create record: duplicate value for unique field'
-            }), { status: 409 });
+            return createErrorResponse('Cannot create record: duplicate value for unique field', 409);
         }
         throw error;
     }
 }
 
-// Handle bulk record creation
 async function handleBulkCreate(table, dataArray, userId) {
     if (!Array.isArray(dataArray) || dataArray.length === 0) {
-        return new Response(JSON.stringify({ error: 'Data must be a non-empty array for bulk creation' }), { status: 400 });
+        return createErrorResponse('Data must be a non-empty array for bulk creation', 400);
     }
 
     if (dataArray.length > 100) {
-        return new Response(JSON.stringify({ error: 'Maximum 100 records allowed in bulk creation' }), { status: 400 });
+        return createErrorResponse('Maximum 100 records allowed in bulk creation', 400);
     }
 
-    // Check if this is a view that needs special handling
     if (table.endsWith('_view')) {
         return handleBulkViewInsertion(table, dataArray, userId);
     }
 
-    const primaryKeyColumn = TABLE_PRIMARY_KEYS[table] || DEFAULT_PRIMARY_KEY;
-    const sanitizedRecords = [];
+    const primaryKey = TABLE_PRIMARY_KEYS[table] || 'id';
+    const sanitized = [];
     const errors = [];
 
     for (let i = 0; i < dataArray.length; i++) {
@@ -412,9 +315,8 @@ async function handleBulkCreate(table, dataArray, userId) {
             continue;
         }
 
-        // Remove primary key from record if it exists (let database auto-generate)
         const cleanRecord = { ...record };
-        delete cleanRecord[primaryKeyColumn];
+        delete cleanRecord[primaryKey];
 
         const validation = validateRequiredFields(table, cleanRecord);
         if (!validation.isValid) {
@@ -422,264 +324,211 @@ async function handleBulkCreate(table, dataArray, userId) {
             continue;
         }
 
-        const sanitizedData = {};
-        let hasError = false;
-
-        for (const [key, value] of Object.entries(cleanRecord)) {
-            if (validateField(table, key)) {
-                if (typeof value === 'string' && value.length > 5000) {
-                    errors.push(`Record ${i + 1}: Field value too large for ${key}`);
-                    hasError = true;
-                    break;
-                }
-                sanitizedData[key] = value;
-            }
-        }
-
-        if (!hasError && Object.keys(sanitizedData).length > 0) {
-            sanitizedRecords.push(sanitizedData);
-        }
-    }
-
-    if (errors.length > 0) {
-        return new Response(JSON.stringify({
-            error: 'Validation errors in bulk data',
-            details: errors
-        }), { status: 400 });
-    }
-
-    try {
-        const result = await createBulkRecords(table, sanitizedRecords);
-        await logAdminAction(userId, 'BULK_CREATE', table, null, { count: sanitizedRecords.length });
-
-        return new Response(JSON.stringify({
-            success: true,
-            message: `Created ${result.affectedRows} records in ${table}`,
-            affectedRows: result.affectedRows
-        }), { status: 201 });
-    } catch (error) {
-        if (error.message.includes('Duplicate entry')) {
-            return new Response(JSON.stringify({
-                error: 'Cannot create records: duplicate value(s) for unique field(s)'
-            }), { status: 409 });
-        }
-        throw error;
-    }
-}
-
-// Handle bulk view insertions
-async function handleBulkViewInsertion(viewName, dataArray, userId) {
-    const results = [];
-    const errors = [];
-
-    for (let i = 0; i < dataArray.length; i++) {
         try {
-            const tableInfo = separateDataForTables(viewName, dataArray[i]);
-            
-            if (!tableInfo) {
-                errors.push(`Record ${i + 1}: Unsupported view for insertion`);
-                continue;
-            }
-
-            if (tableInfo.userTable && tableInfo.userData) {
-                // First insert into users table
-                const userResult = await createRecord(tableInfo.userTable, tableInfo.userData);
-                const newUserId = userResult.insertId;
-
-                // Then insert into related table with the user_id
-                if (tableInfo.relatedTable && tableInfo.relatedData) {
-                    tableInfo.relatedData.user_id = newUserId;
-                    await createRecord(tableInfo.relatedTable, tableInfo.relatedData);
-                }
-                
-                results.push({ insertId: newUserId });
-            } else if (tableInfo.relatedTable && tableInfo.relatedData) {
-                // For classes_view, only insert into classes table
-                const result = await createRecord(tableInfo.relatedTable, tableInfo.relatedData);
-                results.push({ insertId: result.insertId });
+            const sanitizedData = sanitizeData(table, cleanRecord, userId);
+            if (Object.keys(sanitizedData).length > 0) {
+                sanitized.push(sanitizedData);
             }
         } catch (error) {
             errors.push(`Record ${i + 1}: ${error.message}`);
         }
     }
 
-    if (errors.length > 0 && results.length === 0) {
-        return new Response(JSON.stringify({
-            error: 'All records failed to create',
-            details: errors
-        }), { status: 400 });
+    if (errors.length > 0) {
+        return createErrorResponse('Validation errors in bulk data', 400, { details: errors });
     }
 
-    await logAdminAction(userId, 'BULK_CREATE', viewName, null, { 
-        count: results.length, 
-        errors: errors.length 
+    try {
+        const result = await createBulkRecords(table, sanitized);
+        await logAdminAction(userId, 'BULK_CREATE', table, null, { count: sanitized.length });
+
+        return createSuccessResponse({
+            success: true,
+            message: `Created ${result.affectedRows} records in ${table}`,
+            affectedRows: result.affectedRows
+        }, 201);
+    } catch (error) {
+        if (error.message.includes('Duplicate entry')) {
+            return createErrorResponse('Cannot create records: duplicate value(s) for unique field(s)', 409);
+        }
+        throw error;
+    }
+}
+
+async function handleBulkViewInsertion(viewName, dataArray, userId) {
+    const results = [];
+    const errors = [];
+
+    for (let i = 0; i < dataArray.length; i++) {
+        try {
+            const tableInfo = separateViewData(viewName, dataArray[i]);
+            if (!tableInfo) {
+                errors.push(`Record ${i + 1}: Unsupported view for insertion`);
+                continue;
+            }
+
+            let insertId;
+            if (tableInfo.userTable && tableInfo.userData) {
+                const userResult = await createRecord(tableInfo.userTable, tableInfo.userData);
+                insertId = userResult.insertId;
+
+                if (tableInfo.relatedTable && tableInfo.relatedData) {
+                    tableInfo.relatedData.user_id = insertId;
+                    await createRecord(tableInfo.relatedTable, tableInfo.relatedData);
+                }
+            } else if (tableInfo.relatedTable && tableInfo.relatedData) {
+                const result = await createRecord(tableInfo.relatedTable, tableInfo.relatedData);
+                insertId = result.insertId;
+            }
+
+            results.push({ insertId });
+        } catch (error) {
+            errors.push(`Record ${i + 1}: ${error.message}`);
+        }
+    }
+
+    if (errors.length > 0 && results.length === 0) {
+        return createErrorResponse('All records failed to create', 400, { details: errors });
+    }
+
+    await logAdminAction(userId, 'BULK_CREATE', viewName, null, {
+        count: results.length,
+        errors: errors.length
     });
 
-    return new Response(JSON.stringify({
+    return createSuccessResponse({
         success: true,
         message: `Created ${results.length} records in ${viewName}`,
         affectedRows: results.length,
         errors: errors.length > 0 ? errors : undefined
-    }), { status: 201 });
+    }, 201);
 }
 
-// Handle DELETE operations
 async function handleDelete(body, userId) {
     const { table, id } = body;
 
     if (!table || id === undefined) {
-        return new Response(JSON.stringify({ error: 'Missing table or id parameters' }), { status: 400 });
+        return createErrorResponse('Missing table or id parameters', 400);
     }
 
     if (!isValidTable(table)) {
-        console.warn(`Invalid table access attempt: ${table} by user ${userId}`);
-        return new Response(JSON.stringify({ error: 'Invalid or disallowed table name' }), { status: 403 });
+        console.warn(`Invalid table access: ${table} by user ${userId}`);
+        return createErrorResponse('Invalid or disallowed table name', 403);
     }
 
     const numericId = parseInt(id, 10);
     if (isNaN(numericId) || numericId <= 0) {
-        return new Response(JSON.stringify({ error: 'Invalid ID parameter' }), { status: 400 });
+        return createErrorResponse('Invalid ID parameter', 400);
     }
 
-    // Handle view deletions
     if (table.endsWith('_view')) {
         return handleViewDeletion(table, numericId, userId);
     }
 
-    const primaryKeyColumn = TABLE_PRIMARY_KEYS[table] || DEFAULT_PRIMARY_KEY;
+    const primaryKey = TABLE_PRIMARY_KEYS[table] || 'id';
 
-    const recordExists = await checkRecordExists(table, numericId, primaryKeyColumn);
-    if (!recordExists) {
-        return new Response(JSON.stringify({
-            error: `Record with ID ${numericId} not found in ${table}`
-        }), { status: 404 });
+    if (!(await checkRecordExists(table, numericId, primaryKey))) {
+        return createErrorResponse(`Record with ID ${numericId} not found in ${table}`, 404);
     }
 
     try {
-        const result = await deleteRecord(table, numericId, primaryKeyColumn);
+        const result = await deleteRecord(table, numericId, primaryKey);
         await logAdminAction(userId, 'DELETE', table, numericId, {});
 
-        return new Response(JSON.stringify({
+        return createSuccessResponse({
             success: true,
             message: `Deleted record from ${table}`,
             affectedRows: result.affectedRows
-        }), { status: 200 });
+        });
     } catch (error) {
         if (error.message.includes('foreign key constraint')) {
-            return new Response(JSON.stringify({
-                error: 'Cannot delete record: it is referenced by other records'
-            }), { status: 409 });
+            return createErrorResponse('Cannot delete record: it is referenced by other records', 409);
         }
         throw error;
     }
 }
 
-// Handle view deletions (delete from underlying tables)
 async function handleViewDeletion(viewName, id, userId) {
+    const config = VIEW_TABLE_MAP[viewName];
+    if (!config) {
+        return createErrorResponse('Unsupported view for deletion', 400);
+    }
+
     try {
         let result;
-        
-        switch (viewName) {
-            case 'teachers_view':
-            case 'students_view':
-                // For teacher and student views, delete from both related table and users table
-                const relatedTable = viewName === 'teachers_view' ? 'teachers' : 'students';
-                
-                // Delete from related table first (due to foreign key constraints)
-                await deleteRecord(relatedTable, id, 'user_id');
-                // Then delete from users table
-                result = await deleteRecord('users', id, 'user_id');
-                break;
-                
-            case 'classes_view':
-                // For classes view, only delete from classes table
-                result = await deleteRecord('classes', id, 'class_id');
-                break;
-                
-            default:
-                throw new Error('Unsupported view for deletion');
+
+        if (config.userTable) {
+            await deleteRecord(config.relatedTable, id, 'user_id');
+            result = await deleteRecord(config.userTable, id, 'user_id');
+        } else {
+            const primaryKey = viewName === 'classes_view' ? 'class_id' : 'id';
+            result = await deleteRecord(config.relatedTable, id, primaryKey);
         }
 
         await logAdminAction(userId, 'DELETE', viewName, id, {});
 
-        return new Response(JSON.stringify({
+        return createSuccessResponse({
             success: true,
             message: `Deleted record from ${viewName}`,
             affectedRows: result.affectedRows
-        }), { status: 200 });
+        });
     } catch (error) {
         if (error.message.includes('foreign key constraint')) {
-            return new Response(JSON.stringify({
-                error: 'Cannot delete record: it is referenced by other records'
-            }), { status: 409 });
+            return createErrorResponse('Cannot delete record: it is referenced by other records', 409);
         }
         throw error;
     }
 }
 
-// Database operation functions
-async function checkRecordExists(table, id, primaryKeyColumn) {
+// Database operations
+async function checkRecordExists(table, id, primaryKey) {
     try {
         const result = await executeQueryWithRetry({
-            query: `SELECT 1 FROM \`${table}\` WHERE \`${primaryKeyColumn}\` = ? LIMIT 1`,
+            query: `SELECT 1 FROM \`${table}\` WHERE \`${primaryKey}\` = ? LIMIT 1`,
             values: [id],
         });
         return result.length > 0;
     } catch (err) {
-        console.error('Record existence check failed:', err);
         throw new Error(`Record check failed: ${err.message}`);
     }
 }
 
-async function checkForDuplicates(table, id, updates, primaryKeyColumn) {
-    const result = { hasDuplicate: false, field: null, value: null };
-
+async function checkForDuplicates(table, id, updates, primaryKey) {
     try {
         const tableInfo = await executeQueryWithRetry({
             query: `SHOW INDEXES FROM \`${table}\` WHERE Non_unique = 0 AND Key_name != 'PRIMARY'`,
             values: [],
         });
 
-        const uniqueColumns = tableInfo
-            .filter(index => index.Column_name)
-            .map(index => index.Column_name);
+        const uniqueColumns = tableInfo.map(index => index.Column_name).filter(Boolean);
 
-        for (const field of Object.keys(updates)) {
-            const value = updates[field];
-
-            if (value === null || value === '' || !uniqueColumns.includes(field)) continue;
+        for (const [field, value] of Object.entries(updates)) {
+            if (!value || !uniqueColumns.includes(field)) continue;
 
             const checkResult = await executeQueryWithRetry({
-                query: `SELECT COUNT(*) as count FROM \`${table}\` 
-                WHERE \`${field}\` = ? 
-                AND \`${primaryKeyColumn}\` != ?`,
+                query: `SELECT COUNT(*) as count FROM \`${table}\` WHERE \`${field}\` = ? AND \`${primaryKey}\` != ?`,
                 values: [value, id],
             });
 
             if (checkResult[0].count > 0) {
-                result.hasDuplicate = true;
-                result.field = field;
-                result.value = value;
-                break;
+                return { hasDuplicate: true, field, value };
             }
         }
 
-        return result;
+        return { hasDuplicate: false };
     } catch (err) {
-        console.error('Duplicate check failed:', err);
         throw new Error(`Duplicate check failed: ${err.message}`);
     }
 }
 
-async function updateTableData(table, id, updates, primaryKeyColumn) {
+async function updateTableData(table, id, updates, primaryKey) {
     try {
         const updateFields = Object.keys(updates).map(key => `\`${key}\` = ?`).join(', ');
-        const updateValues = Object.values(updates);
-        const values = [...updateValues, id];
+        const values = [...Object.values(updates), id];
 
         const result = await executeQueryWithRetry({
-            query: `UPDATE \`${table}\` SET ${updateFields} WHERE \`${primaryKeyColumn}\` = ?`,
-            values: values,
+            query: `UPDATE \`${table}\` SET ${updateFields} WHERE \`${primaryKey}\` = ?`,
+            values,
         });
 
         return {
@@ -688,7 +537,6 @@ async function updateTableData(table, id, updates, primaryKeyColumn) {
             affectedRows: result.affectedRows
         };
     } catch (err) {
-        console.error('Database update failed:', err);
         throw new Error(`Database operation failed: ${err.message}`);
     }
 }
@@ -697,16 +545,14 @@ async function createRecord(table, data) {
     try {
         const fields = Object.keys(data).map(key => `\`${key}\``).join(', ');
         const placeholders = Object.keys(data).map(() => '?').join(', ');
-        const values = Object.values(data);
-        
+
         const result = await executeQueryWithRetry({
             query: `INSERT INTO \`${table}\` (${fields}) VALUES (${placeholders})`,
-            values: values,
+            values: Object.values(data),
         });
 
         return result;
     } catch (err) {
-        console.error('Database create failed:', err);
         throw new Error(`Database operation failed: ${err.message}`);
     }
 }
@@ -715,60 +561,48 @@ async function createBulkRecords(table, records) {
     try {
         if (records.length === 0) return { affectedRows: 0 };
 
-        // Get all unique field names from all records
         const allFields = [...new Set(records.flatMap(record => Object.keys(record)))];
         const fields = allFields.map(key => `\`${key}\``).join(', ');
-
-        // Create placeholders for each record
-        const placeholderRows = records.map(() =>
-            `(${allFields.map(() => '?').join(', ')})`
-        ).join(', ');
-
-        // Create values array ensuring consistent field order
-        const values = records.flatMap(record =>
-            allFields.map(field => record[field] || null)
-        );
+        const placeholderRows = records.map(() => `(${allFields.map(() => '?').join(', ')})`).join(', ');
+        const values = records.flatMap(record => allFields.map(field => record[field] || null));
 
         const result = await executeQueryWithRetry({
             query: `INSERT INTO \`${table}\` (${fields}) VALUES ${placeholderRows}`,
-            values: values,
+            values,
         });
 
         return result;
     } catch (err) {
-        console.error('Database bulk create failed:', err);
         throw new Error(`Database operation failed: ${err.message}`);
     }
 }
 
-async function deleteRecord(table, id, primaryKeyColumn) {
+async function deleteRecord(table, id, primaryKey) {
     try {
         const result = await executeQueryWithRetry({
-            query: `DELETE FROM \`${table}\` WHERE \`${primaryKeyColumn}\` = ?`,
+            query: `DELETE FROM \`${table}\` WHERE \`${primaryKey}\` = ?`,
             values: [id],
         });
 
         return result;
     } catch (err) {
-        console.error('Database delete failed:', err);
         throw new Error(`Database operation failed: ${err.message}`);
     }
 }
 
 async function logAdminAction(adminId, actionType, table, recordId, details) {
     try {
-        const actionDetails = JSON.stringify({
-            table: table,
-            recordId: recordId,
-            changes: details
-        });
-
+        const actionDetails = JSON.stringify({ table, recordId, changes: details });
         await executeQueryWithRetry({
-            query: `INSERT INTO admin_audit_logs (admin_id, action_type, action_details, timestamp) 
-              VALUES (?, ?, ?, NOW())`,
+            query: `INSERT INTO admin_audit_logs (admin_id, action_type, action_details, timestamp) VALUES (?, ?, ?, NOW())`,
             values: [adminId, actionType, actionDetails],
         });
     } catch (err) {
         console.error('Failed to log admin action:', err);
     }
 }
+
+// Export handlers
+export async function PUT(req) { return handleRequest(req, 'UPDATE'); }
+export async function POST(req) { return handleRequest(req, 'CREATE'); }
+export async function DELETE(req) { return handleRequest(req, 'DELETE'); }

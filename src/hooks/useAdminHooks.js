@@ -3,34 +3,33 @@ import { getStoredTab, setStoredTab, formatDateTime } from '../app/lib/utils';
 
 export const usePersistedTab = () => {
     const [activeTab, setActiveTab] = useState(getStoredTab);
-    
+
     useEffect(() => {
         setStoredTab(activeTab);
     }, [activeTab]);
-    
+
     return [activeTab, setActiveTab];
 };
 
 export const useAsyncAction = () => {
     const [actionInProgress, setActionInProgress] = useState({});
-    
-    const startAction = (key) => 
+
+    const startAction = (key) =>
         setActionInProgress(prev => ({ ...prev, [key]: true }));
-    
-    const endAction = (key) => 
+
+    const endAction = (key) =>
         setActionInProgress(prev => {
             const { [key]: _, ...rest } = prev;
             return rest;
         });
-    
+
     return { actionInProgress, startAction, endAction };
 };
 
 export const useAdminLookups = (state) => {
-    const getUserName = useCallback((userId) => 
-        state.usersData.find(user => user.user_id == userId)?.user_name || 'Unknown User',
-        [state.usersData]
-    );
+    const getUserName = useCallback((userId) => {
+        return state.usersData.find(user => user.user_id == userId)?.user_name || 'Unknown User'
+    }, [state.usersData]);
 
     const getClassName = useCallback((classId) => {
         const classData = state.classesData.find(c => c.class_id == classId);
