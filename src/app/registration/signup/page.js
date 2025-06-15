@@ -319,6 +319,7 @@ export default function Signup() {
                                 <FileUpload
                                     onFileUpload={handleCertificateUpload}
                                     classId="teacher-certificates" // You can use a generic classId for teacher certificates
+                                    isSignUpForm={true}
                                     hiddenInputName="certificate_path"
                                 />
                                 <p className={styles.helpText}>

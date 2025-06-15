@@ -432,13 +432,29 @@ async function handleDelete(body, userId) {
     }
 
     try {
-        const result = await deleteRecord(table, numericId, primaryKey);
+        // Use stored procedures for safe deletion when available
+        let result;
+        if (table === 'users' && await isTeacher(numericId)) {
+            result = await executeQueryWithRetry({
+                query: 'CALL DeleteTeacher(?)',
+                values: [numericId]
+            });
+        } else if (table === 'classes') {
+            result = await executeQueryWithRetry({
+                query: 'CALL DeleteClass(?)',
+                values: [numericId]
+            });
+        } else {
+            // Standard delete for other tables (foreign keys will handle cascading)
+            result = await deleteRecord(table, numericId, primaryKey);
+        }
+
         await logAdminAction(userId, 'DELETE', table, numericId, {});
 
         return createSuccessResponse({
             success: true,
             message: `Deleted record from ${table}`,
-            affectedRows: result.affectedRows
+            affectedRows: result.affectedRows || 1
         });
     } catch (error) {
         if (error.message.includes('foreign key constraint')) {
@@ -448,6 +464,7 @@ async function handleDelete(body, userId) {
     }
 }
 
+// SIMPLIFIED: View deletion now relies on database cascading
 async function handleViewDeletion(viewName, id, userId) {
     const config = VIEW_TABLE_MAP[viewName];
     if (!config) {
@@ -458,11 +475,19 @@ async function handleViewDeletion(viewName, id, userId) {
         let result;
 
         if (config.userTable) {
-            await deleteRecord(config.relatedTable, id, 'user_id');
+            // Delete from users table - foreign keys will cascade to related tables
             result = await deleteRecord(config.userTable, id, 'user_id');
         } else {
             const primaryKey = viewName === 'classes_view' ? 'class_id' : 'id';
-            result = await deleteRecord(config.relatedTable, id, primaryKey);
+            // Use stored procedure for class deletion if available
+            if (viewName === 'classes_view') {
+                result = await executeQueryWithRetry({
+                    query: 'CALL DeleteClass(?)',
+                    values: [id]
+                });
+            } else {
+                result = await deleteRecord(config.relatedTable, id, primaryKey);
+            }
         }
 
         await logAdminAction(userId, 'DELETE', viewName, id, {});
@@ -470,13 +495,26 @@ async function handleViewDeletion(viewName, id, userId) {
         return createSuccessResponse({
             success: true,
             message: `Deleted record from ${viewName}`,
-            affectedRows: result.affectedRows
+            affectedRows: result.affectedRows || 1
         });
     } catch (error) {
         if (error.message.includes('foreign key constraint')) {
             return createErrorResponse('Cannot delete record: it is referenced by other records', 409);
         }
         throw error;
+    }
+}
+
+// Helper function to check if user is a teacher
+async function isTeacher(userId) {
+    try {
+        const result = await executeQueryWithRetry({
+            query: 'SELECT 1 FROM teachers WHERE user_id = ? LIMIT 1',
+            values: [userId]
+        });
+        return result.length > 0;
+    } catch (err) {
+        return false;
     }
 }
 
@@ -605,4 +643,4 @@ async function logAdminAction(adminId, actionType, table, recordId, details) {
 // Export handlers
 export async function PUT(req) { return handleRequest(req, 'UPDATE'); }
 export async function POST(req) { return handleRequest(req, 'CREATE'); }
-export async function DELETE(req) { return handleRequest(req, 'DELETE'); }
+export async function DELETE(req) { return handleRequest(req, 'DELETE'); ;

@@ -38,6 +38,7 @@ const UploadLabel = () => (
 const UploadActions = ({ onUpload, onCancel, isUploading }) => (
     <div className={styles.uploadActions}>
         <button
+            type="button"
             className={styles.uploadButton}
             onClick={onUpload}
             disabled={isUploading}
@@ -45,6 +46,7 @@ const UploadActions = ({ onUpload, onCancel, isUploading }) => (
             {isUploading ? 'Uploading...' : 'Upload File'}
         </button>
         <button
+            type="button"
             className={styles.cancelButton}
             onClick={onCancel}
             disabled={isUploading}
@@ -54,15 +56,23 @@ const UploadActions = ({ onUpload, onCancel, isUploading }) => (
     </div>
 );
 
-export default function FileUpload({ classId, onUploadComplete }) {
+export default function FileUpload({ 
+    classId, 
+    onUploadComplete, 
+    onFileUpload, // For signup form compatibility
+    isSignUpForm = false,
+    hiddenInputName
+}) {
     const [dragActive, setDragActive] = useState(false);
     const [file, setFile] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState(null);
+    const [uploadedFilePath, setUploadedFilePath] = useState('');
 
     const resetFile = () => {
         setFile(null);
         setUploadError(null);
+        setUploadedFilePath('');
         const fileInput = document.getElementById('file-upload');
         if (fileInput) fileInput.value = '';
     };
@@ -70,13 +80,24 @@ export default function FileUpload({ classId, onUploadComplete }) {
     const handleFileChange = (e) => {
         setUploadError(null);
         if (e.target.files?.[0]) {
-            setFile(e.target.files[0]);
+            const selectedFile = e.target.files[0];
+            setFile(selectedFile);
+            
+            // For signup form, just notify parent that file is selected
+            if (isSignUpForm && onFileUpload) {
+                onFileUpload({ file: selectedFile, name: selectedFile.name });
+            }
         }
     };
 
     const handleUpload = async () => {
-        if (!file || !classId) {
-            setUploadError('File and class ID are required');
+        if (!file) {
+            setUploadError('File is required');
+            return;
+        }
+        
+        if (!isSignUpForm && !classId) {
+            setUploadError('Class ID is required');
             return;
         }
 
@@ -86,7 +107,8 @@ export default function FileUpload({ classId, onUploadComplete }) {
         try {
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('classId', classId);
+            formData.append('classId', classId); // Always send classId
+            formData.append('isSignupForm', isSignUpForm.toString()); // Send signup form flag
             
             const response = await fetch('/api/upload', {
                 method: 'POST',
@@ -99,8 +121,15 @@ export default function FileUpload({ classId, onUploadComplete }) {
             }
 
             const result = await response.json();
-            onUploadComplete?.(result);
-            resetFile();
+            setUploadedFilePath(result.filePath || result.path);
+            
+            // Call the appropriate callback
+            if (onUploadComplete) {
+                onUploadComplete(result);
+            }
+            if (onFileUpload) {
+                onFileUpload({...result, file});
+            }
 
         } catch (error) {
             console.error('Upload error:', error);
@@ -125,6 +154,7 @@ export default function FileUpload({ classId, onUploadComplete }) {
                     className={styles.fileInput}
                     onChange={handleFileChange}
                     disabled={isUploading}
+                    accept={isSignUpForm ? ".pdf,.jpg,.jpeg,.png" : undefined}
                 />
 
                 {file ? <FileInfo file={file} /> : <UploadLabel />}
@@ -136,15 +166,49 @@ export default function FileUpload({ classId, onUploadComplete }) {
                 </div>
             )}
 
-            {file && (
+            {file && !isSignUpForm && (
                 <UploadActions
                     onUpload={handleUpload}
                     onCancel={resetFile}
                     isUploading={isUploading}
                 />
             )}
+
+            {file && isSignUpForm && (
+                <div className={styles.uploadActions}>
+                    <button
+                        type="button"
+                        className={styles.uploadButton}
+                        onClick={handleUpload}
+                        disabled={isUploading}
+                    >
+                        {isUploading ? 'Uploading...' : 'Upload Certificate'}
+                    </button>
+                    <button
+                        type="button"
+                        className={styles.cancelButton}
+                        onClick={resetFile}
+                        disabled={isUploading}
+                    >
+                        Remove
+                    </button>
+                </div>
+            )}
+
+            {/* Hidden input for form submission */}
+            {hiddenInputName && uploadedFilePath && (
+                <input 
+                    type="hidden" 
+                    name={hiddenInputName} 
+                    value={uploadedFilePath} 
+                />
+            )}
+
+            {uploadedFilePath && (
+                <div className={styles.successMessage}>
+                    ✓ File uploaded successfully
+                </div>
+            )}
         </div>
     );
 }
-
-

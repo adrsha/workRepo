@@ -266,7 +266,7 @@ export default function GradesPage() {
 
     // Return the UI with new overlays and cart functionality
     return (
-        status === 'unauthenticated' || session?.user.level < 2 ? (
+        status === 'unauthenticated' ? (
             <div className={styles.container}>
                 {/* Side Panel with Grade Selection */}
                 <div className={styles.sidePanel}>

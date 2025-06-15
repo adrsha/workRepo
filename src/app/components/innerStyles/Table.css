@@ -287,13 +287,22 @@
 
 /* Modal Header */
 .modal-header {
-    padding: 1.5rem 1.5rem 1rem;
+    padding: .5rem .5rem 0.5rem;
     border-bottom: 1px solid var(--secondaryBackground, #e9ecef);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--background, #f8f9fa);
     flex-shrink: 0;
+}
+.modal-header .close-btn{
+    background-color: var(--lightRed);
+    height: 10px;
+    border-radius: 50%;
+    width: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer
 }
 
 .modal-content h3 {
@@ -618,19 +627,21 @@ section {
 .classes-grid,
 .students-grid {
     padding: 8px;
+    width: fit-content
 }
 
 .class-item,
 .student-item {
     display: flex;
     align-items: center;
+    gap: 1rem;
     padding: 8px 12px;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
     border: 1px solid transparent;
-    margin-bottom: 4px;
     position: relative;
+    width: fit-content;
 }
 
 .class-item:hover,
@@ -647,17 +658,15 @@ section {
 
 .class-name,
 .student-name {
-    flex: 1;
     font-weight: 500;
     font-size: 13px;
     color: #333;
+    margin: 0;
 }
 
-.student-email {
-    flex: 2;
+.student-contact {
     font-size: 11px;
     color: #666;
-    margin-left: 8px;
 }
 
 .profile-link-icon {

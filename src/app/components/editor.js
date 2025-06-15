@@ -3,40 +3,62 @@ import FileUpload from './FileUpload';
 import Input from "./Input";
 import styles from "../../styles/ClassContent.module.css";
 
-const UploadSuccess = ({ file, onSave }) => (
+const UploadSuccess = ({ file, onSave, isUploading }) => (
     <div className={styles.uploadSuccess}>
-        <p>✓ File uploaded: {file.originalName}</p>
-        <button className={styles.saveButton} onClick={onSave}>
-            Save File Content
+        <p>✓ File uploaded: {file.originalName || file.name}</p>
+        <button 
+            className={styles.saveButton} 
+            onClick={onSave}
+            disabled={isUploading}
+        >
+            {isUploading ? 'Saving...' : 'Save File Content'}
         </button>
     </div>
 );
 
 export const FileUploadSection = ({ classId, onFileSave, isPublic }) => {
     const [uploadedFile, setUploadedFile] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         console.log('handleSave called, uploadedFile:', uploadedFile);
-        if (uploadedFile) {
-            console.log('Calling onFileSave with:', uploadedFile, isPublic);
-            onFileSave(uploadedFile, isPublic);
-            setUploadedFile(null);
-        } else {
+        
+        if (!uploadedFile) {
             console.log('No uploaded file found');
+            return;
         }
+
+        setIsUploading(true);
+        try {
+            console.log('Calling onFileSave with:', uploadedFile, isPublic);
+            await onFileSave(uploadedFile, isPublic);
+            setUploadedFile(null);
+        } catch (error) {
+            console.error('Error saving file:', error);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    // This handles the file upload completion from FileUpload component
+    const handleUploadComplete = (uploadResult) => {
+        console.log('Upload completed:', uploadResult);
+        setUploadedFile(uploadResult);
     };
 
     return (
         <div className={styles.fileUploadSection}>
             <FileUpload
                 classId={classId}
-                onUploadComplete={setUploadedFile}
+                onUploadComplete={handleUploadComplete}
+                isSignUpForm={false}  // Add this to show upload button
             />
 
             {uploadedFile && (
                 <UploadSuccess
                     file={uploadedFile}
                     onSave={handleSave}
+                    isUploading={isUploading}
                 />
             )}
 

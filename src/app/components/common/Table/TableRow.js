@@ -71,7 +71,7 @@ export const TableRow = ({
     onDelete
 }) => {
     const [previewData, setPreviewData] = useState(null);
-
+    console.log("Columns", columns)
     const handlePreview = (fieldName) => {
         setPreviewData({ fieldName, item });
     };

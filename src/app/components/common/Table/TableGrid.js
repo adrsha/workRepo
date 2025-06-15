@@ -17,7 +17,6 @@ export const TableGrid = ({
     onDelete
 }) => {
     const allSelected = selectedRows.size === data.length;
-
     return (
         <table className={className}>
             <thead>

@@ -21,8 +21,8 @@ const EnrolledStudentsCell = ({ classId, enrolledCount, enrolledStudents }) => {
 
     return (
         <div className="enrolled-students-container">
-            <div 
-                className="enrolled-students-count clickable" 
+            <div
+                className="enrolled-students-count clickable"
                 onClick={handleToggle}
                 title="Click to view enrolled students"
             >
@@ -33,7 +33,7 @@ const EnrolledStudentsCell = ({ classId, enrolledCount, enrolledStudents }) => {
                     </span>
                 </span>
             </div>
-            
+
             {isExpanded && (
                 <div className="enrolled-students-list">
                     {enrolledStudents.length > 0 ? (
@@ -46,8 +46,8 @@ const EnrolledStudentsCell = ({ classId, enrolledCount, enrolledStudents }) => {
                                     title={`Click to view ${student.user_name}'s profile`}
                                 >
                                     <div className="student-name">{student.user_name}</div>
-                                    {student.user_email && (
-                                        <div className="student-email">{student.user_email}</div>
+                                    {student.contact && (
+                                        <div className="student-contact">{student.contact}</div>
                                     )}
                                     <div className="profile-link-icon">👤</div>
                                 </div>
@@ -94,18 +94,17 @@ const getEnrolledStudentsForClass = (classId, classesUsersData, usersData) => {
 };
 
 // Utility function to enrich classes data with user counts and student lists
-const enrichClassesWithUserCount = (classesData, classesUsersData, usersData = []) => {
+const enrichClassesWithUserData = (classesData, classesUsersData, usersData = []) => {
     return classesData.map(classItem => ({
         ...classItem,
         enrolled_students: getUserCountForClass(classItem.class_id, classesUsersData),
-        enrolledStudentsList: getEnrolledStudentsForClass(classItem.class_id, classesUsersData, usersData)
+        enrolled_students_list: getEnrolledStudentsForClass(classItem.class_id, classesUsersData, usersData)
     }));
 };
 
 const createFieldRenderer = (teachersData, courseData, gradesData, onSaveData, onMultiSaveData) => {
     return (classItem, col) => {
         const isTimeField = col === 'start_time' || col === 'end_time';
-        
         const onSave = isTimeField ?
             (value) => onMultiSaveData('classes', classItem.class_id, { [col]: value }) :
             (value) => onSaveData('classes', classItem.class_id, col, value);
@@ -127,15 +126,15 @@ const createFieldRenderer = (teachersData, courseData, gradesData, onSaveData, o
                     label={formatColName(col)}
                 />
             ),
-            teacher_id: () => (
-                <EditableDropdown
+            teacher_id: () => {
+                return <EditableDropdown
                     initialValue={classItem.teacher_id || ''}
                     onSave={onSave}
                     options={createOptions(teachersData, 'user_id', 'user_name')}
                     placeholder="Select a teacher"
                     label={formatColName(col)}
                 />
-            ),
+            },
             course_id: () => (
                 <EditableDropdown
                     initialValue={classItem.course_id || ''}
@@ -169,10 +168,10 @@ const createFieldRenderer = (teachersData, courseData, gradesData, onSaveData, o
                 />
             ),
             enrolled_students: () => (
-                <EnrolledStudentsCell 
+                <EnrolledStudentsCell
                     classId={classItem.class_id}
                     enrolledCount={classItem.enrolled_students || 0}
-                    enrolledStudents={classItem.enrolledStudentsList || []}
+                    enrolledStudents={classItem.enrolled_students_list || []}
                 />
             )
         };
@@ -313,8 +312,8 @@ const ApprovedClassesTable = ({
     schemas = {}
 }) => {
     // Enrich classes data with user counts
-    const enrichedClasses = enrichClassesWithUserCount(classes, classesUsersData, usersData);
-    
+    const enrichedClasses = enrichClassesWithUserData(classes, classesUsersData, usersData);
+
     const renderCell = createFieldRenderer(teachersData, courseData, gradesData, onSaveData, onMultiSaveData);
     const renderFormField = createFormFieldRenderer(teachersData, courseData, gradesData);
 
@@ -327,7 +326,7 @@ const ApprovedClassesTable = ({
     const handleBulkAdd = createAsyncHandler(onBulkAddClasses, 'Error bulk adding classes');
 
     const dropdownOptions = {
-        teacher_id: createOptions(teachersData, 'user_id', 'user_name'),
+        teacher_id: createOptions(teachersData, 'user_id', 'teacher_name'),
         course_id: createOptions(courseData, 'course_id', 'course_name'),
         grade_id: createOptions(gradesData, 'grade_id', 'grade_name'),
     };
@@ -344,7 +343,7 @@ const ApprovedClassesTable = ({
             allowAdd={true}
             allowDelete={true}
             allowBulkAdd={true}
-            hiddenColumns={['enrolledStudentsList']}
+            hiddenColumns={['enrolled_students_list']}
             onAdd={handleAdd}
             onDelete={handleDelete}
             onBulkAdd={handleBulkAdd}

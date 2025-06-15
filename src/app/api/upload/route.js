@@ -31,7 +31,7 @@ const getFileConfig = (classId) => ({
 const pathService = {
     buildServerPath(classId, isSignupForm) {
         const { isCertificate } = getFileConfig(classId);
-        
+
         if (isSignupForm && isCertificate) {
             return join(CONFIG.SERVER_UPLOADS_DIR, 'signup-certificates', 'teacher-certificates');
         }
@@ -40,7 +40,7 @@ const pathService = {
 
     buildPublicPath(classId, fileName, isSignupForm) {
         const { isCertificate } = getFileConfig(classId);
-        
+
         if (isSignupForm && isCertificate) {
             return `/uploads/signup-certificates/teacher-certificates/${fileName}`;
         }
@@ -54,7 +54,7 @@ const validateFile = (file, classId, isSignupForm) => {
     }
 
     const { config } = getFileConfig(classId);
-    
+
     if (isSignupForm && config) {
         if (!config.allowedTypes.includes(file.type)) {
             throw new Error(config.typeError);
@@ -93,25 +93,25 @@ const fileService = {
         const serverDir = pathService.buildServerPath(classId, isSignupForm);
         const serverPath = join(serverDir, fileName);
         const publicPath = pathService.buildPublicPath(classId, fileName, isSignupForm);
-        
+
         await this.createDirectory(serverDir);
         await this.save(file, serverPath);
-        
+
         return this.buildFileData(file, fileName, publicPath, userId, isSignupForm);
     }
 };
 
 const createResponse = (data, status = 200) => new Response(
-    JSON.stringify(data), 
-    { 
-        status, 
-        headers: { 'Content-Type': 'application/json' } 
+    JSON.stringify(data),
+    {
+        status,
+        headers: { 'Content-Type': 'application/json' }
     }
 );
 
 const createErrorResponse = (error) => {
     console.error('File upload error:', error);
-    
+
     const errorMap = {
         [CONFIG.ERRORS.UNAUTHORIZED]: 401,
         [CONFIG.ERRORS.MISSING_CLASS_ID]: 400,
@@ -119,10 +119,10 @@ const createErrorResponse = (error) => {
         [SIGNUP_FILE_CONFIG.typeError]: 400,
         [SIGNUP_FILE_CONFIG.sizeError]: 400
     };
-    
+
     const status = errorMap[error.message] || 500;
     const message = errorMap[error.message] ? error.message : CONFIG.ERRORS.INTERNAL;
-    
+
     return createResponse({ error: message }, status);
 };
 
@@ -130,26 +130,26 @@ export async function POST(req) {
     try {
         const formData = await req.formData();
         const file = formData.get('file');
-        const classId = formData.get('classId');
         const isSignupForm = formData.get('isSignupForm') === 'true';
+        const classId = formData.get('classId');
 
         if (!classId) {
             throw new Error(CONFIG.ERRORS.MISSING_CLASS_ID);
         }
 
-        // Check auth only for non-signup forms
         if (!isSignupForm) {
             const session = await authService.getSession();
             if (!session?.user) {
                 throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
             }
+
         }
 
         validateFile(file, classId, isSignupForm);
-        
+
         const userId = await authService.getUserId();
         const fileData = await fileService.processUpload(file, classId, userId, isSignupForm);
-        
+
         return createResponse(fileData);
     } catch (error) {
         return createErrorResponse(error);

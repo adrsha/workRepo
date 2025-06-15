@@ -19,12 +19,12 @@ export async function GET(request, { params }) {
     try {
         const contents = await executeQueryWithRetry({
             query: `
-        SELECT content.*
-        FROM content
-        JOIN class_content ON content.content_id = class_content.content_id
-        WHERE class_content.class_id = ?
-        ORDER BY content.created_at DESC
-          `,
+                SELECT content.*
+                FROM content
+                JOIN class_content ON content.content_id = class_content.content_id
+                WHERE class_content.class_id = ?
+                ORDER BY content.created_at DESC
+            `,
             values: [classId],
         });
 
@@ -51,10 +51,10 @@ export async function POST(request) {
 
         // Check if the user is the teacher of this class
         const teacherQuery = `
-      SELECT teacher_id 
-      FROM classes 
-      WHERE class_id = ?
-    `;
+            SELECT teacher_id 
+            FROM classes 
+            WHERE class_id = ?
+        `;
 
         const classData = await executeQueryWithRetry({
             query: teacherQuery,
@@ -69,10 +69,10 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Only the teacher can add content' }, { status: 403 });
         }
 
-        // Insert content
+        // Insert content and link to class in a single transaction
         const insertContentQuery = `
-          INSERT INTO content (content_type, content_data)
-          VALUES (?, ?)
+            INSERT INTO content (content_type, content_data)
+            VALUES (?, ?)
         `;
 
         const contentResult = await executeQueryWithRetry({
@@ -84,9 +84,9 @@ export async function POST(request) {
 
         // Link content to class
         const linkContentQuery = `
-      INSERT INTO class_content (class_id, content_id)
-      VALUES (?, ?)
-    `;
+            INSERT INTO class_content (class_id, content_id)
+            VALUES (?, ?)
+        `;
 
         await executeQueryWithRetry({
             query: linkContentQuery,
@@ -95,18 +95,19 @@ export async function POST(request) {
 
         // Get the newly created content
         const getContentQuery = `
-      SELECT * 
-      FROM content 
-      WHERE content_id = ?
-    `;
+            SELECT * 
+            FROM content 
+            WHERE content_id = ?
+        `;
 
         const newContent = await executeQueryWithRetry({
             query: getContentQuery,
             values: [newContentId]
         });
 
-        // Parse markdown for response if it's text content
         const responseContent = newContent[0];
+        
+        // Parse markdown for response if it's text content
         if (responseContent.content_type === 'text') {
             responseContent.content_data = marked.parse(responseContent.content_data);
         }
@@ -126,19 +127,20 @@ export async function DELETE(request, { params }) {
     }
 
     const { classId } = await params;
-    let contentId = classId
+    let contentId = classId; // Note: This seems like it should be contentId from params
+    
     if (!contentId) {
         return NextResponse.json({ error: 'Content ID is required' }, { status: 400 });
     }
 
     try {
-        // First, get the class ID for this content
+        // Get the class info to verify teacher permissions
         const getClassQuery = `
-      SELECT cc.class_id, c.teacher_id
-      FROM class_content cc
-      JOIN classes c ON cc.class_id = c.class_id
-      WHERE cc.content_id = ?
-    `;
+            SELECT cc.class_id, c.teacher_id
+            FROM class_content cc
+            JOIN classes c ON cc.class_id = c.class_id
+            WHERE cc.content_id = ?
+        `;
 
         const classData = await executeQueryWithRetry({
             query: getClassQuery,
@@ -154,29 +156,30 @@ export async function DELETE(request, { params }) {
             return NextResponse.json({ error: 'Only the teacher can delete content' }, { status: 403 });
         }
 
-        // Delete the class_content relation first
-        const deleteRelationQuery = `
-      DELETE FROM class_content
-      WHERE content_id = ?
-    `;
-
-        await executeQueryWithRetry({
-            query: deleteRelationQuery,
-            values: [contentId]
-        });
-
-        // Then delete the content itself
+        // Simply delete the content - cascading rules handle the rest
+        // The trigger will:
+        // 1. Log files for cleanup
+        // 2. Delete from class_content junction table
         const deleteContentQuery = `
-      DELETE FROM content
-      WHERE content_id = ?
-    `;
+            DELETE FROM content
+            WHERE content_id = ?
+        `;
 
-        await executeQueryWithRetry({
+        const result = await executeQueryWithRetry({
             query: deleteContentQuery,
             values: [contentId]
         });
 
-        return NextResponse.json({ success: true });
+        if (result.affectedRows === 0) {
+            return NextResponse.json({ error: 'Content not found or already deleted' }, { status: 404 });
+        }
+
+        return NextResponse.json({ 
+            success: true, 
+            message: 'Content deleted successfully',
+            affectedRows: result.affectedRows 
+        });
+        
     } catch (error) {
         console.error('Error deleting content:', error);
         return NextResponse.json({ error: 'Failed to delete content' }, { status: 500 });

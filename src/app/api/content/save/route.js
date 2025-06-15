@@ -9,12 +9,10 @@ const auth = {
         if (!session) throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
         return session.user;
     },
-
     async canUpload(userId, userLevel, classId) {
         return userLevel === CONFIG.USER_LEVELS.ADMIN || 
                (userLevel === CONFIG.USER_LEVELS.TEACHER && await this.ownsClass(userId, classId));
     },
-
     async ownsClass(userId, classId) {
         const result = await executeQueryWithRetry({
             query: 'SELECT class_id FROM classes WHERE class_id = ? AND teacher_id = ?',
@@ -26,16 +24,23 @@ const auth = {
 
 const db = {
     async saveContent(contentType, contentData, classId, isPublic) {
-        const contentId = await executeQueryWithRetry({
-            query: 'INSERT INTO content (content_type, content_data, is_public) VALUES (?, ?, ?)',
+        // Single INSERT with auto-linking via foreign key constraints
+        const result = await executeQueryWithRetry({
+            query: `
+                INSERT INTO content (content_type, content_data, is_public) 
+                VALUES (?, ?, ?)
+            `,
             values: [contentType, JSON.stringify(contentData), isPublic ? 1 : 0]
-        }).then(r => r.insertId);
-
+        });
+        
+        const contentId = result.insertId;
+        
+        // Link to class - this will be automatically cleaned up if class is deleted
         await executeQueryWithRetry({
             query: 'INSERT INTO class_content (class_id, content_id) VALUES (?, ?)',
             values: [classId, contentId]
         });
-
+        
         return contentId;
     }
 };
@@ -44,7 +49,6 @@ const content = {
     buildText(text, userId) {
         return { text, uploadedBy: userId, isFile: false };
     },
-
     buildFile(fileData) {
         return { ...fileData, isFile: true };
     }

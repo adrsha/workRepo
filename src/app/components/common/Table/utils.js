@@ -1,4 +1,5 @@
-export const SYSTEM_FIELDS = ['id', 'user_id', 'class_id', 'teacher_id', 'pending_id', 'created_at', 'updated_at'];
+// export const SYSTEM_FIELDS = [];
+export const SYSTEM_FIELDS = ['id', 'user_id', 'class_id', 'pending_id', 'created_at', 'updated_at'];
 
 export const isSystemField = (field) => SYSTEM_FIELDS.includes(field);
 

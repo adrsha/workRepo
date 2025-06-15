@@ -36,7 +36,6 @@ export const Table = ({
     const [selectedRows, setSelectedRows] = useState(new Set());
     const [userHiddenColumns, setUserHiddenColumns] = useState(new Set(hiddenColumns));
     
-    // Remove disallowed columns from data
     DISALLOWED_COLUMNS.forEach(col => {
         data.forEach((row) => {
             delete row[col]
@@ -46,12 +45,8 @@ export const Table = ({
     const allColumns = data?.length ? getCols(data) : [];
     const editableFields = getEditableFields(allColumns);
     const editableRequiredFields = requiredFields.filter(field => !isSystemField(field));
-    
-    // Filter columns for display (remove hidden ones)
-    const visibleColumns = allColumns.filter(col => !userHiddenColumns.has(col));
     const visibleEditableFields = editableFields.filter(field => !userHiddenColumns.has(field));
 
-    // Enhanced renderFormField with file upload support
     const enhancedRenderFormField = (field, value, onChange, options) => {
         let caption = '';
         if (field === 'video_path' || field === 'certificate_path') {
@@ -76,7 +71,6 @@ export const Table = ({
             </>
         );
     };
-
     const handleAdd = (formData) => {
         onAdd(formData);
         setShowAddForm(false);
@@ -124,11 +118,11 @@ export const Table = ({
         const columnsToHide = allColumns.filter(col => !essentialColumns.includes(col));
         setUserHiddenColumns(new Set(columnsToHide));
     };
-
-    if (!data?.length) {
-        return null;
-    }
-
+    
+    // if (!data?.length) {
+    //     return null;
+    // }
+    
     return (
         <div className="table-container scrollable">
             <TableActions

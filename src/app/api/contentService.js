@@ -13,8 +13,7 @@ const makeRequest = async (url, options) => {
     const response = await fetch(url, options);
     
     if (!response.ok) {
-        const data = await response.json();
-        const errorData = data.catch(() => ({}));
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `Request failed with status ${response.status}`);
     }
     
@@ -32,7 +31,7 @@ export const contentService = {
             isPublic: contentForm.is_public
         };
 
-        return makeRequest('/api/content/save', {
+        return makeRequest('/api/saveContent', {
             method: 'POST',
             headers: { 
                 Authorization: `Bearer ${accessToken}`,
@@ -46,7 +45,7 @@ export const contentService = {
         // Step 1: Upload file
         const formData = createFormData(classId, { file });
         
-        const fileData = await makeRequest('/api/upload/file', {
+        const fileData = await makeRequest('/api/upload', {
             method: 'POST',
             headers: { Authorization: `Bearer ${accessToken}` },
             body: formData,
