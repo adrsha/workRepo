@@ -35,7 +35,7 @@ const pathService = {
         if (isSignupForm && isCertificate) {
             return join(CONFIG.SERVER_UPLOADS_DIR, 'signup-certificates', 'teacher-certificates');
         }
-        return join(CONFIG.SERVER_UPLOADS_DIR, classId);
+        return join(CONFIG.SERVER_UPLOADS_DIR, 'classes', classId);
     },
 
     buildPublicPath(classId, fileName, isSignupForm) {

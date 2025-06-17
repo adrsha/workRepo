@@ -226,6 +226,22 @@
     border-radius: var(--border-radius-md, 8px);
 }
 
+.secret-key-highlight {
+    background-color: var(--tertiary);
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    color: var(--offWhite);
+}
+
+.truncated-text {
+    padding: 1rem 1rem;
+    border: 1px solid var(--tertiary);
+    background: var(--tertiaryLighter);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
 /* Modal Styles - Fixed z-index and animation issues */
 .modal-overlay {
     position: fixed;

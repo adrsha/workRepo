@@ -572,6 +572,144 @@
   margin: 8px 0;
 }
 
+/* File Upload Component Styles */
+.fileUploadContainer {
+  margin: 1rem 0;
+}
+
+.dropzone {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  background-color: #f9fafb;
+  cursor: pointer;
+}
+
+.dropzone.active {
+  border-color: #4a90e2;
+  background-color: #eff6ff;
+}
+
+.dropzone.hasFile {
+  border-color: #10b981;
+  background-color: #ecfdf5;
+  border-style: solid;
+}
+
+.fileInput {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.fileInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fileName {
+  font-weight: 500;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.fileSize {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.uploadLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.uploadLabel span {
+  margin-top: 0.5rem;
+}
+
+.uploadActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.uploadButton {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.uploadButton:hover:not(:disabled) {
+  background-color: #357abd;
+}
+
+.uploadButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  background-color: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.cancelButton:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.successMessage {
+  background-color: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
 @keyframes slideIn {
   from {

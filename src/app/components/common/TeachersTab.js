@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Section } from './Table/Section.js';
 import { EditableField } from '../EditableField';
 import { EditableDate } from '../EditableDate.js';
@@ -7,10 +8,62 @@ import { formatColName } from '../../lib/utils';
 
 import FullScreenableImage from '../FullScreenableImage.js';
 
+// Modal component for displaying full text
+const TextModal = ({ isOpen, onClose, title, content }) => {
+    if (!isOpen) return null;
+    
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h3>{title}</h3>
+                    <button className="close-btn" onClick={onClose}>
+                        ×
+                    </button>
+                </div>
+                <div className="modal-body" style={{ textWrap: 'auto' }}>
+                    <p>{content}</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Component for truncated text with modal popup
+const TruncatedText = ({ text, maxLength = 50, title }) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    if (!text || text.length <= maxLength) {
+        return <span>{text || 'Not provided'}</span>;
+    }
+    
+    const truncated = text.substring(0, maxLength) + '...';
+    
+    return (
+        <>
+            <span 
+                className="truncated-text clickable" 
+                onClick={() => setIsModalOpen(true)}
+                title="Click to view full content"
+            >
+                {truncated}
+            </span>
+            <TextModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title={title}
+                content={text}
+            />
+        </>
+    );
+};
+
 const PendingTeachersTable = ({ 
     pendingTeachers, 
     actionInProgress, 
-    onTeacherAction 
+    onTeacherAction,
+    onSaveData,
+    schemas = {}
 }) => {
     const actions = [
         { text: 'Approve', action: (teacher) => onTeacherAction(teacher.pending_id, true), key: 'approve' },
@@ -18,6 +71,69 @@ const PendingTeachersTable = ({
     ];
 
     const renderActionButtons = createActionButtons(actions, actionInProgress);
+
+    // Create field renderer for pending teachers with restricted editing
+    const renderPendingCell = (teacher, col) => {
+        const saveHandler = (value) => {
+            onSaveData('pending_teachers', teacher.pending_id, col, value);
+        };
+
+        // Only allow editing of user_name, user_email, and contact
+        const editableFields = ['user_name', 'user_email', 'contact'];
+        
+        if (editableFields.includes(col)) {
+            return (
+                <EditableField
+                    initialValue={teacher[col] || ''}
+                    onSave={saveHandler}
+                    label={formatColName(col)}
+                    placeholder={`Enter ${formatColName(col).toLowerCase()}`}
+                />
+            );
+        }
+
+        // Special handling for qualification and experience - show truncated with modal
+        if (col === 'qualification') {
+            return (
+                <TruncatedText 
+                    text={teacher.qualification} 
+                    title="Qualification Details"
+                />
+            );
+        }
+
+        if (col === 'experience') {
+            return (
+                <TruncatedText 
+                    text={teacher.experience} 
+                    title="Experience Details"
+                />
+            );
+        }
+
+        // Certificate image
+        if (col === 'certificate_path') {
+            return (
+                <FullScreenableImage 
+                    src={teacher.certificate_path} 
+                    alt="certificate" 
+                    className="certificate-img" 
+                />
+            );
+        }
+
+        // Special handling for secret_key - highlight it
+        if (col === 'secret_key') {
+            return (
+                <span className="secret-key-highlight">
+                    {teacher.secret_key || 'Not generated'}
+                </span>
+            );
+        }
+
+        // For other fields, just display the value
+        return <span>{teacher[col] || 'Not provided'}</span>;
+    };
 
     const additionalColumns = [{
         key: 'actions',
@@ -30,6 +146,8 @@ const PendingTeachersTable = ({
             data={pendingTeachers}
             className="teachers-table"
             keyField="pending_id"
+            renderCell={renderPendingCell}
+            hiddenColumns={["expires_at"]}
             additionalColumns={additionalColumns}
             emptyMessage="No pending teacher applications"
         />
@@ -176,6 +294,8 @@ export const TeachersTab = ({
                 pendingTeachers={state.pendingTeachersData}
                 actionInProgress={actionInProgress}
                 onTeacherAction={handleTeacherAction}
+                onSaveData={handleSaveData}
+                schemas={schemas}
             />
         </Section>
 

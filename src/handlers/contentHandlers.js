@@ -2,10 +2,10 @@ import { contentService } from '../app/api/contentService';
 import { validateTextContent } from '../utils/contentUtils';
 
 export const createContentHandlers = (
-    classId, 
-    session, 
-    contents, 
-    setContents, 
+    classId,
+    session,
+    contents,
+    setContents,
     { showSuccess, showError },
     { resetForm },
     refetch // Add refetch from useClassContent
@@ -82,7 +82,7 @@ export const createContentHandlers = (
     const handleDeleteContent = async (contentId) => {
         try {
             await contentService.deleteContent(contentId, session?.accessToken);
-            
+
             // Optimistic update for delete (safer since we're removing)
             setContents(contents.filter(content => content.content_id !== contentId));
             showSuccess('Content deleted successfully');

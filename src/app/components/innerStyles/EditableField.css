@@ -1,5 +1,6 @@
 .editable-field {
-    margin-bottom: 1rem;
+    margin: 0;
+    padding: 0;
     font-family: var(--font-sans);
     
     overflow: hidden;
@@ -14,6 +15,16 @@
     white-space: nowrap;
     color: var(--foreground);
     margin-bottom: 0.25rem;
+}
+
+.editable-field__edit-container {
+    max-width: 20vw;
+    min-width: 19vw;
+}
+.editable-field__button-container {
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
 }
 
 .editable-field__input {
@@ -32,7 +43,8 @@
 td>.editable-field .editable-field__display,
 td>.editable-field .editable-field__input {
     white-space: nowrap;
-    min-width: fit-content;
+    padding: var(--inputThickness);
+    margin-bottom: 0.2rem;
 }
 
 
@@ -54,6 +66,7 @@ td>.editable-field .editable-field__input {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
 }
 
 .editable-field__display:hover {

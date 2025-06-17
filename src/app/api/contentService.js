@@ -43,20 +43,36 @@ export const contentService = {
 
     async uploadFile(classId, file, is_public, accessToken) {
         // Step 1: Upload file
-        const formData = createFormData(classId, { file });
-        
-        const fileData = await makeRequest('/api/upload', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}` },
-            body: formData,
-        });
-
-        // Step 2: Save file metadata to database
+        // const formData = createFormData(classId, { file });
+        // 
+        // const fileData = await makeRequest('/api/upload', {
+        //     method: 'POST',
+        //     headers: { Authorization: `Bearer ${accessToken}` },
+        //     body: formData,
+        // });
+        //
+        // // Step 2: Save file metadata to database
+        // const payload = {
+        //     contentType: 'file',
+        //     contentData: fileData,
+        //     classId,
+        //     isPublic: is_public
+        // };
+        //
+        // return makeRequest('/api/content/save', {
+        //     method: 'POST',
+        //     headers: { 
+        //         Authorization: `Bearer ${accessToken}`,
+        //         'Content-Type': 'application/json'
+        //     },
+        //     body: JSON.stringify(payload),
+        // });
+        // uploadedFileData comes from FileUpload component's upload result
         const payload = {
             contentType: 'file',
-            contentData: fileData,
+            contentData: file, // Already contains filePath, originalName, etc.
             classId,
-            isPublic: is_public
+            is_public
         };
 
         return makeRequest('/api/content/save', {
@@ -68,6 +84,7 @@ export const contentService = {
             body: JSON.stringify(payload),
         });
     },
+    
 
     async deleteContent(contentId, accessToken) {
         return makeRequest(`/api/classContent/${contentId}`, {
