@@ -38,6 +38,13 @@ export default function GradesPage() {
     const [isJoining, setIsJoining] = useState(false);
     // New state for pending class requests
     const [classesPendingApproval, setClassesPendingApproval] = useState([]);
+    // New state for teacher's owned classes
+    const [teacherOwnedClasses, setTeacherOwnedClasses] = useState([]);
+
+    // Get user level (0: student, 1: teacher, 2: admin)
+    const getUserLevel = () => {
+        return session?.user?.level ?? null;
+    };
 
     // Set the first grade as active when grades data loads
     useEffect(() => {
@@ -53,7 +60,10 @@ export default function GradesPage() {
         // Only fetch grades if not already loaded
         if (!gradesData.length) {
             fetchData('grades', authToken)
-                .then(data => setGradesData(data))
+                .then(data => {
+                    console.log("GRADE", data)
+                    return setGradesData(data)
+                })
                 .catch(error => console.error('Error fetching grades:', error));
         }
 
@@ -77,12 +87,32 @@ export default function GradesPage() {
             { 'grades.grade_id': activeGradeId },
             isAuthenticated ? authToken : null
         )
-            .then(data => setClassesData(data))
+            .then(data => {
+                console.log("JOINED", data)
+                return setClassesData(data)
+            })
             .catch(error => console.error('Error fetching classes:', error));
 
         if (isAuthenticated) {
-            checkUserJoinedClasses();
-            checkUserPendingClasses();
+            const userLevel = getUserLevel();
+            
+            // For students (level 0), check joined and pending classes
+            if (userLevel === 0) {
+                checkUserJoinedClasses();
+                checkUserPendingClasses();
+            }
+            
+            // For teachers (level 1), check owned classes
+            if (userLevel === 1) {
+                checkTeacherOwnedClasses();
+            }
+            
+            // For admins (level 2), check all data
+            if (userLevel === 2) {
+                checkUserJoinedClasses();
+                checkUserPendingClasses();
+                checkTeacherOwnedClasses();
+            }
         }
     }, [activeGradeId, status, session]);
 
@@ -134,7 +164,7 @@ export default function GradesPage() {
         return grouped;
     };
 
-    // Check which classes the user has joined
+    // Check which classes the user has joined (for students and admins)
     const checkUserJoinedClasses = async () => {
         if (!session || status !== 'authenticated') {
             return;
@@ -148,13 +178,14 @@ export default function GradesPage() {
                 { 'classes_users.user_id': userId },
                 authToken
             );
+            console.log("FINAL", data)
             setClassesUserJoined(data.map(item => item.class_id));
         } catch (error) {
             console.error('Error checking joined classes:', error);
         }
     };
 
-    // Check which classes the user has pending approval
+    // Check which classes the user has pending approval (for students and admins)
     const checkUserPendingClasses = async () => {
         if (!session || status !== 'authenticated') {
             return;
@@ -171,6 +202,26 @@ export default function GradesPage() {
             setClassesPendingApproval(userPendingClasses.map(item => item.class_id));
         } catch (error) {
             console.error('Error checking pending classes:', error);
+        }
+    };
+
+    // Check which classes the teacher owns (for teachers and admins)
+    const checkTeacherOwnedClasses = async () => {
+        if (!session || status !== 'authenticated') {
+            return;
+        }
+
+        try {
+            const authToken = localStorage.getItem('authToken');
+            const userId = session.user.id;
+            const data = await fetchDataWhereAttrIs(
+                'classes',
+                { 'classes.teacher_id': userId },
+                authToken
+            );
+            setTeacherOwnedClasses(data.map(item => item.class_id));
+        } catch (error) {
+            console.error('Error checking owned classes:', error);
         }
     };
 
@@ -232,8 +283,15 @@ export default function GradesPage() {
         setSelectedCourse(null);
     };
 
-    // Add a class to the cart
+    // Add a class to the cart (only for students)
     const addToCart = (classId) => {
+        const userLevel = getUserLevel();
+        
+        // Only students can add to cart
+        if (userLevel !== 0) {
+            return;
+        }
+
         if (status !== 'authenticated') {
             router.push('/registration/login');
             return;
@@ -253,176 +311,234 @@ export default function GradesPage() {
         setCart(cart.filter(id => id !== classId));
     };
 
-    // Check class status: joined, pending, or available
+    // Check class status: joined, pending, owned, or available
     const getClassStatus = (classId) => {
-        if (classesUserJoined.includes(classId)) {
+        const userLevel = getUserLevel();
+        
+        // For teachers and admins, check if they own the class
+        if ((userLevel === 1 || userLevel === 2) && teacherOwnedClasses.includes(classId)) {
+            return 'owned';
+        }
+        
+        // For students and admins, check joined/pending status
+        if ((userLevel === 0 || userLevel === 2) && classesUserJoined.includes(classId)) {
             return 'joined';
         }
-        if (classesPendingApproval.includes(classId)) {
+        
+        if ((userLevel === 0 || userLevel === 2) && classesPendingApproval.includes(classId)) {
             return 'pending';
         }
+        
         return 'available';
     };
 
-    // Return the UI with new overlays and cart functionality
-    return (
-        status === 'unauthenticated' ? (
-            <div className={styles.container}>
-                {/* Side Panel with Grade Selection */}
-                <div className={styles.sidePanel}>
-                    <h1 className={styles.header}>Select Classes</h1>
-                    <div className={`${styles.gradeCards} scrollable`}>
-                        {gradesData.length > 0 ? (
-                            gradesData.map(grade => (
-                                <div
-                                    key={grade.grade_id}
-                                    className={`${styles.gradeCard} ${activeGradeId === grade.grade_id ? styles.activegrade : ''} fade-in`}
-                                    onClick={() => setActiveGradeId(grade.grade_id)}
-                                >
-                                    <h2>{grade.grade_name[0].toUpperCase() + grade.grade_name.slice(1)}</h2>
-                                </div>
-                            ))
-                        ) : (
-                            <Loading />
-                        )}
-                    </div>
-                </div>
+    // Render different buttons based on user level and class status
+    const renderClassActionButton = (classItem) => {
+        const userLevel = getUserLevel();
+        const classStatus = getClassStatus(classItem.class_id);
+        const inCart = cart.includes(classItem.class_id);
 
-                {/* Main Section with Classes */}
-                <main className={`${styles.mainSection} scrollable`}>
-                    {groupedClassesData ? (
-                        groupedClassesData.length > 0 ? (
-                            groupedClassesData.map(course => (
-                                <div className={`${styles.classCards} fade-in`} key={course.course_id}>
-                                    <h3>{course.course_name}</h3>
-                                    <span>{course.course_description}</span>
-                                    <button onClick={() => openClassroomOverlay(course)}>View Classrooms</button>
-                                </div>
-                            ))
-                        ) : (
-                            <div>
-                                <p>No classes available for this grade. Please select another grade.</p>
+        if (status !== 'authenticated') {
+            return (
+                <button
+                    className={styles.cartButton}
+                    onClick={() => router.push('/registration/login')}
+                >
+                    Login to Join
+                </button>
+            );
+        }
+
+        switch (classStatus) {
+            case 'owned':
+                return (
+                    <span className={`${styles.joinStatus} ${styles.owned}`}>
+                        You Own This Class
+                    </span>
+                );
+            case 'joined':
+                return (
+                    <span className={`${styles.joinStatus} ${styles.joined}`}>
+                        Joined
+                    </span>
+                );
+            case 'pending':
+                return (
+                    <span className={`${styles.joinStatus} ${styles.pending}`}>
+                        Pending Approval
+                    </span>
+                );
+            default:
+                // Only students can add to cart
+                if (userLevel === 0) {
+                    return inCart ? (
+                        <button
+                            className={`${styles.cartButton} ${styles.removeCart}`}
+                            onClick={() => removeFromCart(classItem.class_id)}
+                        >
+                            Remove from Cart
+                        </button>
+                    ) : (
+                        <button
+                            className={styles.cartButton}
+                            onClick={() => addToCart(classItem.class_id)}
+                        >
+                            Add to Cart
+                        </button>
+                    );
+                } else {
+                    // Teachers and admins just view the class
+                    return (
+                        <span className={styles.availableClass}>
+                            Available Class
+                        </span>
+                    );
+                }
+        }
+    };
+
+    // Show loading while checking authentication status
+    if (status === 'loading') {
+        return <Loading />;
+    }
+
+    // Main render - now shows for all authentication states
+    return (
+        <div className={styles.container}>
+            {/* Side Panel with Grade Selection */}
+            <div className={styles.sidePanel}>
+                <h1 className={styles.header}>
+                    {status === 'authenticated' 
+                        ? `Select Classes ${getUserLevel() === 0 ? '(Student)' : getUserLevel() === 1 ? '(Teacher)' : '(Admin)'}`
+                        : 'Select Classes'
+                    }
+                </h1>
+                <div className={`${styles.gradeCards} scrollable`}>
+                    {gradesData.length > 0 ? (
+                        gradesData.map(grade => (
+                            <div
+                                key={grade.grade_id}
+                                className={`${styles.gradeCard} ${activeGradeId === grade.grade_id ? styles.activegrade : ''} fade-in`}
+                                onClick={() => setActiveGradeId(grade.grade_id)}
+                            >
+                                <h2>{grade.grade_name[0].toUpperCase() + grade.grade_name.slice(1)}</h2>
                             </div>
-                        )
+                        ))
                     ) : (
                         <Loading />
                     )}
-                </main>
+                </div>
+            </div>
 
-                {/* Full-screen Classroom Overlay */}
-                {showClassroomOverlay && selectedCourse && (
-                    <div className={styles.fullScreenOverlay}>
-                        <div className={styles.overlayContent}>
-                            <div className={styles.overlayHeader}>
-                                <h2>{selectedCourse.course_name} Classrooms</h2>
-                                <button className={styles.closeButton} onClick={closeClassroomOverlay}>×</button>
+            {/* Main Section with Classes */}
+            <main className={`${styles.mainSection} scrollable`}>
+                {groupedClassesData ? (
+                    groupedClassesData.length > 0 ? (
+                        groupedClassesData.map(course => (
+                            <div className={`${styles.classCards} fade-in`} key={course.course_id}>
+                                <h3>{course.course_name}</h3>
+                                <span>{course.course_description}</span>
+                                <button onClick={() => openClassroomOverlay(course)}>View Classrooms</button>
                             </div>
-                            <div className={styles.overlayBody}>
-                                <ul className={`${styles.classroomList} scrollable`}>
-                                    {selectedCourse.classes.map(classItem => {
-                                        const classStatus = getClassStatus(classItem.class_id);
-                                        const inCart = cart.includes(classItem.class_id);
+                        ))
+                    ) : (
+                        <div>
+                            <p>No classes available for this grade. Please select another grade.</p>
+                        </div>
+                    )
+                ) : (
+                    <Loading />
+                )}
+            </main>
 
-                                        return (
-                                            <li key={classItem.class_id} className={styles.classroomItem}>
-                                                <div className={styles.classroomInfo}>
-                                                    <div className={styles.classroomDetails}>
-                                                        <span className={styles.teacher}>
-                                                            {getTeacher(classItem.teacher_id)?.user_name || 'Teacher'}
-                                                            <button onClick={() => router.push(`/profile/${classItem.teacher_id}`)}>View Profile</button>
-                                                        </span>
-                                                        <span className={styles.time}>
+            {/* Full-screen Classroom Overlay */}
+            {showClassroomOverlay && selectedCourse && (
+                <div className={styles.fullScreenOverlay}>
+                    <div className={styles.overlayContent}>
+                        <div className={styles.overlayHeader}>
+                            <h2>{selectedCourse.course_name} Classrooms</h2>
+                            <button className={styles.closeButton} onClick={closeClassroomOverlay}>×</button>
+                        </div>
+                        <div className={styles.overlayBody}>
+                            <ul className={`${styles.classroomList} scrollable`}>
+                                {selectedCourse.classes.map(classItem => {
+                                    return (
+                                        <li key={classItem.class_id} className={styles.classroomItem}>
+                                            <div className={styles.classroomInfo}>
+                                                <div className={styles.classroomDetails}>
+                                                    <span className={styles.teacher}>
+                                                        {getTeacher(classItem.teacher_id)?.user_name || 'Teacher'}
+                                                        <button onClick={() => router.push(`/profile/${classItem.teacher_id}`)}>View Profile</button>
+                                                    </span>
+                                                    <span className={styles.time}>
+                                                        <div>
                                                             <div>
-                                                                <div>
-                                                                    <time>
-                                                                        {getDate(classItem.start_time).yyyymmdd}
-                                                                    </time>
-                                                                    to
-                                                                    <time>
-                                                                        {getDate(classItem.end_time).yyyymmdd}
-                                                                    </time>
-                                                                </div>
-                                                                <div>
-                                                                    <time>
-                                                                        {getDate(classItem.start_time).hhmmss}
-                                                                    </time>
-                                                                    -
-                                                                    <time>
-                                                                        {getDate(classItem.end_time).hhmmss}
-                                                                    </time>
-                                                                </div>
-                                                            </div>
-                                                            <span>
-                                                                every
                                                                 <time>
-                                                                    {classItem.repeat_every_n_day}
+                                                                    {getDate(classItem.start_time).yyyymmdd}
                                                                 </time>
-                                                                days
-                                                            </span>
+                                                                to
+                                                                <time>
+                                                                    {getDate(classItem.end_time).yyyymmdd}
+                                                                </time>
+                                                            </div>
+                                                            <div>
+                                                                <time>
+                                                                    {getDate(classItem.start_time).hhmmss}
+                                                                </time>
+                                                                -
+                                                                <time>
+                                                                    {getDate(classItem.end_time).hhmmss}
+                                                                </time>
+                                                            </div>
+                                                        </div>
+                                                        <span>
+                                                            every
+                                                            <time>
+                                                                {classItem.repeat_every_n_day}
+                                                            </time>
+                                                            days
                                                         </span>
-                                                        <span className={styles.cost}>
-                                                            {classItem.cost}
-                                                        </span>
-                                                    </div>
-                                                    {classStatus === 'joined' ? (
-                                                        <span className={`${styles.joinStatus} ${styles.joined}`}>
-                                                            Joined
-                                                        </span>
-                                                    ) : classStatus === 'pending' ? (
-                                                        <span className={`${styles.joinStatus} ${styles.pending}`}>
-                                                            Pending Approval
-                                                        </span>
-                                                    ) : inCart ? (
-                                                        <button
-                                                            className={`${styles.cartButton} ${styles.removeCart}`}
-                                                            onClick={() => removeFromCart(classItem.class_id)}
-                                                        >
-                                                            Remove from Cart
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            className={styles.cartButton}
-                                                            onClick={() => addToCart(classItem.class_id)}
-                                                        >
-                                                            Add to Cart
-                                                        </button>
-                                                    )}
+                                                    </span>
+                                                    <span className={styles.cost}>
+                                                        {classItem.cost}
+                                                    </span>
                                                 </div>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </div>
+                                                {renderClassActionButton(classItem)}
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* Cart Checkout Overlay */}
-                {cart.length > 0 && (
-                    <div className={styles.cartFloatingButton} onClick={() => handlePaymentFlow()}>
-                        <span>{cart.length}</span>
-                        <span>{isJoining ? 'Processing...' : 'Checkout'}</span>
-                    </div>
-                )}
+            {/* Cart Checkout Overlay - Only for students */}
+            {cart.length > 0 && getUserLevel() === 0 && (
+                <div className={styles.cartFloatingButton} onClick={() => handlePaymentFlow()}>
+                    <span>{cart.length}</span>
+                    <span>{isJoining ? 'Processing...' : 'Checkout'}</span>
+                </div>
+            )}
 
-                {/* Payment Component */}
-                {showPayer && (
-                    <Payer
-                        cart={cart}
-                        classesData={classesData}
-                        teachersData={teachersData}
-                        onClose={() => {
-                            setShowPayer(false);
-                        }}
-                        onSuccess={() => {
-                            joinClassesBatch();
-                            // We don't set showPayer to false here since joinClassesBatch
-                            // will handle the process and set isJoining accordingly
-                        }}
-                        isJoining={isJoining}
-                    />
-                )}
-            </div>
-        ) : null
+            {/* Payment Component - Only for students */}
+            {showPayer && getUserLevel() === 0 && (
+                <Payer
+                    cart={cart}
+                    classesData={classesData}
+                    teachersData={teachersData}
+                    onClose={() => {
+                        setShowPayer(false);
+                    }}
+                    onSuccess={() => {
+                        joinClassesBatch();
+                        // We don't set showPayer to false here since joinClassesBatch
+                        // will handle the process and set isJoining accordingly
+                    }}
+                    isJoining={isJoining}
+                />
+            )}
+        </div>
     );
 }

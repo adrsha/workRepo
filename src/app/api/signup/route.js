@@ -164,7 +164,7 @@ export async function POST(request) {
     try {
         const body = await request.json();
         const { username, email, password, userLevel, terms, contact, address, experience, qualification, certificatePath, ...extraData } = body;
-        console.log(certificatePath);
+        console.log("Certificate Path:", certificatePath);
         
         // Validation chain
         const missingFields = validateRequiredFields(body, userLevel);
