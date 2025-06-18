@@ -213,7 +213,7 @@
 }
 
 .errorCard h2 {
-    color: var(--primary);
+    color: var(--lightRed);
     margin-top: 0;
 }
 
@@ -322,7 +322,7 @@
 }
 
 .successToast {
-    background-color: var(--tertiary);
+    background-color: var(--background);
 }
 
 .buttonGroup {
