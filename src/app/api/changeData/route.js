@@ -643,4 +643,4 @@ async function logAdminAction(adminId, actionType, table, recordId, details) {
 // Export handlers
 export async function PUT(req) { return handleRequest(req, 'UPDATE'); }
 export async function POST(req) { return handleRequest(req, 'CREATE'); }
-export async function DELETE(req) { return handleRequest(req, 'DELETE'); ;
+export async function DELETE(req) { return handleRequest(req, 'DELETE') };

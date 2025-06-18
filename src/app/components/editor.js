@@ -22,7 +22,7 @@ export const FileUploadSection = ({ classId, onFileSave, isPublic }) => {
 
     const handleSave = async () => {
         console.log('handleSave called, uploadedFile:', uploadedFile);
-        
+
         if (!uploadedFile) {
             console.log('No uploaded file found');
             return;
@@ -254,13 +254,13 @@ const EnhancedTextEditor = ({ content, onChange, onSave }) => {
                         onChange={(e) => onChange(e.target.value)}
                         placeholder="Enter markdown content here...
 
-# Header 1
-## Header 2
-**Bold text** *Italic text*
-`code` 
-- List item
-> Blockquote
-[Link](url)"
+                        # Header 1
+                        ## Header 2
+                        **Bold text** *Italic text*
+                        `code` 
+                        - List item
+                        > Blockquote
+                        [Link](url)"
                         rows={splitView ? 15 : 12}
                     />
                 )}
@@ -337,92 +337,34 @@ export const ContentEditor = ({
     onFileSave,
     onCancel
 }) => (
-    <div className={styles.contentEditor}>
-        <EditorHeader onCancel={onCancel} />
+        <div className={styles.contentEditor}>
+            <EditorHeader onCancel={onCancel} />
 
-        <ContentTypeSelector
-            selectedType={contentForm.content_type}
-            onSelectType={(type) => onUpdateForm('content_type', type)}
-        />
-
-        <VisibilityToggle
-            is_public={contentForm.is_public}
-            onToggle={(is_public) => onUpdateForm('is_public', is_public)}
-        />
-
-        {contentForm.content_type === 'text' ? (
-            <EnhancedTextEditor
-                content={contentForm.content_data}
-                onChange={(data) => onUpdateForm('content_data', data)}
-                onSave={onSaveText}
+            <ContentTypeSelector
+                selectedType={contentForm.content_type}
+                onSelectType={(type) => onUpdateForm('content_type', type)}
             />
-        ) : (
-            <FileUploadSection
-                classId={classId}
-                onFileSave={onFileSave}
-                isPublic={contentForm.is_public}
+
+            <VisibilityToggle
+                is_public={contentForm.is_public}
+                onToggle={(is_public) => onUpdateForm('is_public', is_public)}
             />
-        )}
-    </div>
-);
 
-// Updated contentHandlers.js
-export const createContentHandlers = (
-    classId,
-    session,
-    contents,
-    setContents,
-    { showSuccess, showError },
-    { resetForm },
-    refetch
-) => {
-    const handleAddTextContent = async (contentForm) => {
-        if (!contentForm.content_data?.trim()) {
-            showError('Content cannot be empty');
-            return;
-        }
-
-        try {
-            await contentService.addTextContent(classId, contentForm, session?.accessToken);
-            await refetch();
-            resetForm();
-            showSuccess('Content added successfully');
-        } catch (err) {
-            console.error('Error adding content:', err);
-            showError(err.message || 'Network error. Please try again.');
-        }
-    };
-
-    const handleFileSave = async (fileData, isPublic) => {
-        try {
-            await contentService.saveFileContent(classId, fileData, isPublic, session?.accessToken);
-            await refetch();
-            resetForm();
-            showSuccess('File saved successfully');
-        } catch (err) {
-            console.error('Error saving file:', err);
-            showError(err.message || 'Network error. Please try again.');
-        }
-    };
-
-    const handleDeleteContent = async (contentId) => {
-        try {
-            await contentService.deleteContent(contentId, session?.accessToken);
-            setContents(contents.filter(content => content.content_id !== contentId));
-            showSuccess('Content deleted successfully');
-        } catch (err) {
-            console.error('Error deleting content:', err);
-            showError(err.message || 'Network error. Please try again.');
-            await refetch();
-        }
-    };
-
-    return {
-        handleAddTextContent,
-        handleFileSave,
-        handleDeleteContent
-    };
-};
+            {contentForm.content_type === 'text' ? (
+                <EnhancedTextEditor
+                    content={contentForm.content_data}
+                    onChange={(data) => onUpdateForm('content_data', data)}
+                    onSave={onSaveText}
+                />
+            ) : (
+                    <FileUploadSection
+                        classId={classId}
+                        onFileSave={onFileSave}
+                        isPublic={contentForm.is_public}
+                    />
+                )}
+        </div>
+    );
 
 export const contentService = {
     async addTextContent(classId, contentForm, accessToken) {
