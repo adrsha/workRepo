@@ -1,36 +1,40 @@
 :root {
   --navheight: 6rem;
   --inputThickness: 1rem;
-  --card-shadow: 0 5px 15px rgba(0, 0, 10, 0.05); /* slight blue tint */
-  --hover-shadow: 0 8px 25px rgba(0, 0, 20, 0.1); /* more noticeable blue */
-  --transition-fast: 0.2s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
+  --card-shadow: 0 5px 25px rgba(0, 0, 10, 0.1); /* deeper shadow for more contrast */
+  --hover-shadow: 0 8px 35px rgba(0, 0, 20, 0.15); /* increased shadow for hover */
+  --transition-fast: 0.2s ease-in-out;
+  --transition-normal: 0.3s ease-in-out;
+  --transition-slow: 0.4s ease-in-out;
   --border-radius-sm: 0.5rem;
   --border-radius-md: 0.75rem;
-  --border-radius-lg: 1rem;
+  --border-radius-lg: 1.25rem; /* slightly larger for modern touch */
 
-  /* Neutrals - match logo's cool grey/silver tones */
-  --darkBlack: #10141a;
-  --background: #e6edf3; /* soft cool light blue-grey */
-  --secondaryBackground: #c7d2dd;
-  --foreground: #3a4754; /* medium cool grey-blue */
-  --darkforeground: #1f2a36;
+  /* Neutrals - cool-toned palette for a sleek, modern feel */
+  --darkBlack: #12171f;
+  --background: #f1f5f9; /* very light grey-blue */
+  --secondaryBackground: #d1dbe4; /* soft cool grey */
+  --foreground: #3d4752; /* dark, muted blue-grey */
+  --darkforeground: #1f2a36; /* rich, dark blue-grey */
 
-  /* Primary Accent Colors - pulled from logo */
-  --primary: #ff697c; /* pink/red */
-  --secondary: #ff8670; /* coral/orange */
-  --tertiary: #3db0b7; /* teal-blue */
-  --quaternary: #00b87d; /* emerald-green */
+  /* Accent Colors - vibrant tones to pop on the page */
+  --primary: #ff697c; /* soft, warm red */
+  --secondary: #ff8670; /* warm coral */
+  --tertiary: #3db0b7; /* calm teal */
+  --quaternary: #00b87d; /* fresh green */
 
-  /* Lighter Accents */
+  /* Lighter Accents for subtle highlights */
   --primaryLight: #ff9ca7;
   --secondaryLight: #ffc0ad;
   --tertiaryLight: #a0e0e5;
-  --quaternaryLight: #6fe3bb;
+  --quaternaryLight: #99ebce;
 
+  --primaryLighter: #ffd1d6;
+  --secondaryLighter: #ffe8e0;
+  --tertiaryLighter: #c7edf0;
+  --quaternaryLighter: #c3f3e2;
   /* Functional Colors */
-  --backgroundGreen: rgba(0, 184, 125, 0.1); /* from quaternary */
+  --backgroundGreen: rgba(0, 184, 125, 0.1);
   --lightGreen: #00b87d;
   --lightRed: #ff5a73;
   --lightBlue: #3db0b7;
@@ -39,10 +43,10 @@
   --darkRed: #a53844;
 
   /* Whites and Blacks */
-  --white: #f8fafc;
-  --offWhite: #d4dce5;
-  --gray: #a4acbf;
-  --black: #1a1f27;
+  --white: #ffffff;
+  --offWhite: #dbe6f0;
+  --gray: #9ca5b0;
+  --black: #10171f;
 
   --font-sans: "Funnel Sans", sans-serif;
   --font-serif: "Bungee", serif;

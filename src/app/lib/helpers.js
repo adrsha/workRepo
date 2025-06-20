@@ -1,4 +1,4 @@
-const publicDataTables = ['grades', 'classes', 'courses', 'classes_users'];
+const publicDataTables = ['grades', 'classes', 'courses', 'classes_users', 'notices'];
 
 export async function fetchData(tableName, authToken = null) {
   try {
@@ -6,7 +6,15 @@ export async function fetchData(tableName, authToken = null) {
       throw new Error('Invalid table name');
     }
 
-    const response = await fetch(`/api/general?table=${tableName}`, {
+    // Create a proper absolute URL that works in both browser and server environments
+    const baseUrl = typeof window !== 'undefined'
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+    const url = new URL(`/api/general`, baseUrl);
+    url.searchParams.append('table', tableName);
+
+    const response = await fetch(url.toString(), {
       headers: {
         ...(publicDataTables.includes(tableName)
           ? {}
@@ -19,6 +27,7 @@ export async function fetchData(tableName, authToken = null) {
     if (!response.ok) {
       throw new Error('Failed to fetch data');
     }
+
     return await response.json();
   } catch (error) {
     console.error('Error in fetchData:', error);
@@ -43,7 +52,6 @@ export async function fetchViewData(viewName, token) {
       method: 'GET',
       headers: headers
     });
-    console.log(response);
     if (!response.ok) {
       throw new Error('Failed to fetch View data');
     }

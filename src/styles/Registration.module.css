@@ -1,60 +1,197 @@
 .registrationContainer {
-  margin: auto;
-  width: fit-content;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--background);
-  color: var(--foreground);
-  padding: 2rem;
-  border-radius: 8px;
-  max-width: 500px;
-  box-shadow: 0 0 10rem 0 rgba(0, 0, 0, 0.1);
+    margin: 2rem auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    background-color: var(--background);
+    color: var(--foreground);
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    max-width: 1200px;
 }
 
-.loginForm {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+/* Process Guide Styles */
+.processGuide {
+    flex: 1;
+    background: linear-gradient(135deg, var(--tertiaryLight), var(--quaternaryLight));
+    color: var(--foreground);
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 350px;
 }
 
-.signupForm {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.processHeader {
+    margin-bottom: 2.5rem;
+}
+
+.processHeader h2 {
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.processHeader h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.processSteps {
+    margin-bottom: 2.5rem;
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.stepNumber {
+    background-color: white;
+    color: var(--lightBlue);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.step p {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.processFooter {
+    margin-top: auto;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 1rem;
+}
+
+/* Form Container Styles */
+.formContainer {
+    flex: 1;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    min-width: 350px;
+    max-width: 500px;
+}
+
+.formTitle {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: var(--foreground);
+    font-weight: 700;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
 }
 
 .submitButton {
-  color: var(--background);
-  background-color: var(--foreground);
-  border: none;
-  width: fit-content;
-  margin: auto;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: 0.2s ease-in-out;
-  cursor: pointer;
+    color: white;
+    background-color: var(--lightBlue);
+    border: none;
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
 }
+
 .submitButton:hover {
-  background-color: var(--foreground);
+    background-color: var(--secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-a.link {
-  color: var(--lightBlue);
+.submitButton:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
-.flexyspan {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+.authLink a {
+    color: var(--lightBlue);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
 }
 
-.flexyspan > * {
-  max-width: fit-content;
-  flex: 1;
+.authLink a:hover {
+    color: var(--secondary);
+    text-decoration: underline;
+}
+
+.formRow {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+}
+
+.formRow > * {
+    flex: 1;
+}
+
+.radioGroup {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 0.5rem;
 }
 
 .errorDisplay {
-  font-weight: bolder;
+    font-weight: 600;
+    color: var(--error, #e53935);
+    background-color: rgba(229, 57, 53, 0.1);
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+}
+
+.authLink {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .registrationContainer {
+        flex-direction: column;
+        margin: 0;
+        border-radius: 0;
+        max-width: 100%;
+    }
+    
+    .formContainer, .processGuide {
+        min-width: 100%;
+    }
+    
+    .formRow {
+        flex-direction: column;
+        gap: 1.25rem;
+    }
 }

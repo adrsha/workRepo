@@ -1,47 +1,51 @@
 import { getServerSession } from "next-auth";
 import { executeQueryWithRetry } from '../../lib/db';
-import { authOptions } from "../auth/[...nextauth]/authOptions";  // Ensure to import your NextAuth authOptions
+import { authOptions } from "../auth/[...nextauth]/authOptions";
 
 export async function POST(req) {
     try {
         const body = await req.json();
         const { classId } = body;
-        console.log("CID", classId);
+
         // Get the session using NextAuth
-        const session = await getServerSession(authOptions); // Fetch session using NextAuth.js session management
+        const session = await getServerSession(authOptions);
         if (!session) {
             return new Response(JSON.stringify({ error: 'Unauthorized: User not authenticated' }), { status: 401 });
         }
-        const userLevel = session.user.level;
 
-        // Validate the user level
-        if (userLevel !== 1) {
-            return new Response(JSON.stringify({ error: 'Invalid user level' }), { status: 400 });
-        }
-        
-        // NextAuth token validation: no need to manually validate the token if you're using NextAuth.
-        // Just check the session object for its validity (session already contains the token)
-        if (!session.accessToken) {
-            return new Response(JSON.stringify({ error: 'Unauthorized: Token not valid' }), { status: 401 });
+        // Validate admin level (level 1)
+        if (session.user.level !== 1) {
+            return new Response(JSON.stringify({ error: 'Unauthorized: Admin access required' }), { status: 403 });
         }
 
-        const response = await removeClasses(classId);
-        return new Response(JSON.stringify(response), { status: 200 });
+        const result = await removeClass(classId);
+        return new Response(JSON.stringify({
+            success: true,
+            message: 'Class deleted successfully',
+            affectedRows: result.affectedRows
+        }), { status: 200 });
+
     } catch (error) {
-        console.error('Error processing request:', error);
-        return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
+        console.error('Error deleting class:', error);
+        return new Response(JSON.stringify({
+            error: 'Failed to delete class',
+            details: error.message
+        }), { status: 500 });
     }
-}   
+}
 
-async function removeClasses(classId) {
+async function removeClass(classId) {
     try {
+        // Use the stored procedure for safe deletion
+        // This will handle all cascading deletes and file cleanup automatically
         const result = await executeQueryWithRetry({
-            query: `DELETE FROM classes WHERE class_id = ?`,
+            query: `CALL DeleteClass(?)`,
             values: [classId],
         });
+
         return result;
     } catch (err) {
-        console.error('Database insertion failed:', err);
-        throw new Error('Database operation failed');
+        console.error('Class deletion failed:', err);
+        throw new Error(`Failed to delete class: ${err.message}`);
     }
 }

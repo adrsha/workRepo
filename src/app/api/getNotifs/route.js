@@ -17,12 +17,12 @@ export async function GET(req) {
 
     // Get URL parameters
     const { searchParams } = new URL(req.url);
-    const limit = searchParams.get('limit') || 10;  // Default to 10 notifications
-    const offset = searchParams.get('offset') || 0;  // Default to first page
-    const unreadOnly = searchParams.has('unread') ? true : false;
+    const limit = searchParams.get('limit') || 10;
+    const offset = searchParams.get('offset') || 0;
+    const readStatus = searchParams.get('read_status'); // 'read', 'unread', or null for all
 
     // Get notifications for the user
-    const notifications = await getUserNotifications(userId, limit, offset, unreadOnly);
+    const notifications = await getUserNotifications(userId, limit, offset, readStatus);
 
     return new Response(JSON.stringify({ notifications }), { status: 200 });
   } catch (error) {
@@ -82,14 +82,18 @@ export async function POST(req) {
   }
 }
 
-async function getUserNotifications(userId, limit, offset, unreadOnly) {
+async function getUserNotifications(userId, limit, offset, readStatus = null) {
   try {
     let query = 'SELECT * FROM notifs WHERE user_id = ?';
     const values = [userId];
 
-    if (unreadOnly) {
+    // Handle different filter types
+    if (readStatus === 'unread') {
       query += ' AND read_status = 0';
+    } else if (readStatus === 'read') {
+      query += ' AND read_status = 1';
     }
+    // If readStatus is null, return all notifications
 
     query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
     values.push(parseInt(limit), parseInt(offset));

@@ -1,6 +1,18 @@
 import styles from '../../styles/Inputs.module.css';
 
 export default function Input({ label, type, name, id, value, onChange, checked, maxLength, required = false, data = [] }) {
+    function togglevisibility(e){
+        const passwordInput = document.getElementById('password');
+        e.preventDefault();
+        if (passwordInput.type == 'password'){
+            passwordInput.type = 'text';
+            e.currentTarget.textContent = '🚫';
+        }
+        else{
+            passwordInput.type = 'password';
+            e.currentTarget.textContent = '👁️';
+        }
+    }
     return (
         <div className={styles.inputContainer}>
             {type === 'textarea' ? (
@@ -44,9 +56,10 @@ export default function Input({ label, type, name, id, value, onChange, checked,
                     {...(type !== 'radio' && type !== 'checkbox' ? { defaultChecked: checked } : {})}
                 />
             )}
-            <label htmlFor={id} className={styles.inputLabel}>
-                {label} {required && <span className={styles.required}>*</span>}
-            </label>
+                <label htmlFor={id} className={styles.inputLabel}>
+                    {label} {required && <span className={styles.required}>*</span>}
+                </label>
+                { type == 'password' ?  <button onClick={togglevisibility} className={styles.toggleVisibleButton}>👁️</button> : <></>}
         </div>
     );
 }

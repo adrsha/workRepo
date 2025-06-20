@@ -1,138 +1,178 @@
 .modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1100;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
 }
 
 .modalContent {
-  background-color: white;
-  padding: 25px;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    background-color: white;
+    padding: 25px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .modalContent h3 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: #333;
-  text-align: center;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
 }
 
 .selectedClasses {
-  margin-bottom: 20px;
-  background-color: #f9f9f9;
-  padding: 15px;
-  border-radius: 6px;
-  border: 1px solid #eee;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #eee;
 }
 
 .selectedClasses h4 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  color: #555;
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #555;
 }
 
 .classesList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .classItem {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #eee;
+    padding: 10px;
+    border: 1px solid #eee;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.classTitle {
+    margin-bottom: 0;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.cost {
+    font-size: 0.875rem;
+    display: inline-block;
+    margin: 4px;
+    background-color: var(--lightGreen);
+    width: fit-content;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: white;
+}
+
+.grade {
+    font-size: 0.875rem;
+    margin: 4px;
+    background-color: var(--tertiary);
+    width: fit-content;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: white;
+}
+
+.classDetails {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 0.9rem;
+    color: #444;
+}
+
+.classDetails span strong {
+    color: #333;
 }
 
 .classCost {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 .totalRow {
-  display: flex;
-  justify-content: space-between;
-  padding-top: 10px;
-  margin-top: 10px;
-  border-top: 2px solid #ddd;
-  font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 2px solid #ddd;
+    font-weight: bold;
 }
 
 .totalCost {
-  color: #e53935;
-  font-size: 1.1em;
+    color: var(--lightGreen);
 }
 
 .uploadSection {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 .uploadSection label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
 }
 
 .uploadSection input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
 .buttonGroup {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
 }
 
 .submitButton,
 .closeButton {
-  padding: 10px 15px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  flex: 1;
+    padding: 10px 15px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    flex: 1;
 }
 
 .submitButton {
-  background-color: #4caf50;
-  color: white;
+    background-color: var(--lightGreen);
+    color: white;
 }
 
 .closeButton {
-  background-color: #f44336;
-  color: white;
+    background-color: var(--lightRed);
+    color: white;
 }
 
 .success {
-  color: #4caf50;
-  text-align: center;
-  padding: 10px 0;
-  margin-top: 15px;
-  background-color: #e8f5e9;
-  border-radius: 4px;
+    color: var(--lightGreen);
+    text-align: center;
+    padding: 10px 0;
+    margin-top: 15px;
+    background-color: #e8f5e9;
+    border-radius: 4px;
 }
 
 .error {
-  color: #f44336;
-  text-align: center;
-  padding: 10px 0;
-  margin-top: 15px;
-  background-color: #ffebee;
-  border-radius: 4px;
+    color: var(--lightRed);
+    text-align: center;
+    padding: 10px 0;
+    margin-top: 15px;
+    background-color: #ffebee;
+    border-radius: 4px;
 }
