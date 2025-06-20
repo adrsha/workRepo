@@ -68,11 +68,12 @@ export const contentService = {
         //     body: JSON.stringify(payload),
         // });
         // uploadedFileData comes from FileUpload component's upload result
+        
         const payload = {
             contentType: 'file',
             contentData: file, // Already contains filePath, originalName, etc.
             classId,
-            is_public
+            isPublic: is_public
         };
 
         return makeRequest('/api/content/save', {

@@ -330,6 +330,16 @@ const ApprovedClassesTable = ({
         course_id: createOptions(courseData, 'course_id', 'course_name'),
         grade_id: createOptions(gradesData, 'grade_id', 'grade_name'),
     };
+    
+    const additionalColumns = [
+        {
+            key: 'class_link',
+            title: 'Class Link',
+            render: (classEl) => {
+                return <a href={`/classes/${classEl.class_id}`}>Visit Class</a>;
+            }
+        },
+    ];
 
     return (
         <Table
@@ -339,6 +349,7 @@ const ApprovedClassesTable = ({
             renderCell={renderCell}
             renderFormField={renderFormField}
             dropdownOptions={dropdownOptions}
+            additionalColumns={additionalColumns}
             emptyMessage="No classes available"
             allowAdd={true}
             allowDelete={true}

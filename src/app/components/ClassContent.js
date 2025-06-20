@@ -32,8 +32,8 @@ const ToastContainer = ({ notifications }) => {
     );
 };
 
-const AddContentSection = ({ isTeacher, formControls, contentHandlers, classId }) => {
-    if (!isTeacher) return null;
+const AddContentSection = ({ isTeacher, currentUser, formControls, contentHandlers, classId }) => {
+    if (!isTeacher && !(currentUser?.level > 1)) return null;
     
     return (
         <div className={styles.addContentSection}>
@@ -60,7 +60,7 @@ const AddContentSection = ({ isTeacher, formControls, contentHandlers, classId }
     );
 };
 
-const ContentSection = ({ contents, isTeacher, contentHandlers }) => {
+const ContentSection = ({ contents, isTeacher, contentHandlers, currentUser }) => {
     if (contents.length === 0) {
         return <EmptyState isTeacher={isTeacher} />;
     }
@@ -69,12 +69,13 @@ const ContentSection = ({ contents, isTeacher, contentHandlers }) => {
         <ContentList
             contents={contents}
             isTeacher={isTeacher}
+            currentUser={currentUser}
             onDelete={contentHandlers.handleDeleteContent}
         />
     );
 };
 
-export default function ClassContent({ classId, isTeacher }) {
+export default function ClassContent({ classId, isTeacher, currentUser }) {
     const { data: session } = useSession();
     const { contents, setContents, loading, refetch } = useClassContent(classId, session);
     const notifications = useNotifications();
@@ -99,11 +100,13 @@ export default function ClassContent({ classId, isTeacher }) {
             <ContentSection 
                 contents={contents}
                 isTeacher={isTeacher}
+                currentUser={currentUser}
                 contentHandlers={contentHandlers}
             />
             
             <AddContentSection
                 isTeacher={isTeacher}
+                currentUser={currentUser}
                 formControls={formControls}
                 contentHandlers={contentHandlers}
                 classId={classId}

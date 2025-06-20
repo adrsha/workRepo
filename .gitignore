@@ -11,6 +11,7 @@
 
 # Static exports
 out/
+/public/uploads
 
 # Yarn/PNPM/Node package manager logs
 yarn-error.log

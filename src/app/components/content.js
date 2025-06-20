@@ -78,27 +78,28 @@ const DeleteButton = ({ onDelete, contentId }) => (
     </button>
 );
 
-const ContentActions = ({ content, isTeacher, onDelete }) => (
+const ContentActions = ({ content, isTeacher, currentUser, onDelete }) => (
     <div className={styles.contentActions}>
         <ContentMeta created_at={content.created_at} is_public={content.is_public} />
-        {isTeacher && <DeleteButton onDelete={onDelete} contentId={content.content_id} />}
+        {(isTeacher || (currentUser?.level > 1)) && <DeleteButton onDelete={onDelete} contentId={content.content_id} />}
     </div>
 );
 
-export const ContentItem = ({ content, isTeacher, onDelete }) => (
+export const ContentItem = ({ content, isTeacher, onDelete, currentUser }) => (
     <div className={styles.contentItem}>
         <ContentRenderer content={content} />
-        <ContentActions content={content} isTeacher={isTeacher} onDelete={onDelete} />
+        <ContentActions content={content} isTeacher={isTeacher} currentUser={currentUser} onDelete={onDelete} />
     </div>
 );
 
-export const ContentList = ({ contents, isTeacher, onDelete }) => (
+export const ContentList = ({ contents, isTeacher, onDelete, currentUser }) => (
     <div className={styles.contentList}>
         {contents.map((content) => (
             <ContentItem
                 key={content.content_id}
                 content={content}
                 isTeacher={isTeacher}
+                currentUser={currentUser}
                 onDelete={onDelete}
             />
         ))}

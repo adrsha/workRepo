@@ -1,4 +1,3 @@
-// app/api/admin/pending-admins/route.js
 import { authOptions } from '../auth/[...nextauth]/authOptions';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
@@ -26,7 +25,8 @@ export async function GET() {
 
 async function fetchPendingAdmins() {
   try {
-    const query = `SELECT pending_id, user_name, user_email, contact, secret_key, qualification, experience, expires_at FROM pending_teachers`; // Fetch only necessary fields
+    // Include certificate_path in the SELECT query
+    const query = `SELECT pending_id, user_name, user_email, contact, secret_key, qualification, experience, certificate_path, expires_at FROM pending_teachers`;
     const results = await executeQueryWithRetry({ query });
     return results;
   } catch (error) {
@@ -34,6 +34,7 @@ async function fetchPendingAdmins() {
     throw new Error('Database query failed');
   }
 }
+
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -63,24 +64,24 @@ export async function POST(req) {
         // Insert user into the users table
         await executeQueryWithRetry({
           query: `
-                        INSERT INTO merotuit_lms.users(
-                            user_name,
-                            user_email,
-                            contact,
-                            user_passkey,
-                            user_level
-                        )
-                        SELECT
-                            user_name,
-                            user_email,
-                            contact,
-                            user_passkey,
-                            1 AS user_level
-                        FROM
-                            merotuit_lms.pending_teachers
-                        WHERE
-                            pending_id = ?;
-                    `,
+            INSERT INTO merotuit_lms.users(
+              user_name,
+              user_email,
+              contact,
+              user_passkey,
+              user_level
+            )
+            SELECT
+              user_name,
+              user_email,
+              contact,
+              user_passkey,
+              1 AS user_level
+            FROM
+              merotuit_lms.pending_teachers
+            WHERE
+              pending_id = ?;
+          `,
           values: [pendingId],
         });
 
@@ -94,21 +95,24 @@ export async function POST(req) {
           throw new Error("Failed to retrieve last inserted ID.");
         }
 
-        // Insert into teachers table
         await executeQueryWithRetry({
           query: `
-                        INSERT INTO merotuit_lms.teachers(
-                            user_id,
-                            qualification,
-                            experience
-                        )
-                        SELECT
-                            ?, qualification, experience
-                        FROM
-                            merotuit_lms.pending_teachers
-                        WHERE
-                            pending_id = ?;
-                    `,
+            INSERT INTO merotuit_lms.teachers(
+              user_id,
+              qualification,
+              experience,
+              certificate_path
+            )
+            SELECT
+              ?, 
+              qualification, 
+              experience,
+              certificate_path
+            FROM
+              merotuit_lms.pending_teachers
+            WHERE
+              pending_id = ?;
+          `,
           values: [lastUserId, pendingId],
         });
 

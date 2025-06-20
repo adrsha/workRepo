@@ -110,7 +110,7 @@ const PendingTeachersTable = ({
                 />
             );
         }
-
+        
         // Certificate image
         if (col === 'certificate_path') {
             return (
@@ -256,6 +256,7 @@ const ApprovedTeachersTable = ({
         'Are you sure you want to delete this teacher?'
     );
 
+    console.log("TC", teachers)
     const handleAdd = createAsyncHandler(onAddTeacher, 'Error adding teacher');
     const handleBulkAdd = createAsyncHandler(onBulkAddTeachers, 'Error bulk adding teachers');
 
