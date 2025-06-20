@@ -22,8 +22,8 @@ export default function ClassDetailsPage({ params }) {
     const { data: session } = useSession();
 
     const { classDetails, setClassDetails, teacher, loading, error } = useClassData(classId, session);
-    const isTeacher = session?.user?.id === classDetails?.teacher_id;
-    const { students } = useStudents(classId, session, isTeacher);
+    const isClassOwner = session?.user?.id === classDetails?.teacher_id;
+    const { students } = useStudents(classId, session, isClassOwner);
 
     const [isUpdatingUrl, setIsUpdatingUrl] = useState(false);
     const [isRegenerating, setIsRegenerating] = useState(false);
@@ -56,13 +56,13 @@ export default function ClassDetailsPage({ params }) {
     const classJoinable = classDetails ? isClassJoinable(classDetails.start_time, classDetails.end_time, repeatNDays) : false;
     const isValidDay = classDetails ? isValidClassDay(classDetails.start_time, repeatNDays) : false;
     const hasMeetingLink = classDetails?.meeting_url && classDetails.meeting_url !== '';
-    const canEditMeetingUrl = isTeacher && canTeacherGenerateLink(classDetails?.start_time, classDetails?.end_time, repeatNDays);
-    const canGenerateLink = isTeacher && canTeacherGenerateLink(classDetails?.start_time, classDetails?.end_time, repeatNDays);
+    const canEditMeetingUrl = isClassOwner && canTeacherGenerateLink(classDetails?.start_time, classDetails?.end_time, repeatNDays);
+    const canGenerateLink = isClassOwner && canTeacherGenerateLink(classDetails?.start_time, classDetails?.end_time, repeatNDays);
 
     const handleUpdateMeetingUrl = async (newUrl) => {
         setIsUpdatingUrl(true);
         try {
-            await updateMeetingUrl(session, isTeacher, canEditMeetingUrl, classId, newUrl);
+            await updateMeetingUrl(session, isClassOwner, canEditMeetingUrl, classId, newUrl);
             setClassDetails(prev => ({ ...prev, meeting_url: newUrl }));
             showToast('Meeting URL updated successfully', 'success');
         } catch (err) {
@@ -76,7 +76,7 @@ export default function ClassDetailsPage({ params }) {
     const handleRegenerateMeetingLink = async () => {
         setIsRegenerating(true);
         try {
-            const data = await regenerateMeetingLink(session, isTeacher, canGenerateLink, classId, classDetails);
+            const data = await regenerateMeetingLink(session, isClassOwner, canGenerateLink, classId, classDetails);
             setClassDetails(prev => ({ ...prev, meeting_url: data.meetingUrl }));
             showToast('Meeting link regenerated successfully', 'success');
         } catch (err) {
@@ -130,7 +130,7 @@ export default function ClassDetailsPage({ params }) {
                         router={router} 
                     />
 
-                    {isTeacher && (
+                    {isClassOwner && (
                         <div className={styles.infoRow}>
                             <span className={styles.infoLabel}>Meeting URL</span>
                             <MeetingUrlEditor
@@ -150,9 +150,9 @@ export default function ClassDetailsPage({ params }) {
                         <p>{classDetails.course_details}</p>
                     </div>
 
-                    <ClassContent classId={classId} isTeacher={isTeacher} />
+                    <ClassContent classId={classId} isTeacher={isClassOwner} currentUser={session?.user}/>
 
-                    {isTeacher && (
+                    {isClassOwner && (
                         <StudentsList students={students} />
                     )}
                 </div>

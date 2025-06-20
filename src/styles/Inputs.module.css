@@ -5,11 +5,18 @@
     padding: 0;
     width: 100%;
     border: 2px solid var(--offWhite);
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
+
+/* ===== CONTAINER VARIANTS ===== */
 .inputContainer:has(.input[type="radio"]) {
-    display: inline;
+    display: flex;
     width: fit-content;
+    border: none;
+}
+
+.inputContainer:has(.input[type="checkbox"]) {
     border: none;
 }
 
@@ -17,15 +24,44 @@
     display: flex;
     flex-direction: column-reverse;
 }
-.inputContainer:has(.input[type="checkbox"]) {
+
+/* ===== BASE INPUT STYLES ===== */
+.input {
+    padding: var(--inputThickness);
+    background-color: var(--background);
+    color: var(--foreground);
     border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1.4;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.input:not([type="checkbox"]):not([type="radio"]) {
+    width: 100%;
+}
+
+.input:focus {
+    outline: none;
+}
+
+.input:hover:not(:focus):not([type="checkbox"]):not([type="radio"]) {
+    border-color: var(--gray);
+}
+
+.input:disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .input::placeholder {
-    color: transparent; /* Change to your desired color */
-    opacity: 1; /* Ensures full visibility in some browsers */
+    color: transparent;
+    opacity: 1;
 }
 
+/* ===== FLOATING LABELS ===== */
 .inputLabel {
     position: absolute;
     padding: 0.5rem;
@@ -39,106 +75,110 @@
     cursor: text;
 }
 
-.toggleVisibleButton{
-    position: absolute;
-    padding: 0.5rem;
-    height: 100%;
-    background: none;
-    font-size: 1rem;
-    right : 0;
-    color: var(--gray);
-    transition: 0.2s ease-in-out;
-    white-space: nowrap;
-    border-radius: 4px;
-    cursor: pointer;
-    border: none;
-}
-.toggleVisibleButton:active{
-    border: none;
-    outline: none;
-}
-
-.input:not([type="checkbox"]):not([type="radio"]) {
-    width: 100%;
-}
-
-.input {
-    padding: var(--inputThickness);
+/* Label positioning when input has content */
+.input:not(:focus):not(:placeholder-shown):not([type="checkbox"]):not([type="radio"]):not([type="date"]) + .inputLabel {
+    font-size: 0.75rem;
+    top: calc(0.5 * var(--inputThickness));
+    left: calc(100% - var(--inputThickness) * 2);
     background-color: var(--background);
-    color: var(--foreground);
-    border: none;
-    border-radius: 4px;
+    box-shadow: -20px 0 10px -10px var(--background);
+    transform: translateX(-100%);
+    padding: 0.5rem;
 }
 
-.input:focus {
-    outline: none;
+/* Label positioning when input is focused and has content */
+.input:focus:not(:placeholder-shown):not([type="checkbox"]):not([type="radio"]):not([type="date"]) + .inputLabel {
+    font-size: 0.75rem;
+    top: calc(-2 * var(--inputThickness));
+    left: calc(100% - var(--inputThickness) * 1.5);
+    transform: translateX(-100%);
 }
 
-/* :NOTE: The order of the following rules is important. */
-
-/* When nothing is typed in the input, the label is shown. */
-.input:not(:focus):not(:placeholder-shown):not([type="checkbox"]):not(
-    [type="radio"]
-):not([type="date"])
-  + .inputLabel {
-      font-size: 0.75rem;
-      top: calc(0.5 * var(--inputThickness));
-      left: calc(100% - var(--inputThickness) * 2);
-      background-color: var(--background);
-      box-shadow: -20px 0 10px -10px var(--background);
-      transform: translateX(-100%);
-      padding: 0.5rem;
-  }
-.input:focus:not(:placeholder-shown):not(
-    [type="checkbox"]:not[type="radio"]
-):not([type="date"])
-  + .inputLabel {
-      font-size: 0.75rem;
-      top: calc(-2 * var(--inputThickness));
-      left: calc(100% - var(--inputThickness) * 1.5);
-      transform: translateX(-100%);
-  }
+/* Label positioning for placeholder-shown inputs */
 .input:placeholder-shown + .inputLabel {
     top: calc(0.5 * var(--inputThickness));
 }
-/* When the input is focused, the label is moved up. */
+
+/* Label positioning when input is focused */
 .input:focus + .inputLabel {
     top: calc(-2 * var(--inputThickness));
     background-color: var(--lightBlue);
     color: var(--white);
 }
-/* When something is typed in the input, the label is moved up. */
-.input:not(placeholder-shown) + .inputLabel {
+
+/* Label positioning when input has content */
+.input:not(:placeholder-shown) + .inputLabel {
     top: calc(-2 * var(--inputThickness));
     background-color: transparent;
 }
-/* :NOTE: The order of the above rules is important. */
 
-.input:-webkit-autofill,
-.input:-webkit-autofill:hover,
-.input:-webkit-autofill:focus,
-.input:-webkit-autofill:active {
-    -webkit-text-fill-color: var(--color1);
-    background-color: var(--background);
-    outline: none;
+/* Disabled label styles */
+.input:disabled + .inputLabel {
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.toggleVisibleButton {
+    position: absolute;
+    padding: 0.5rem;
+    right: 0;
+    display: flex;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: 0.2s ease-in-out;
+    cursor: pointer;
     border: none;
 }
 
+.toggleVisibleButton:hover {
+    transform: translateY(-50%) scale(1.1);
+}
+
+.toggleVisibleButton:active {
+    border: none;
+    outline: none;
+}
+
+/* ===== TEXTAREA SPECIFIC ===== */
+.textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+/* ===== SELECT SPECIFIC ===== */
+.select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+    appearance: none;
+}
+
+.select:focus {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23007bff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+/* ===== CHECKBOX STYLES ===== */
 .input[type="checkbox"] {
     appearance: none;
     position: relative;
     transform: translateY(0.25rem);
-    /* width: 0.3rem; */
-    /* height: 0.3rem; */
     padding: 0.5rem;
     border-radius: 0.3rem;
-    background-color: var(--lightBlue);
+    background-color: var(--background);
     border: 0.2rem solid var(--lightBlue);
-    transition: 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
     margin: 0;
+    width: auto;
+    height: auto;
+    cursor: pointer;
 }
+
 .input[type="checkbox"]::after {
-    content: "✓"; /* checkmark */
+    content: "✓";
     transform: translate(-50%, -50%);
     opacity: 0;
     position: absolute;
@@ -148,12 +188,23 @@
     font-size: 1.5rem;
     transition: opacity 0.2s ease-in-out;
 }
+
+.input[type="checkbox"]:checked {
+    background-color: var(--lightBlue);
+}
+
 .input[type="checkbox"]:checked::after {
     opacity: 1;
 }
+
 .input[type="checkbox"]:hover {
     border-color: var(--lightBlue);
-    background-color: var(--background);
+    box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25);
+}
+
+.input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 .input[type="checkbox"] + label {
@@ -161,6 +212,8 @@
     position: static;
     display: inline-block;
     color: var(--foreground);
+    margin-left: 0.5rem;
+    cursor: pointer;
 }
 
 .input[type="checkbox"]:focus + label {
@@ -168,9 +221,48 @@
     color: var(--foreground);
 }
 
-.input[type="radio"]:focus + label {
-    background-color: transparent;
-    color: var(--foreground);
+/* ===== RADIO BUTTON STYLES ===== */
+.input[type="radio"] {
+    appearance: none;
+    position: relative;
+    width: 1.5rem;
+    padding: 0;
+    height: 1.5rem;
+    border-radius: 50%;
+    background-color: var(--background);
+    border: 0.15rem solid var(--lightBlue);
+    transition: all 0.2s ease-in-out;
+    margin: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.input[type="radio"]::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background-color: var(--lightBlue);
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.input[type="radio"]:checked::after {
+    opacity: 1;
+}
+
+.input[type="radio"]:hover {
+    border-color: var(--lightBlue);
+    box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25);
+}
+
+.input[type="radio"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 .input[type="radio"] + label {
@@ -179,52 +271,25 @@
     margin-right: 0.5rem;
     position: static;
     color: var(--foreground);
-    border-bottom: 1px solid transparent;
-    border-radius: 0;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
 .input[type="radio"]:checked + label {
     border-bottom-color: var(--lightBlue);
+    color: var(--lightBlue);
+    font-weight: 500;
 }
 
-.input[type="radio"]:checked::after {
-    content: "";
-    opacity: 1;
-    transform: translate(-50%, -50%);
-    background-color: var(--background);
+.input[type="radio"]:focus + label {
+    background-color: transparent;
+    color: var(--foreground);
 }
 
-.input[type="radio"]:hover::after {
-    border-color: var(--lightBlue);
-}
-
-.input[type="radio"]::after {
-    content: "";
-    opacity: 0;
-    transform: translate(-50%, -50%);
-    background-color: var(--background);
-    border-radius: 0.2rem;
-    width: 80%;
-    aspect-ratio: 1;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    font-size: 1.5rem;
-    transition: opacity 0.2s ease-in-out;
-}
-
-.input[type="radio"] {
-    appearance: none;
-    position: relative;
-    transform: translateY(0.25rem);
-    /* width: 0.3rem; */
-    /* height: 0.3rem; */
-    padding: 0.5rem;
-    border-radius: 0.3rem;
-    background-color: var(--lightBlue);
-    border: 0.2rem solid var(--lightBlue);
-    transition: 0.2s ease-in-out;
-    margin: 0;
+/* ===== DATE INPUT STYLES ===== */
+.input[type="date"] {
+    cursor: pointer;
 }
 
 .input[type="date"] + label {
@@ -235,7 +300,72 @@
     border-radius: 4px 4px 0 0;
     position: static;
     color: var(--lightBlue);
+    background-color: var(--background);
 }
-textarea.textarea {
-    resize: none;
+
+/* ===== AUTOFILL STYLES ===== */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+.input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--color1);
+    -webkit-box-shadow: 0 0 0px 1000px var(--background) inset;
+    background-color: var(--background) !important;
+    outline: none;
+    border: none;
+}
+
+/* ===== STATE STYLES ===== */
+.required {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Error states */
+.inputContainer.error {
+    border-color: #dc3545;
+}
+
+.inputContainer.error .inputLabel {
+    color: #dc3545;
+}
+
+.inputContainer.error:focus-within {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Success states */
+.inputContainer.success {
+    border-color: #28a745;
+}
+
+.inputContainer.success .inputLabel {
+    color: #28a745;
+}
+
+.inputContainer.success:focus-within {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Disabled container */
+.inputContainer:has(.input:disabled) {
+    opacity: 0.6;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .input {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    .inputLabel {
+        font-size: 0.9rem;
+    }
+    
+    .input:focus + .inputLabel,
+    .input:not(:placeholder-shown) + .inputLabel {
+        font-size: 0.7rem;
+    }
 }

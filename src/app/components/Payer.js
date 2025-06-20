@@ -84,6 +84,7 @@ export default function Payer(props) {
             <div className={styles.modalContent}>
                 <h3>Payment for Selected Classes</h3>
                 {/* Display selected classes */}
+                <img src="esewa.jpg" alt="Pay Details"/>
                 <div className={styles.selectedClasses}>
                     <h4>Selected Classes:</h4>
                     {selectedClasses.length > 0 ? (

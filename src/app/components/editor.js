@@ -22,7 +22,8 @@ export const FileUploadSection = ({ classId, onFileSave, isPublic }) => {
 
     const handleSave = async () => {
         console.log('handleSave called, uploadedFile:', uploadedFile);
-
+        console.log(isPublic);
+        
         if (!uploadedFile) {
             console.log('No uploaded file found');
             return;
@@ -40,7 +41,6 @@ export const FileUploadSection = ({ classId, onFileSave, isPublic }) => {
         }
     };
 
-    // This handles the file upload completion from FileUpload component
     const handleUploadComplete = (uploadResult) => {
         console.log('Upload completed:', uploadResult);
         setUploadedFile(uploadResult);
@@ -51,7 +51,7 @@ export const FileUploadSection = ({ classId, onFileSave, isPublic }) => {
             <FileUpload
                 classId={classId}
                 onUploadComplete={handleUploadComplete}
-                isSignUpForm={false}  // Add this to show upload button
+                isSignUpForm={false}
             />
 
             {uploadedFile && (
@@ -68,6 +68,7 @@ export const FileUploadSection = ({ classId, onFileSave, isPublic }) => {
         </div>
     );
 };
+
 // Markdown parsing utilities
 const markdownRules = [
     [/^### (.*$)/gim, '<h3>$1</h3>'],
@@ -135,59 +136,82 @@ const MarkdownPreview = ({ content }) => (
     />
 );
 
-// Text insertion logic
-const TextInsertion = {
-    insertAtSelection: (content, syntax, start, end, selectedText) => {
-        const insertions = {
-            '[text](url)': selectedText
-                ? { text: `[${selectedText}](url)`, cursor: start + selectedText.length + 3 }
-                : { text: '[text](url)', cursor: start + 1 },
-            '**bold**': selectedText
-                ? { text: `**${selectedText}**`, cursor: end + 4 }
-                : { text: '**bold**', cursor: start + 2 },
-            '*italic*': selectedText
-                ? { text: `*${selectedText}*`, cursor: end + 2 }
-                : { text: '*italic*', cursor: start + 1 },
-            '`code`': selectedText
-                ? { text: `\`${selectedText}\``, cursor: end + 2 }
-                : { text: '`code`', cursor: start + 1 }
+// Text insertion utility functions
+const findLineStart = (content, position) => {
+    return content.lastIndexOf('\n', position - 1) + 1;
+};
+
+const findLineEnd = (content, position) => {
+    const lineEnd = content.indexOf('\n', position);
+    return lineEnd === -1 ? content.length : lineEnd;
+};
+
+const insertInlineMarkdown = (content, syntax, start, end, selectedText) => {
+    const insertions = {
+        '[text](url)': selectedText
+            ? { text: `[${selectedText}](url)`, cursor: start + selectedText.length + 3 }
+            : { text: '[text](url)', cursor: start + 1 },
+        '**bold**': selectedText
+            ? { text: `**${selectedText}**`, cursor: end + 4 }
+            : { text: '**bold**', cursor: start + 2 },
+        '*italic*': selectedText
+            ? { text: `*${selectedText}*`, cursor: end + 2 }
+            : { text: '*italic*', cursor: start + 1 },
+        '`code`': selectedText
+            ? { text: `\`${selectedText}\``, cursor: end + 2 }
+            : { text: '`code`', cursor: start + 1 }
+    };
+
+    if (insertions[syntax]) {
+        const { text, cursor } = insertions[syntax];
+        return {
+            newContent: content.substring(0, start) + text + content.substring(end),
+            newCursor: cursor
         };
-
-        if (insertions[syntax]) {
-            const { text, cursor } = insertions[syntax];
-            return {
-                newContent: content.substring(0, start) + text + content.substring(end),
-                newCursor: cursor
-            };
-        }
-
-        return this.insertAtLineStart(content, syntax, start);
-    },
-
-    insertAtLineStart: (content, syntax, start) => {
-        if (syntax.startsWith('#')) {
-            const lineStart = content.lastIndexOf('\n', start - 1) + 1;
-            const lineEnd = content.indexOf('\n', start);
-            const actualEnd = lineEnd === -1 ? content.length : lineEnd;
-            const currentLine = content.substring(lineStart, actualEnd);
-            const cleanLine = currentLine.replace(/^#+\s*/, '');
-
-            return {
-                newContent: content.substring(0, lineStart) + syntax + cleanLine + content.substring(actualEnd),
-                newCursor: lineStart + syntax.length + cleanLine.length
-            };
-        }
-
-        if (syntax === '- ' || syntax === '> ') {
-            const lineStart = content.lastIndexOf('\n', start - 1) + 1;
-            return {
-                newContent: content.substring(0, lineStart) + syntax + content.substring(lineStart),
-                newCursor: start + syntax.length
-            };
-        }
-
-        return { newContent: content, newCursor: start };
     }
+
+    return null;
+};
+
+const insertHeaderMarkdown = (content, syntax, start) => {
+    const lineStart = findLineStart(content, start);
+    const lineEnd = findLineEnd(content, start);
+    const currentLine = content.substring(lineStart, lineEnd);
+    const cleanLine = currentLine.replace(/^#+\s*/, '');
+
+    return {
+        newContent: content.substring(0, lineStart) + syntax + cleanLine + content.substring(lineEnd),
+        newCursor: lineStart + syntax.length + cleanLine.length
+    };
+};
+
+const insertLineStartMarkdown = (content, syntax, start) => {
+    const lineStart = findLineStart(content, start);
+    return {
+        newContent: content.substring(0, lineStart) + syntax + content.substring(lineStart),
+        newCursor: start + syntax.length
+    };
+};
+
+const insertMarkdownSyntax = (content, syntax, start, end, selectedText) => {
+    // Try inline insertion first
+    const inlineResult = insertInlineMarkdown(content, syntax, start, end, selectedText);
+    if (inlineResult) {
+        return inlineResult;
+    }
+
+    // Handle header syntax
+    if (syntax.startsWith('#')) {
+        return insertHeaderMarkdown(content, syntax, start);
+    }
+
+    // Handle line-start syntax (lists, quotes)
+    if (syntax === '- ' || syntax === '> ') {
+        return insertLineStartMarkdown(content, syntax, start);
+    }
+
+    // Default: no change
+    return { newContent: content, newCursor: start };
 };
 
 const EnhancedTextEditor = ({ content, onChange, onSave }) => {
@@ -202,7 +226,7 @@ const EnhancedTextEditor = ({ content, onChange, onSave }) => {
         const end = textarea.selectionEnd;
         const selectedText = content.substring(start, end);
 
-        const { newContent, newCursor } = TextInsertion.insertAtSelection(
+        const { newContent, newCursor } = insertMarkdownSyntax(
             content, syntax, start, end, selectedText
         );
 
@@ -213,26 +237,31 @@ const EnhancedTextEditor = ({ content, onChange, onSave }) => {
         }, 0);
     };
 
+    const setViewMode = (editMode, splitMode, previewMode) => {
+        setSplitView(splitMode);
+        setShowPreview(previewMode);
+    };
+
     const ViewModeButtons = () => (
         <div className={styles.viewModeButtons}>
             <button
                 type="button"
                 className={`${styles.viewButton} ${!splitView && !showPreview ? styles.active : ''}`}
-                onClick={() => { setSplitView(false); setShowPreview(false); }}
+                onClick={() => setViewMode(true, false, false)}
             >
                 Edit
             </button>
             <button
                 type="button"
                 className={`${styles.viewButton} ${splitView ? styles.active : ''}`}
-                onClick={() => { setSplitView(!splitView); setShowPreview(false); }}
+                onClick={() => setViewMode(false, !splitView, false)}
             >
                 Split
             </button>
             <button
                 type="button"
                 className={`${styles.viewButton} ${showPreview && !splitView ? styles.active : ''}`}
-                onClick={() => { setShowPreview(!showPreview); setSplitView(false); }}
+                onClick={() => setViewMode(false, false, true)}
             >
                 Preview
             </button>
@@ -337,34 +366,34 @@ export const ContentEditor = ({
     onFileSave,
     onCancel
 }) => (
-        <div className={styles.contentEditor}>
-            <EditorHeader onCancel={onCancel} />
+    <div className={styles.contentEditor}>
+        <EditorHeader onCancel={onCancel} />
 
-            <ContentTypeSelector
-                selectedType={contentForm.content_type}
-                onSelectType={(type) => onUpdateForm('content_type', type)}
+        <ContentTypeSelector
+            selectedType={contentForm.content_type}
+            onSelectType={(type) => onUpdateForm('content_type', type)}
+        />
+
+        <VisibilityToggle
+            is_public={contentForm.is_public}
+            onToggle={(is_public) => onUpdateForm('is_public', is_public)}
+        />
+
+        {contentForm.content_type === 'text' ? (
+            <EnhancedTextEditor
+                content={contentForm.content_data}
+                onChange={(data) => onUpdateForm('content_data', data)}
+                onSave={onSaveText}
             />
-
-            <VisibilityToggle
-                is_public={contentForm.is_public}
-                onToggle={(is_public) => onUpdateForm('is_public', is_public)}
+        ) : (
+            <FileUploadSection
+                classId={classId}
+                onFileSave={onFileSave}
+                isPublic={contentForm.is_public}
             />
-
-            {contentForm.content_type === 'text' ? (
-                <EnhancedTextEditor
-                    content={contentForm.content_data}
-                    onChange={(data) => onUpdateForm('content_data', data)}
-                    onSave={onSaveText}
-                />
-            ) : (
-                    <FileUploadSection
-                        classId={classId}
-                        onFileSave={onFileSave}
-                        isPublic={contentForm.is_public}
-                    />
-                )}
-        </div>
-    );
+        )}
+    </div>
+);
 
 export const contentService = {
     async addTextContent(classId, contentForm, accessToken) {
@@ -386,10 +415,9 @@ export const contentService = {
     },
 
     async saveFileContent(classId, fileData, isPublic, accessToken) {
-        // fileData should contain the upload result with file path
         const payload = {
             contentType: 'file',
-            contentData: fileData, // This contains the file path from upload
+            contentData: fileData,
             classId,
             isPublic
         };

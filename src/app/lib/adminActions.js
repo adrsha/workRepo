@@ -3,7 +3,7 @@ import { getSchema, getIdField, getStateKey } from './schema.js';
 
 export const pendingTeachers = async (pendingId, approved) => {
     const authToken = localStorage.getItem('authToken');
-    
+
     const response = await fetch('/api/pendingTeachers', {
         method: 'POST',
         headers: {
@@ -16,16 +16,16 @@ export const pendingTeachers = async (pendingId, approved) => {
     if (!response.ok) {
         throw new Error(`Failed to ${approved ? 'approve' : 'deny'} teacher`);
     }
-    
+
     return response.json();
 };
 
 export const updateData = async (table, id, updates) => {
     const authToken = localStorage.getItem('authToken');
-    
+
     const response = await fetch('/api/changeData', {
         method: 'PUT',
-        headers: { 
+        headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
         },
@@ -36,16 +36,16 @@ export const updateData = async (table, id, updates) => {
         const errorData = await response.json();
         throw new Error(errorData.error || `Failed to update ${table}`);
     }
-    
+
     return response.json();
 };
 
 export const createData = async (table, data) => {
     const authToken = localStorage.getItem('authToken');
-    
+
     const response = await fetch('/api/changeData', {
         method: 'POST',
-        headers: { 
+        headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
         },
@@ -56,16 +56,16 @@ export const createData = async (table, data) => {
         const errorData = await response.json();
         throw new Error(errorData.error || `Failed to create ${table}`);
     }
-    
+
     return response.json();
 };
 
 export const deleteData = async (table, id) => {
     const authToken = localStorage.getItem('authToken');
-    
+
     const response = await fetch('/api/changeData', {
         method: 'DELETE',
-        headers: { 
+        headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
         },
@@ -76,16 +76,16 @@ export const deleteData = async (table, id) => {
         const errorData = await response.json();
         throw new Error(errorData.error || `Failed to delete ${table}`);
     }
-    
+
     return response.json();
 };
 
 export const bulkCreateData = async (table, dataArray) => {
     const authToken = localStorage.getItem('authToken');
-    
+
     const response = await fetch('/api/changeData', {
         method: 'POST',
-        headers: { 
+        headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
         },
@@ -96,16 +96,16 @@ export const bulkCreateData = async (table, dataArray) => {
         const errorData = await response.json();
         throw new Error(errorData.error || `Failed to bulk create ${table}`);
     }
-    
+
     return response.json();
 };
 
 export const processStudentAction = async (endpoint, data) => {
     const authToken = localStorage.getItem('authToken');
-    
+
     const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 
+        headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
         },
@@ -116,7 +116,7 @@ export const processStudentAction = async (endpoint, data) => {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Action failed');
     }
-    
+
     return response.json();
 };
 
@@ -125,7 +125,7 @@ const createTeacherData = async (teacherData) => {
     // Get schemas for both tables
     const usersSchema = await getSchema('users');
     const teachersSchema = await getSchema('teachers');
-    
+
     // Create user record using schema columns
     const userData = {};
     usersSchema.columns.forEach(column => {
@@ -133,15 +133,15 @@ const createTeacherData = async (teacherData) => {
             userData[column] = teacherData[column];
         }
     });
-    
+
     // Set user level for teachers if not provided
     if (!userData.user_level) {
         userData.user_level = 1; // Teacher level
     }
-    
+
     const userResult = await createData('users', userData);
     const userId = userResult[usersSchema.idField];
-    
+
     // Create teacher record using schema columns
     const teacherRecord = { [usersSchema.idField]: userId };
     teachersSchema.columns.forEach(column => {
@@ -149,7 +149,7 @@ const createTeacherData = async (teacherData) => {
             teacherRecord[column] = teacherData[column];
         }
     });
-    
+
     await createData('teachers', teacherRecord);
     return userId;
 };
@@ -159,7 +159,7 @@ const createStudentData = async (studentData) => {
     // Get schemas for both tables
     const usersSchema = await getSchema('users');
     const studentsSchema = await getSchema('students');
-    
+
     // Create user record using schema columns
     const userData = {};
     usersSchema.columns.forEach(column => {
@@ -167,15 +167,15 @@ const createStudentData = async (studentData) => {
             userData[column] = studentData[column];
         }
     });
-    
+
     // Set user level for students if not provided
     if (!userData.user_level) {
         userData.user_level = 2; // Student level
     }
-    
+
     const userResult = await createData('users', userData);
     const userId = userResult[usersSchema.idField];
-    
+
     // Create student record using schema columns
     const studentRecord = { [usersSchema.idField]: userId };
     studentsSchema.columns.forEach(column => {
@@ -183,7 +183,7 @@ const createStudentData = async (studentData) => {
             studentRecord[column] = studentData[column];
         }
     });
-    
+
     await createData('students', studentRecord);
     return userId;
 };
@@ -205,21 +205,21 @@ const deleteStudentData = async (studentId) => {
 };
 
 export const createActionHandlers = (
-    { updateArrayState, updateState }, 
-    { startAction, endAction }, 
-    session, 
+    { updateArrayState, updateState },
+    { startAction, endAction },
+    session,
     update
 ) => {
     const handleSaveDataAuto = async (contextTable, id, column, value) => {
         if (!session) return;
         const actionKey = `auto-${id}-${column}`;
         startAction(actionKey);
-        
+
         try {
             // Get all schemas to find which table contains this column
             const allSchemas = await getSchema();
             let targetTable = null;
-            
+
             // Find the table that contains this column
             for (const [tableName, schema] of Object.entries(allSchemas)) {
                 if (schema.columns.includes(column)) {
@@ -227,28 +227,28 @@ export const createActionHandlers = (
                     break;
                 }
             }
-            
+
             if (!targetTable) {
                 throw new Error(`Column '${column}' not found in any table schema`);
             }
-            
+
             // Use context table for state management
             const contextSchema = await getSchema(contextTable);
             const idField = contextSchema.idField;
             const stateKey = contextSchema.stateKey;
-            
+
             console.log(`Auto-routing ${column} update to ${targetTable} table`);
             console.log(`Context: ${contextTable}, State key: ${stateKey}`);
-            
+
             // Make the API call to the detected table
             await updateData(targetTable, id, { [column]: value });
-            
+
             // Update local state using context table's schema
             if (stateKey) {
-                updateArrayState(stateKey, data => 
-                    data.map(item => 
-                        item[idField] === id 
-                            ? { ...item, [column]: value } 
+                updateArrayState(stateKey, data =>
+                    data.map(item =>
+                        item[idField] === id
+                            ? { ...item, [column]: value }
                             : item
                     )
                 );
@@ -266,15 +266,15 @@ export const createActionHandlers = (
         if (!session) return;
         const actionKey = `${table}-${id}-${column}`;
         startAction(actionKey);
-        
+
         try {
             let targetTable = table;
             let targetId = id;
-            
+
             if (table === 'teachers' || table === 'students') {
                 const usersSchema = await getSchema('users');
                 const targetSchema = await getSchema(table);
-                
+
                 // If the column exists in users table but not in target table, route to users
                 if (usersSchema.columns.includes(column) && !targetSchema.columns.includes(column)) {
                     targetTable = 'users';
@@ -282,24 +282,24 @@ export const createActionHandlers = (
                     console.log(`Routing ${column} update from ${table} to users table`);
                 }
             }
-            
+
             // Use schema to get proper ID field and state key for the original table (for state updates)
             const schema = await getSchema(table);
             const idField = schema.idField;
             const stateKey = schema.stateKey;
-            
+
             console.log(`Updating ${targetTable} with ID ${targetId}, field ${column} = ${value}`);
             console.log(`Using ID field: ${idField}, State key: ${stateKey}`);
-            
+
             // Make the API call to the correct table
             await updateData(targetTable, targetId, { [column]: value });
-            
+
             // Update local state using original table's schema information
             if (stateKey) {
-                updateArrayState(stateKey, data => 
-                    data.map(item => 
-                        item[idField] === id 
-                            ? { ...item, [column]: value } 
+                updateArrayState(stateKey, data =>
+                    data.map(item =>
+                        item[idField] === id
+                            ? { ...item, [column]: value }
                             : item
                     )
                 );
@@ -319,25 +319,25 @@ export const createActionHandlers = (
         if (!session) return;
         const actionKey = `${table}-${id}-multi`;
         startAction(actionKey);
-        
+
         try {
             // Use schema to get proper ID field and state key
             const schema = await getSchema(table);
             const idField = schema.idField;
             const stateKey = schema.stateKey;
-            
+
             console.log(`Multi-updating ${table} with ID ${id}:`, updates);
             console.log(`Using ID field: ${idField}, State key: ${stateKey}`);
-            
+
             // Make the API call
             await updateData(table, id, updates);
-            
+
             // Update local state using schema information
             if (stateKey) {
                 updateArrayState(stateKey, data =>
-                    data.map(item => 
-                        item[idField] === id 
-                            ? { ...item, ...updates } 
+                    data.map(item =>
+                        item[idField] === id
+                            ? { ...item, ...updates }
                             : item
                     )
                 );
@@ -358,8 +358,10 @@ export const createActionHandlers = (
         startAction(actionKey);
         try {
             await pendingTeachers(pendingId, approved);
-            updateArrayState('pendingTeachersData', data => 
-                data.filter(teacher => teacher.pending_id !== pendingId)
+            updateArrayState('pendingTeachersData', data => {
+                console.log("PTD", data)
+                return data.filter(teacher => teacher.pending_id !== pendingId)
+            }
             );
             if (approved) {
                 const updatedTeachers = await fetchViewData('teachers_view');
@@ -378,8 +380,8 @@ export const createActionHandlers = (
         startAction(actionKey);
         try {
             await processStudentAction('/api/acceptPayment', { classId, userId, pendingId });
-            
-            updateArrayState('studentsQueued', data => 
+
+            updateArrayState('studentsQueued', data =>
                 data.filter(student => student.pending_id !== pendingId)
             );
             const updatedStudents = await fetchViewData('students_view');
@@ -398,8 +400,8 @@ export const createActionHandlers = (
         startAction(actionKey);
         try {
             await processStudentAction('/api/rejectPayment', { pendingId });
-            
-            updateArrayState('studentsQueued', data => 
+
+            updateArrayState('studentsQueued', data =>
                 data.filter(student => student.pending_id !== pendingId)
             );
             update();
@@ -433,7 +435,7 @@ export const createActionHandlers = (
         startAction(actionKey);
         try {
             await deleteTeacherData(teacherId);
-            updateArrayState('teachersData', data => 
+            updateArrayState('teachersData', data =>
                 data.filter(teacher => teacher.user_id !== teacherId)
             );
         } catch (error) {
@@ -484,7 +486,7 @@ export const createActionHandlers = (
         startAction(actionKey);
         try {
             await deleteData('classes', classId);
-            updateArrayState('classesData', data => 
+            updateArrayState('classesData', data =>
                 data.filter(cls => cls.class_id !== classId)
             );
         } catch (error) {
@@ -533,7 +535,7 @@ export const createActionHandlers = (
         startAction(actionKey);
         try {
             await deleteStudentData(studentId);
-            updateArrayState('studentsData', data => 
+            updateArrayState('studentsData', data =>
                 data.filter(student => student.user_id !== studentId)
             );
         } catch (error) {
