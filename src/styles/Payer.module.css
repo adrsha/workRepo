@@ -21,7 +21,17 @@
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
-.modalContent img{
+
+.qrImgPayment{
+    position: absolute;
+    background-color: white;
+    padding: 1rem;;
+    left: 30%;
+    width: 40%;
+    z-index: 5;
+}
+
+.qrImgPayment img{
     width: 100%;
 }
 
@@ -140,6 +150,7 @@
     display: flex;
     justify-content: space-between;
     gap: 10px;
+    margin-bottom: 15px;
 }
 
 .submitButton,
@@ -157,9 +168,32 @@
     color: white;
 }
 
+#payNowButton{
+    margin-bottom: 15px;
+    margin-right:  15px;
+}
+
 .closeButton {
     background-color: var(--lightRed);
     color: white;
+}
+
+.payOptions{
+    margin-bottom: 15px;
+    width: 90%;
+    display: none;
+}
+
+.hoverableButtons{
+    margin-right: 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.hoverableButtons:hover{
+    color: white;
+    background-color: var(--lightGreen);
 }
 
 .success {

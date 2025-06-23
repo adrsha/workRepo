@@ -7,7 +7,7 @@ export default function Payer(props) {
     const [error, setError] = useState('');
     const [selectedClasses, setSelectedClasses] = useState([]);
     const cart = Array.isArray(props.cart) ? props.cart : [];
-
+    const [qrImg, setQrImg] = useState('esewa.png');
     const getTeacher = (teacherId) => {
         return props.teachersData?.find(teacher => teacher.user_id === teacherId);
     };
@@ -79,12 +79,52 @@ export default function Payer(props) {
         }
     };
 
+function toggleVisibility(className) {
+    const elements = document.getElementsByClassName(className);
+    if (elements.length === 0) return; // Safety check
+
+    // Assume all have same visibility; check the first one
+    const currentDisplay = window.getComputedStyle(elements[0]).display;
+
+    const newDisplay = currentDisplay === "none" ? "block" : "none";
+
+    [...elements].forEach(el => {
+        el.style.display = newDisplay;
+    });
+
+    console.log(`Toggled ${className} to: ${newDisplay}`);
+}
+
     return (
         <div className={styles.modal}>
+                <div className={`${styles.qrImgPayment} qr_img_payment`} style={{display:'none'}}>
+                    <img src={qrImg} alt="Pay Details"/>
+                    <form onSubmit={handleSubmit}>
+                        <div className={styles.uploadSection}>
+                            <label htmlFor="screenshot">Upload Payment Screenshot: (PNG/JPG format)</label>
+                            <input
+                                type="file"
+                                id="screenshot"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                required
+                            />
+                        </div>
+                        <div className={styles.buttonGroup}>
+                            <button type="submit" className={styles.submitButton}>Submit</button>
+                            <button
+                                type="button"
+                                className={styles.closeButton}
+                                onClick={() => toggleVisibility("qr_img_payment")}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
             <div className={styles.modalContent}>
                 <h3>Payment for Selected Classes</h3>
                 {/* Display selected classes */}
-                <img src="esewa.jpg" alt="Pay Details"/>
                 <div className={styles.selectedClasses}>
                     <h4>Selected Classes:</h4>
                     {selectedClasses.length > 0 ? (
@@ -124,32 +164,21 @@ export default function Payer(props) {
                         <p>Loading class details...</p>
                     )}
                 </div>
-
-                <form onSubmit={handleSubmit}>
-                    <div className={styles.uploadSection}>
-                        <label htmlFor="screenshot">Upload Payment Screenshot: (PNG/JPG format)</label>
-                        <input
-                            type="file"
-                            id="screenshot"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            required
-                        />
-                    </div>
-                    <div className={styles.buttonGroup}>
-                        <button type="submit" className={styles.submitButton}>Submit</button>
-                        <button
-                            type="button"
-                            className={styles.closeButton}
-                            onClick={handleClose}
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-
+                <button id ={styles.payNowButton} className={styles.submitButton} onClick={() => toggleVisibility("payOptionsId")}>Pay Now</button>
+                <div className={`${styles.payOptions} payOptionsId`}>
+                    <button className={styles.hoverableButtons} onClick={() => toggleVisibility( "qr_img_payment")}>QR Code</button>
+                    <button className={styles.hoverableButtons}>Bank</button>
+                    <button className={styles.hoverableButtons}>Esewa</button>
+                </div>
                 {message && <p className={styles.success}>{message}</p>}
                 {error && <p className={styles.error}>{error}</p>}
+                            <button
+                                type="button"
+                                className={styles.closeButton}
+                                onClick={handleClose}
+                            >
+                                Cancel
+                            </button>
             </div>
         </div>
     );
