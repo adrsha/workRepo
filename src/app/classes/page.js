@@ -61,7 +61,6 @@ export default function GradesPage() {
         if (!gradesData.length) {
             fetchData('grades', authToken)
                 .then(data => {
-                    console.log("GRADE", data)
                     return setGradesData(data)
                 })
                 .catch(error => console.error('Error fetching grades:', error));
@@ -185,7 +184,6 @@ export default function GradesPage() {
                 { 'classes_users.user_id': userId },
                 authToken
             );
-            console.log("FINAL", data)
             setClassesUserJoined(data.map(item => item.class_id));
         } catch (error) {
             console.error('Error checking joined classes:', error);
