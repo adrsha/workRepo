@@ -29,26 +29,28 @@ const REQUIRED_FIELDS = {
     'pending_teachers': ['user_name', 'user_email'],
 };
 
+
 const VIEW_TABLE_MAP = {
     'teachers_view': {
         userTable: 'users',
         relatedTable: 'teachers',
         userLevel: 1,
-        userFields: ['user_name', 'user_email', 'contact', 'address'],
-        relatedFields: ['experience', 'qualification']
+        userFields: ['user_id', 'user_passkey', 'user_name', 'user_email', 'contact', 'address'], // Added user_id
+        relatedFields: ['user_id', 'experience', 'qualification'] // Added user_id
     },
     'students_view': {
         userTable: 'users',
         relatedTable: 'students',
         userLevel: 0,
-        userFields: ['user_name', 'user_email', 'contact', 'address'],
-        relatedFields: ['guardian_name', 'guardian_relation', 'guardian_contact', 'school', 'date_of_birth', 'class']
+        userFields: ['user_id', 'user_name', 'user_email', 'contact', 'address'], // Added user_id
+        relatedFields: ['user_id', 'guardian_name', 'guardian_relation', 'guardian_contact', 'school', 'date_of_birth', 'class'] // Added user_id
     },
     'classes_view': {
         relatedTable: 'classes',
         relatedFields: ['course_id', 'teacher_id', 'grade_id', 'start_time', 'end_time', 'class_description']
     }
 };
+
 
 function validateField(table, field) {
     return /^[a-zA-Z0-9_]+$/.test(field) &&
@@ -87,6 +89,8 @@ function sanitizeData(table, data, userId) {
     return sanitized;
 }
 
+
+// 2. Update the separateViewData function to preserve user_id when provided
 function separateViewData(viewName, data) {
     const config = VIEW_TABLE_MAP[viewName];
     if (!config) return null;
@@ -104,6 +108,13 @@ function separateViewData(viewName, data) {
             if (data[field] !== undefined) acc[field] = data[field];
             return acc;
         }, {});
+
+        // FIXED: If user_id is provided in the original data, preserve it
+        // This allows admins to create records for specific users
+        if (data.user_id !== undefined) {
+            result.userData.user_id = data.user_id;
+            result.relatedData.user_id = data.user_id;
+        }
     } else {
         result.relatedData = config.relatedFields.reduce((acc, field) => {
             if (data[field] !== undefined) acc[field] = data[field];
@@ -250,6 +261,7 @@ async function handleSingleCreate(table, data, userId) {
 }
 
 async function handleViewInsertion(viewName, data, userId) {
+    console.log(viewName, data, userId)
     const tableInfo = separateViewData(viewName, data);
     if (!tableInfo) {
         return createErrorResponse('Unsupported view for insertion', 400);
@@ -265,7 +277,9 @@ async function handleViewInsertion(viewName, data, userId) {
             totalAffected += userResult.affectedRows;
 
             if (tableInfo.relatedTable && tableInfo.relatedData) {
-                tableInfo.relatedData.user_id = insertId;
+                if (!tableInfo.relatedData.user_id) {
+                    tableInfo.relatedData.user_id = insertId;
+                }
                 const relatedResult = await createRecord(tableInfo.relatedTable, tableInfo.relatedData);
                 totalAffected += relatedResult.affectedRows;
             }
@@ -370,11 +384,30 @@ async function handleBulkViewInsertion(viewName, dataArray, userId) {
 
             let insertId;
             if (tableInfo.userTable && tableInfo.userData) {
-                const userResult = await createRecord(tableInfo.userTable, tableInfo.userData);
-                insertId = userResult.insertId;
+                // FIXED: Check if user_id is already provided
+                if (tableInfo.userData.user_id) {
+                    // User ID is specified, use it directly
+                    insertId = tableInfo.userData.user_id;
+                    
+                    // Create or update user record
+                    const userResult = await createRecord(tableInfo.userTable, tableInfo.userData);
+                    
+                    // Handle case where user_id was provided but user doesn't exist
+                    if (!userResult.insertId) {
+                        insertId = tableInfo.userData.user_id;
+                    } else {
+                        insertId = userResult.insertId;
+                    }
+                } else {
+                    // No user ID specified, create new user
+                    const userResult = await createRecord(tableInfo.userTable, tableInfo.userData);
+                    insertId = userResult.insertId;
+                }
 
                 if (tableInfo.relatedTable && tableInfo.relatedData) {
-                    tableInfo.relatedData.user_id = insertId;
+                    if (!tableInfo.relatedData.user_id) {
+                        tableInfo.relatedData.user_id = insertId;
+                    }
                     await createRecord(tableInfo.relatedTable, tableInfo.relatedData);
                 }
             } else if (tableInfo.relatedTable && tableInfo.relatedData) {

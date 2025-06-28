@@ -121,87 +121,32 @@ export const processStudentAction = async (endpoint, data) => {
     return response.json();
 };
 
-// Helper function to create teacher data in both users and teachers tables
+// UPDATED: Helper function to create teacher data using the view approach
 const createTeacherData = async (teacherData) => {
-    // Get schemas for both tables
-    const usersSchema = await getSchema('users');
-    const teachersSchema = await getSchema('teachers');
-
-    // Create user record using schema columns
-    const userData = {};
-    usersSchema.columns.forEach(column => {
-        if (teacherData.hasOwnProperty(column)) {
-            userData[column] = teacherData[column];
-        }
-    });
-
-    // Set user level for teachers if not provided
-    if (!userData.user_level) {
-        userData.user_level = 1; // Teacher level
-    }
-
-    const userResult = await createData('users', userData);
-    const userId = userResult.insertId;
-    // Create teacher record using schema columns
-    const teacherRecord = { [usersSchema.idField]: userId };
-    teachersSchema.columns.forEach(column => {
-        if (column !== teachersSchema.idField && teacherData.hasOwnProperty(column)) {
-            teacherRecord[column] = teacherData[column];
-        }
-    });
-
-    await createData('teachers', teacherRecord);
-    return userId;
+    // Use the teachers_view to create both user and teacher records in one call
+    // The API will handle the separation and creation of both records
+    const result = await createData('teachers_view', teacherData);
+    return result.insertId;
 };
 
-// Helper function to create student data in both users and students tables
+// UPDATED: Helper function to create student data using the view approach
 const createStudentData = async (studentData) => {
-    // Get schemas for both tables
-    const usersSchema = await getSchema('users');
-    const studentsSchema = await getSchema('students');
-
-    // Create user record using schema columns
-    const userData = {};
-    usersSchema.columns.forEach(column => {
-        if (studentData.hasOwnProperty(column)) {
-            userData[column] = studentData[column];
-        }
-    });
-
-    // Set user level for students if not provided
-    if (!userData.user_level) {
-        userData.user_level = 2; // Student level
-    }
-
-    const userResult = await createData('users', userData);
-    const userId = userResult[usersSchema.idField];
-
-    // Create student record using schema columns
-    const studentRecord = { [usersSchema.idField]: userId };
-    studentsSchema.columns.forEach(column => {
-        if (column !== studentsSchema.idField && studentData.hasOwnProperty(column)) {
-            studentRecord[column] = studentData[column];
-        }
-    });
-
-    await createData('students', studentRecord);
-    return userId;
+    // Use the students_view to create both user and student records in one call
+    // The API will handle the separation and creation of both records
+    const result = await createData('students_view', studentData);
+    return result.insertId;
 };
 
-// Helper function to delete teacher (from both tables)
+// UPDATED: Helper function to delete teacher using the view approach
 const deleteTeacherData = async (teacherId) => {
-    // Delete from teachers table first (foreign key constraint)
-    await deleteData('teachers', teacherId);
-    // Then delete from users table
-    await deleteData('users', teacherId);
+    // Use the teachers_view for deletion - the API will handle cascading deletes
+    await deleteData('teachers_view', teacherId);
 };
 
-// Helper function to delete student (from both tables)
+// UPDATED: Helper function to delete student using the view approach
 const deleteStudentData = async (studentId) => {
-    // Delete from students table first (foreign key constraint)
-    await deleteData('students', studentId);
-    // Then delete from users table
-    await deleteData('users', studentId);
+    // Use the students_view for deletion - the API will handle cascading deletes
+    await deleteData('students_view', studentId);
 };
 
 export const createActionHandlers = (
@@ -362,7 +307,7 @@ export const createActionHandlers = (
         }
     };
 
-    // CRUD Handlers for Teachers
+    // UPDATED: CRUD Handlers for Teachers - now using view approach
     const handleAddTeacher = async (teacherData) => {
         const actionKey = 'add-teacher';
         startAction(actionKey);
@@ -395,14 +340,13 @@ export const createActionHandlers = (
         }
     };
 
+    // UPDATED: Bulk add teachers - now using view approach
     const handleBulkAddTeachers = async (teachersData) => {
         const actionKey = 'bulk-add-teachers';
         startAction(actionKey);
         try {
-            // Process each teacher individually since we need to create in multiple tables
-            for (const teacherData of teachersData) {
-                await createTeacherData(teacherData);
-            }
+            // Use the bulk creation with teachers_view
+            await bulkCreateData('teachers_view', teachersData);
             // Refresh the full teacher data
             const updatedTeachers = await fetchViewData('teachers_view');
             updateState({ teachersData: updatedTeachers });
@@ -462,7 +406,7 @@ export const createActionHandlers = (
         }
     };
 
-    // CRUD Handlers for Students
+    // UPDATED: CRUD Handlers for Students - now using view approach
     const handleAddStudent = async (studentData) => {
         const actionKey = 'add-student';
         startAction(actionKey);
@@ -495,14 +439,13 @@ export const createActionHandlers = (
         }
     };
 
+    // UPDATED: Bulk add students - now using view approach
     const handleBulkAddStudents = async (studentsData) => {
         const actionKey = 'bulk-add-students';
         startAction(actionKey);
         try {
-            // Process each student individually since we need to create in multiple tables
-            for (const studentData of studentsData) {
-                await createStudentData(studentData);
-            }
+            // Use the bulk creation with students_view
+            await bulkCreateData('students_view', studentsData);
             // Refresh the full student data
             const updatedStudents = await fetchViewData('students_view');
             updateState({ studentsData: updatedStudents });
