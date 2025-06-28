@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { revFormatColName } from '../lib/utils';
 import "./innerStyles/EditableField.css"
 
 const formatDateTime = (dateTimeStr) => {
@@ -20,6 +21,10 @@ const formatDateTime = (dateTimeStr) => {
         return dateTimeStr;
     }
 };
+
+const revFormatDataTime = (date, time) =>{
+    return date && time ? `${date}T${time}:00` : '';
+}
 
 const extractDateFromDateTime = (dateTimeStr) => {
     if (!dateTimeStr) return '';
@@ -67,7 +72,7 @@ export const EditableDateTime = ({
 
     const handleSave = useCallback(() => {
         // Combine date and time into ISO string
-        const formattedDateTime = date && time ? `${date}T${time}:00` : '';
+        const formattedDateTime = revFormatDataTime(date, time);
         onSave(formattedDateTime);
         setIsEditing(false);
     }, [date, time, onSave]);
@@ -80,16 +85,6 @@ export const EditableDateTime = ({
 
     return (
         <div className={`editable-field ${className} ${disabled ? 'disabled' : ''}`}>
-            <div className="editable-field__header">
-                <label htmlFor={`datetime-${label}`} className="editable-field__label">
-                    {label}
-                </label>
-                {showCurrentValues && (date || time) && !isEditing && (
-                    <span className="editable-field__current-value">
-                        {date} {time}
-                    </span>
-                )}
-            </div>
 
             {isEditing ? (
                 <div className="editable-field__controls">
@@ -142,11 +137,12 @@ export const EditableDateTime = ({
                     onClick={() => !disabled && setIsEditing(true)}
                 >
                     <span className="editable-field__text">
-                        {formatDateTime(initialDateTime) || placeholder}
+                        {initialDateTime ? formatDateTime(initialDateTime) : `${date} ${time}` || placeholder}
                     </span>
                     {!disabled && (
                         <span className="editable-field__icon">✏️</span>
                     )}
+                    {date && time && <input type="hidden" name={revFormatColName(label)} value={revFormatDataTime(date, time)} />}
                 </div>
             )}
         </div>

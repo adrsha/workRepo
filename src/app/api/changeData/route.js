@@ -225,6 +225,7 @@ async function handleSingleCreate(table, data, userId) {
         return createErrorResponse(`Missing required fields: ${validation.missingFields.join(', ')}`, 400);
     }
 
+    console.log(table, cleanData, userId)
     const sanitized = sanitizeData(table, cleanData, userId);
     if (Object.keys(sanitized).length === 0) {
         return createErrorResponse('No valid fields to create', 400);

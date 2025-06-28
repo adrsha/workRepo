@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import { revFormatColName } from '../lib/utils';
 import "./innerStyles/EditableField.css"
 
 export const EditableDate = ({ initialDate, onSave, label }) => {
@@ -22,7 +23,6 @@ export const EditableDate = ({ initialDate, onSave, label }) => {
 
     return (
         <div className="editable-field">
-            <label htmlFor={label} className="editable-field__label">{label}</label>
             {isEditing ? (
                 <div className="edit-controls date-controls">
                     <div className="date-input-group">
@@ -41,6 +41,7 @@ export const EditableDate = ({ initialDate, onSave, label }) => {
             ) : (
                 <div className="display-value" onClick={() => setIsEditing(true)}>
                     {formatDateDisplay(date)}
+                    {data && <input type="hidden" value={date} name={revFormatColName(label)}/>}
                 </div>
             )}
         </div>

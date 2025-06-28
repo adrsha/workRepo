@@ -22,7 +22,7 @@ export const pendingTeachers = async (pendingId, approved) => {
 
 export const updateData = async (table, id, updates) => {
     const authToken = localStorage.getItem('authToken');
-    
+    console.log("HERE", table, id, updates);
     const response = await fetch('/api/changeData', {
         method: 'PUT',
         headers: {
@@ -42,8 +42,8 @@ export const updateData = async (table, id, updates) => {
 
 export const createData = async (table, data) => {
     const authToken = localStorage.getItem('authToken');
-    console.log(table, data)
 
+    console.log("HERE", table, data);
     const response = await fetch('/api/changeData', {
         method: 'POST',
         headers: {

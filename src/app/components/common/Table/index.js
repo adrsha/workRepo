@@ -1,19 +1,48 @@
-// Table/index.js - Enhanced Table Component with Column Hiding Support
+// Table/index.js - Fixed AddRecordForm call with fieldMappings
 import { useState } from 'react';
 import "../../innerStyles/Table.css"
-import { getCols } from '../../../lib/utils';
+import { getCols, formatColName } from '../../../lib/utils';
 import { SYSTEM_FIELDS, isSystemField, getEditableFields } from './utils';
+import { createFieldRenderer } from '../fieldRendererFactory.js';
 import { TableActions } from './TableActions';
 import { TableGrid } from './TableGrid';
 import { AddRecordForm } from './forms/AddRecordForm';
 import { BulkAddForm } from './forms/BulkAddForm';
 
-const DISALLOWED_COLUMNS = ["user_level"]
+const DISALLOWED_COLUMNS = ["user_level"];
+
+// Input type helpers
+const getInputType = (field) => {
+    if (field.includes('email')) return 'email';
+    if (field.includes('date')) return 'date';
+    if (field.includes('phone') || field.includes('contact')) return 'tel';
+    if (field.includes('password') || field.includes('passkey')) return 'password';
+    return 'text';
+};
+
+const getPlaceholder = (field) => {
+    const placeholders = {
+        user_name: 'Enter full name',
+        user_email: 'Enter email address',
+        contact: 'Enter phone number',
+        address: 'Enter address',
+        experience: 'Years of experience',
+        qualification: 'Educational qualification',
+        guardian_name: 'Guardian name',
+        guardian_contact: 'Guardian phone',
+        school: 'School name',
+        class: 'Class/Grade'
+    };
+    return placeholders[field] || `Enter ${field.replace(/_/g, ' ')}`;
+};
 
 export const Table = ({
-    data,
+    data = [],
     className = '',
     renderCell,
+    fieldMappings = {},
+    dependencies = {},
+    handlers = {},
     additionalColumns = [],
     keyField = 'id',
     allowAdd = false,
@@ -28,49 +57,68 @@ export const Table = ({
     tableName = '',
     dropdownOptions = {},
     uploadEndpoints = {},
-    hiddenColumns = [], // New prop for columns to hide from display
-    showColumnToggle = false // New prop to show/hide column toggle UI
+    hiddenColumns = [],
+    showColumnToggle = false
 }) => {
     const [showAddForm, setShowAddForm] = useState(false);
     const [showBulkForm, setShowBulkForm] = useState(false);
     const [selectedRows, setSelectedRows] = useState(new Set());
     const [userHiddenColumns, setUserHiddenColumns] = useState(new Set(hiddenColumns));
-    
-    DISALLOWED_COLUMNS.forEach(col => {
-        data.forEach((row) => {
-            delete row[col]
-        })
+
+    // Remove disallowed columns
+    const cleanedData = data.map(row => {
+        const cleanRow = { ...row };
+        DISALLOWED_COLUMNS.forEach(col => delete cleanRow[col]);
+        return cleanRow;
     });
 
-    const allColumns = data?.length ? getCols(data) : [];
+    const allColumns = cleanedData?.length ? getCols(cleanedData) : [];
     const editableFields = getEditableFields(allColumns);
     const editableRequiredFields = requiredFields.filter(field => !isSystemField(field));
     const visibleEditableFields = editableFields.filter(field => !userHiddenColumns.has(field));
 
+    // Enhanced form field renderer that uses the new schema
     const enhancedRenderFormField = (field, value, onChange, options) => {
-        let caption = '';
+        // Special cases
         if (field === 'video_path' || field === 'certificate_path') {
-            return (
-                <div>Need to first create the ID</div>
-            );
+            return <div>Need to first create the ID</div>;
         }
 
+        let caption = '';
         if (field === 'user_passkey') {
-            caption = "Make sure to encrypt this!"
+            caption = "Make sure to encrypt this!";
         }
 
+        // Use renderCell if available with new schema
+        if (renderCell && fieldMappings[field]) {
+            const mockItem = { [field]: value, isFormMode: true };
+            try {
+                return renderCell(mockItem, field, { 
+                    onChange,
+                    options,
+                    dependencies,
+                    handlers
+                });
+            } catch (error) {
+                console.warn(`Field renderer failed for ${field}, falling back to default`);
+            }
+        }
+
+        // Fallback to default input
         return (
             <>
-                <span>{caption}</span>
+                {caption && <span className="field-caption">{caption}</span>}
                 <input
                     type={getInputType(field)}
-                    onChange={(e) => onChange(e.target)}
+                    value={value || ''}
+                    onChange={(e) => onChange(field, e.target.value)}
                     className="form-input"
                     placeholder={getPlaceholder(field)}
                 />
             </>
         );
     };
+
     const handleAdd = (formData) => {
         onAdd(formData);
         setShowAddForm(false);
@@ -82,7 +130,7 @@ export const Table = ({
     };
 
     const handleSelectAll = (checked) => {
-        setSelectedRows(checked ? new Set(data.map(item => item[keyField])) : new Set());
+        setSelectedRows(checked ? new Set(cleanedData.map(item => item[keyField])) : new Set());
     };
 
     const handleRowSelect = (id, checked) => {
@@ -98,7 +146,7 @@ export const Table = ({
         }
     };
 
-    // Column visibility toggle handlers
+    // Column visibility handlers
     const toggleColumnVisibility = (columnName) => {
         const newHiddenColumns = new Set(userHiddenColumns);
         if (newHiddenColumns.has(columnName)) {
@@ -109,20 +157,14 @@ export const Table = ({
         setUserHiddenColumns(newHiddenColumns);
     };
 
-    const showAllColumns = () => {
-        setUserHiddenColumns(new Set());
-    };
+    const showAllColumns = () => setUserHiddenColumns(new Set());
 
     const hideAllNonEssentialColumns = () => {
         const essentialColumns = [keyField, 'name', 'user_name', 'title', 'email', 'user_email'];
         const columnsToHide = allColumns.filter(col => !essentialColumns.includes(col));
         setUserHiddenColumns(new Set(columnsToHide));
     };
-    
-    // if (!data?.length) {
-    //     return null;
-    // }
-    
+
     return (
         <div className="table-container scrollable">
             <TableActions
@@ -135,7 +177,6 @@ export const Table = ({
                 onBulkDelete={handleBulkDelete}
             />
 
-            {/* Column Toggle Controls */}
             {showColumnToggle && (
                 <ColumnToggleControls
                     allColumns={allColumns}
@@ -147,9 +188,9 @@ export const Table = ({
             )}
 
             <TableGrid
-                data={data}
+                data={cleanedData}
                 columns={visibleEditableFields}
-                allColumns={allColumns} // Pass all columns for access by other components
+                allColumns={allColumns}
                 additionalColumns={additionalColumns}
                 className={className}
                 renderCell={renderCell}
@@ -161,28 +202,33 @@ export const Table = ({
                 onSelectAll={handleSelectAll}
                 onDelete={onDelete}
             />
-
+            {console.log(fieldMappings, dependencies)}
             {showAddForm && (
                 <AddRecordForm
-                    fields={editableFields} // Use all editable fields for forms
+                    fields={editableFields}
                     requiredFields={editableRequiredFields}
                     onSave={handleAdd}
                     onCancel={() => setShowAddForm(false)}
                     tableName={tableName}
                     renderFormField={enhancedRenderFormField}
                     dropdownOptions={dropdownOptions}
+                    createFieldRenderer={createFieldRenderer}
+                    fieldMappings={fieldMappings}  // Added this
+                    dependencies={dependencies}    // Added this
                 />
             )}
 
             {showBulkForm && (
                 <BulkAddForm
-                    fields={editableFields} // Use all editable fields for forms
+                    fields={editableFields}
                     requiredFields={editableRequiredFields}
                     onSave={handleBulkAdd}
                     onCancel={() => setShowBulkForm(false)}
                     tableName={tableName}
                     renderFormField={enhancedRenderFormField}
                     dropdownOptions={dropdownOptions}
+                    fieldMappings={fieldMappings}  // You might want to add this too
+                    dependencies={dependencies}    // And this
                 />
             )}
         </div>
@@ -217,7 +263,7 @@ const ColumnToggleControls = ({
                     </button>
                 </div>
             </div>
-            
+
             {showDropdown && (
                 <div className="column-toggle-dropdown">
                     <div className="column-list">
@@ -229,7 +275,7 @@ const ColumnToggleControls = ({
                                     onChange={() => onToggleColumn(column)}
                                 />
                                 <span className="column-name">
-                                    {formatColumnName(column)}
+                                    {formatColName(column)}
                                 </span>
                                 {hiddenColumns.has(column) && (
                                     <span className="hidden-indicator">(Hidden)</span>
@@ -241,31 +287,4 @@ const ColumnToggleControls = ({
             )}
         </div>
     );
-};
-
-
-
-// Helper functions
-const getInputType = (field) => {
-    if (field.includes('email')) return 'email';
-    if (field.includes('date')) return 'date';
-    if (field.includes('phone') || field.includes('contact')) return 'tel';
-    if (field.includes('password') || field.includes('passkey')) return 'password';
-    return 'text';
-};
-
-const getPlaceholder = (field) => {
-    const placeholders = {
-        user_name: 'Enter full name',
-        user_email: 'Enter email address',
-        contact: 'Enter phone number',
-        address: 'Enter address',
-        experience: 'Years of experience',
-        qualification: 'Educational qualification',
-        guardian_name: 'Guardian name',
-        guardian_contact: 'Guardian phone',
-        school: 'School name',
-        class: 'Class/Grade'
-    };
-    return placeholders[field] || `Enter ${field.replace(/_/g, ' ')}`;
 };

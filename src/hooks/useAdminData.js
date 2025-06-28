@@ -32,7 +32,6 @@ export const useAdminData = (initialPendingTeachers = []) => {
 
     const loadInitialData = useCallback(async () => {
         const authToken = localStorage.getItem('authToken');
-        console.log("Its trying")
         try {
             const [pendingStudents, users] = await Promise.all([
                 fetchData('class_joining_pending', authToken),

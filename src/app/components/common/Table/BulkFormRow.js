@@ -26,7 +26,7 @@ export const BulkFormRow = ({
                 </button>
             )}
         </div>
-        
+            
         <div className="bulk-row-fields">
             {fields.map(field => (
                 <FormField

@@ -39,3 +39,8 @@ export const setStoredTab = (tab) => {
         localStorage.setItem(STORAGE_KEY, tab.toString());
     }
 };
+
+export const revFormatColName = (label) => {
+  if (!label) return ""
+  return label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+}

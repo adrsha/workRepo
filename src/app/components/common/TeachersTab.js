@@ -173,40 +173,47 @@ const createFieldRenderer = (schemas, onSaveData) => {
         const saveHandler = handleSave(col, teacher.user_id);
         const fieldMap = {
             certificate_path: () =>(
+                teacher.certificate_path ?
                 <FullScreenableImage 
                     src={teacher.certificate_path} 
                     alt="certificate" 
                     className="certificate-img" 
+                /> : 
+                <EditableField
+                    initialValue={teacher.certificate_path || ''}
+                    onSave={teacher.user_id ? saveHandler : ()=>{}}
+                    placeholder="Enter certificate path"
+                    label={formatColName(col)}
                 />
             ),
             experience: () => (
                 <EditableField
-                    initialValue={teacher.experience || 'No experience listed'}
-                    onSave={saveHandler}
+                    initialValue={teacher.experience || ''}
+                    onSave={teacher.user_id ? saveHandler : ()=>{}}
                     placeholder="Enter teaching experience"
                     label={formatColName(col)}
                 />
             ),
             qualification: () => (
                 <EditableField
-                    initialValue={teacher.qualification || 'No qualification listed'}
-                    onSave={saveHandler}
+                    initialValue={teacher.qualification || ''}
+                    onSave={teacher.user_id ? saveHandler : ()=>{}}
                     placeholder="Enter qualifications"
                     label={formatColName(col)}
                 />
             ),
             user_level: () => (
                 <EditableField
-                    initialValue={teacher.user_level || 'Not set'}
-                    onSave={saveHandler}
+                    initialValue={teacher.user_level || ''}
+                    onSave={teacher.user_id ? saveHandler : ()=>{}}
                     placeholder="Enter user level"
                     label={formatColName(col)}
                 />
             ),
             created_at: () => (
                 <EditableDate
-                    initialDate={teacher.created_at.split('T')[0] || 'Not set'}
-                    onSave={saveHandler}
+                    initialDate={teacher.created_at.split('T')[0] || ''}
+                    onSave={teacher.user_id ? saveHandler : ()=>{}}
                     label={formatColName(col)}
                 />
             )
@@ -218,7 +225,7 @@ const createFieldRenderer = (schemas, onSaveData) => {
         return (
             <EditableField
                 initialValue={teacher[col] || ''}
-                onSave={saveHandler}
+                onSave={teacher.user_id ? saveHandler : ()=>{}}
                 label={formatColName(col)}
                 placeholder={`Enter ${formatColName(col).toLowerCase()}`}
             />
@@ -256,7 +263,6 @@ const ApprovedTeachersTable = ({
         'Are you sure you want to delete this teacher?'
     );
 
-    console.log("TC", teachers)
     const handleAdd = createAsyncHandler(onAddTeacher, 'Error adding teacher');
     const handleBulkAdd = createAsyncHandler(onBulkAddTeachers, 'Error bulk adding teachers');
 
@@ -266,6 +272,7 @@ const ApprovedTeachersTable = ({
             className="teachers-table"
             keyField="user_id"
             renderCell={renderCell}
+            createFieldRenderer={renderCell} // Pass the field renderer to the table
             emptyMessage="No approved teachers"
             allowAdd={true}
             allowDelete={true}

@@ -574,26 +574,23 @@ section {
     position: relative;
 }
 
-.enrolled-classes-count,
-.enrolled-students-count {
+.count-display {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.enrolled-classes-count.clickable,
-.enrolled-students-count.clickable {
+.clickable {
     cursor: pointer;
     transition: transform 0.2s ease;
 }
 
-.enrolled-classes-count.clickable:hover,
-.enrolled-students-count.clickable:hover {
+.clickable:hover,
+.clickable:hover {
     transform: scale(1.05);
 }
 
-.class-count-badge,
-.student-count-badge {
+.count-badge {
     background-color: #e3f2fd;
     color: #1976d2;
     padding: 6px 10px;
@@ -608,8 +605,7 @@ section {
     transition: all 0.2s ease;
 }
 
-.class-count-badge:hover,
-.student-count-badge:hover {
+.count-badge:hover {
     background-color: #bbdefb;
     border-color: #90caf9;
 }
@@ -623,8 +619,7 @@ section {
     transform: rotate(0deg);
 }
 
-.enrolled-classes-list,
-.enrolled-students-list {
+.items-list {
     position: absolute;
     top: 100%;
     left: 0;
@@ -640,14 +635,12 @@ section {
     width: fit-content;
 }
 
-.classes-grid,
-.students-grid {
+.items-grid {
     padding: 8px;
     width: fit-content
 }
 
-.class-item,
-.student-item {
+.item {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -696,8 +689,8 @@ section {
     opacity: 1;
 }
 
-.no-classes,
-.no-students {
+.no-class,
+.no-student {
     padding: 16px;
     text-align: center;
     color: #666;
@@ -705,8 +698,8 @@ section {
     font-style: italic;
 }
 
-.class-count-badge:empty::after,
-.student-count-badge:empty::after {
+.count-badge:empty::after,
+.count-badge:empty::after {
     content: "0 students";
 }
 

@@ -1,22 +1,20 @@
 import { useState } from 'react';
-import { FormField } from '../FormField';
 
-export const AddRecordForm = ({ 
-    fields, 
-    requiredFields, 
-    onSave, 
-    onCancel, 
+export const AddRecordForm = ({
+    fields,
+    requiredFields,
+    onSave,
+    onCancel,
     tableName,
-    renderFormField,
-    dropdownOptions
+    createFieldRenderer,
+    fieldMappings = {},
+    dependencies = {}
 }) => {
     const [formData, setFormData] = useState({});
     const [errors, setErrors] = useState({});
 
-    const handleInputChange = (field) => {
-        const value = field.value;
+    const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-        console.log("Field", field, value)
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: null }));
         }
@@ -40,6 +38,42 @@ export const AddRecordForm = ({
         }
     };
 
+    const renderField = (field) => {
+        if (!createFieldRenderer) {
+            return (
+                <input
+                    type="text"
+                    value={formData[field] || ''}
+                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    className={`form-input ${errors[field] ? 'error' : ''}`}
+                    placeholder={`Enter ${field.replace(/_/g, ' ')}`}
+                />
+            );
+        }
+
+        // Create the mock item with form mode enabled
+        const mockItem = { ...formData, isFormMode: true };
+        
+        // Create mock handlers for the field renderer
+        const mockHandlers = {
+            onSaveData: () => {},
+            onMultiSaveData: () => {},
+            onChange: handleInputChange  // This will be used in form mode
+        };
+
+        // Get the field renderer function
+        const fieldRenderer = createFieldRenderer(fieldMappings, dependencies, mockHandlers);
+        
+        // Create options with error state
+        const options = { 
+            error: errors[field],
+            className: errors[field] ? 'error' : ''
+        };
+        
+        // Call the field renderer with the correct parameters
+        return fieldRenderer(mockItem, field, handleInputChange, options);
+    };
+
     return (
         <div className="modal-overlay">
             <div className="modal-content">
@@ -47,16 +81,16 @@ export const AddRecordForm = ({
                 <form onSubmit={handleSubmit}>
                     <div className="form-content">
                         {fields.map(field => (
-                            <FormField
-                                key={field}
-                                field={field}
-                                value={formData[field] || ''}
-                                onChange={handleInputChange}
-                                error={errors[field]}
-                                required={requiredFields.includes(field)}
-                                renderFormField={renderFormField}
-                                dropdownOptions={dropdownOptions}
-                            />
+                            <div key={field} className="form-field">
+                                <label className="form-label">
+                                    {field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                    {requiredFields.includes(field) && <span className="required">*</span>}
+                                </label>
+                                {renderField(field)}
+                                {errors[field] && (
+                                    <span className="error-message">{errors[field]}</span>
+                                )}
+                            </div>
                         ))}
                     </div>
                     <div className="form-actions">

@@ -1,10 +1,10 @@
 import { formatColName } from '../../../lib/utils';
 
-export const FormField = ({ 
-    field, 
-    value, 
-    onChange, 
-    error, 
+export const FormField = ({
+    field,
+    value,
+    onChange,
+    error,
     required,
     renderFormField,
     dropdownOptions
