@@ -1,18 +1,20 @@
 /* Modern Navbar CSS Module */
 .navbar {
-  background-color: var(--tertiaryLighter);
-  height: var(--navheight);
-  padding: 1rem clamp(1rem, 8vw, 6rem);
-  color: var(--foreground);
   position: fixed;
-  width: 100%;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  padding: 1rem clamp(1rem, 8vw, 6rem);
+  background-color: var(--tertiaryLighter);
+  color: var(--foreground);
+  z-index: 100;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 100;
   backdrop-filter: blur(16px) saturate(180%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
+  box-shadow:
     0 4px 32px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -24,9 +26,9 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.3) 50%, 
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3) 50%,
     transparent
   );
 }
@@ -71,10 +73,19 @@
 }
 
 /* Navigation Links */
+.navItems{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .navLinks {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  width: 60vw;
+  font-size: min(1.5vw, 1rem);
+  overflow-x: scroll;
 }
 
 .navButton {
@@ -87,7 +98,8 @@
   white-space: nowrap;
   border: 1px solid transparent;
   position: relative;
-  overflow: hidden;
+  overflow: block;
+  font-size: min(1.5vw, 1rem);
 }
 
 .navButton::before {
@@ -97,6 +109,7 @@
   background: var(--tertiary);
   opacity: 0;
   transition: opacity 0.3s ease;
+  border-radius: 0.5rem;
   z-index: -1;
 }
 
@@ -124,9 +137,9 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.2), 
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
     transparent
   );
   transition: left 0.6s ease;
@@ -146,7 +159,7 @@
 .separator {
   width: 1px;
   height: 2rem;
-  background: linear-gradient(to bottom, 
+  background: linear-gradient(to bottom,
     transparent,
     var(--offWhite) 20%,
     var(--offWhite) 80%,
@@ -184,8 +197,8 @@
   position: absolute;
   inset: 0;
   border-radius: 0.5rem;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.1), 
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.1),
     transparent 50%
   );
   opacity: 0;
@@ -209,7 +222,7 @@
   border-radius: 0.75rem;
   background: var(--background);
   border: 1px solid var(--offWhite);
-  box-shadow: 
+  box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
   overflow: hidden;
@@ -275,8 +288,8 @@
   display: none;
   flex-direction: column;
   justify-content: space-between;
-  width: 28px;
-  height: 20px;
+  width: 40px;
+  height: 40px;
   cursor: pointer;
   background: transparent;
   border: 1px solid transparent;
@@ -292,7 +305,7 @@
 
 .hamburgerLine {
   width: 100%;
-  height: 2px;
+  height: 1px;
   background: var(--foreground);
   border-radius: 1px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -315,7 +328,7 @@
 }
 
 .hamburgerButton.active .hamburgerLine:nth-child(1) {
-  transform: translateY(8px) rotate(45deg);
+  transform: translateY(10.5px) rotate(45deg);
 }
 
 .hamburgerButton.active .hamburgerLine:nth-child(2) {
@@ -324,7 +337,7 @@
 }
 
 .hamburgerButton.active .hamburgerLine:nth-child(3) {
-  transform: translateY(-8px) rotate(-45deg);
+  transform: translateY(-10.5px) rotate(-45deg);
 }
 
 /* Notifications */
@@ -349,8 +362,8 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, 
-    rgba(255, 255, 255, 0.1), 
+  background: radial-gradient(circle at center,
+    rgba(255, 255, 255, 0.1),
     transparent 70%
   );
   transition: opacity 0.3s ease;
@@ -390,7 +403,7 @@
   color: var(--foreground);
   border-radius: 0.75rem;
   border: 1px solid var(--offWhite);
-  box-shadow: 
+  box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   overflow: hidden;
@@ -445,8 +458,8 @@
   top: 0;
   bottom: 0;
   width: 0;
-  background: linear-gradient(to left, 
-    rgba(0, 0, 0, 0.05), 
+  background: linear-gradient(to left,
+    rgba(0, 0, 0, 0.05),
     transparent
   );
   transition: width 0.3s ease;
@@ -489,8 +502,10 @@
   }
 
   .navLinks {
+    z-index: 5;
     position: fixed;
     top: var(--navheight);
+    width: 100%;
     left: 0;
     right: 0;
     flex-direction: column;
@@ -498,7 +513,7 @@
     backdrop-filter: blur(20px);
     padding: 1rem 0;
     gap: 0.5rem;
-    max-height: 0;
+    /* max-height: 0; */
     overflow: hidden;
     visibility: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -512,9 +527,9 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, 
-      transparent, 
-      rgba(0, 0, 0, 0.1) 50%, 
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(0, 0, 0, 0.1) 50%,
       transparent
     );
   }
