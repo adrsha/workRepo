@@ -3,6 +3,7 @@ import Nav from './components/Nav.js';
 import Footer from './components/Footer.js';
 import defaultStyle from './page.module.css';
 import { SessionProvider } from 'next-auth/react';
+import './global.css';
 
 export default function RootLayout({ children }) {
   return (

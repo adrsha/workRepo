@@ -40,7 +40,7 @@ export default function GradesPage() {
     const [classesPendingApproval, setClassesPendingApproval] = useState([]);
     // New state for teacher's owned classes
     const [teacherOwnedClasses, setTeacherOwnedClasses] = useState([]);
-
+    const [classItem, setClassItem] = useState([]);
     // Get user level (0: student, 1: teacher, 2: admin)
     const getUserLevel = () => {
         return session?.user?.level ?? null;
@@ -61,7 +61,6 @@ export default function GradesPage() {
         if (!gradesData.length) {
             fetchData('grades', authToken)
                 .then(data => {
-                    console.log("GRADE", data)
                     return setGradesData(data)
                 })
                 .catch(error => console.error('Error fetching grades:', error));
@@ -87,26 +86,33 @@ export default function GradesPage() {
             { 'grades.grade_id': activeGradeId },
             isAuthenticated ? authToken : null
         )
-            .then(data => {
-                console.log("JOINED", data)
-                return setClassesData(data)
-            })
+          .then(data => {
+            return (
+              setClassesData(data),
+              setClassItem(prev => [
+                ...prev,
+                ...data.filter(
+                  newItem => !prev.some(existing => existing.class_id === newItem.class_id)
+                )
+              ])
+           )
+          })
             .catch(error => console.error('Error fetching classes:', error));
 
         if (isAuthenticated) {
             const userLevel = getUserLevel();
-            
+
             // For students (level 0), check joined and pending classes
             if (userLevel === 0) {
                 checkUserJoinedClasses();
                 checkUserPendingClasses();
             }
-            
+
             // For teachers (level 1), check owned classes
             if (userLevel === 1) {
                 checkTeacherOwnedClasses();
             }
-            
+
             // For admins (level 2), check all data
             if (userLevel === 2) {
                 checkUserJoinedClasses();
@@ -178,7 +184,6 @@ export default function GradesPage() {
                 { 'classes_users.user_id': userId },
                 authToken
             );
-            console.log("FINAL", data)
             setClassesUserJoined(data.map(item => item.class_id));
         } catch (error) {
             console.error('Error checking joined classes:', error);
@@ -246,7 +251,6 @@ export default function GradesPage() {
             // Process each class in the cart
             const authToken = localStorage.getItem('authToken');
             const userId = session.user.id;
-
             // Add the class IDs to the pending table
             // This is just a placeholder for your actual API call
             const pendingAdditions = cart.map(classId => ({
@@ -286,7 +290,7 @@ export default function GradesPage() {
     // Add a class to the cart (only for students)
     const addToCart = (classId) => {
         const userLevel = getUserLevel();
-        
+
         // Only students can add to cart
         if (userLevel !== 0) {
             return;
@@ -314,21 +318,21 @@ export default function GradesPage() {
     // Check class status: joined, pending, owned, or available
     const getClassStatus = (classId) => {
         const userLevel = getUserLevel();
-        
+
         // For teachers and admins, check if they own the class
         if ((userLevel === 1 || userLevel === 2) && teacherOwnedClasses.includes(classId)) {
             return 'owned';
         }
-        
+
         // For students and admins, check joined/pending status
         if ((userLevel === 0 || userLevel === 2) && classesUserJoined.includes(classId)) {
             return 'joined';
         }
-        
+
         if ((userLevel === 0 || userLevel === 2) && classesPendingApproval.includes(classId)) {
             return 'pending';
         }
-        
+
         return 'available';
     };
 
@@ -408,7 +412,7 @@ export default function GradesPage() {
             {/* Side Panel with Grade Selection */}
             <div className={styles.sidePanel}>
                 <h1 className={styles.header}>
-                    {status === 'authenticated' 
+                    {status === 'authenticated'
                         ? `Select Classes ${getUserLevel() === 0 ? '(Student)' : getUserLevel() === 1 ? '(Teacher)' : '(Admin)'}`
                         : 'Select Classes'
                     }
@@ -526,7 +530,7 @@ export default function GradesPage() {
             {showPayer && getUserLevel() === 0 && (
                 <Payer
                     cart={cart}
-                    classesData={classesData}
+                    classesData={classItem}
                     teachersData={teachersData}
                     onClose={() => {
                         setShowPayer(false);

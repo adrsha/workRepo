@@ -51,8 +51,8 @@ export async function POST(request) {
 
         // Check if the user is the teacher of this class
         const teacherQuery = `
-            SELECT teacher_id 
-            FROM classes 
+            SELECT teacher_id
+            FROM classes
             WHERE class_id = ?
         `;
 
@@ -95,8 +95,8 @@ export async function POST(request) {
 
         // Get the newly created content
         const getContentQuery = `
-            SELECT * 
-            FROM content 
+            SELECT *
+            FROM content
             WHERE content_id = ?
         `;
 
@@ -106,7 +106,7 @@ export async function POST(request) {
         });
 
         const responseContent = newContent[0];
-        
+
         // Parse markdown for response if it's text content
         if (responseContent.content_type === 'text') {
             responseContent.content_data = marked.parse(responseContent.content_data);
@@ -128,7 +128,7 @@ export async function DELETE(request, { params }) {
 
     const { classId } = await params;
     let contentId = classId; // Note: This seems like it should be contentId from params
-    
+
     if (!contentId) {
         return NextResponse.json({ error: 'Content ID is required' }, { status: 400 });
     }
@@ -150,10 +150,11 @@ export async function DELETE(request, { params }) {
         if (!classData || classData.length === 0) {
             return NextResponse.json({ error: 'Content not found' }, { status: 404 });
         }
-
+      console.log('########################',session.user);
         // Check if user is the teacher of this class
-        if (classData[0].teacher_id !== session.user.id) {
-            return NextResponse.json({ error: 'Only the teacher can delete content' }, { status: 403 });
+        // if (classData[0].teacher_id !== session.user.id) {
+        if(!session.user.level>=1){
+            return NextResponse.json({ error: 'Only the teacher or admin can delete content' }, { status: 403 });
         }
 
         // Simply delete the content - cascading rules handle the rest
@@ -174,12 +175,12 @@ export async function DELETE(request, { params }) {
             return NextResponse.json({ error: 'Content not found or already deleted' }, { status: 404 });
         }
 
-        return NextResponse.json({ 
-            success: true, 
+        return NextResponse.json({
+            success: true,
             message: 'Content deleted successfully',
-            affectedRows: result.affectedRows 
+            affectedRows: result.affectedRows
         });
-        
+
     } catch (error) {
         console.error('Error deleting content:', error);
         return NextResponse.json({ error: 'Failed to delete content' }, { status: 500 });
