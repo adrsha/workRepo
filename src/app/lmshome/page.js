@@ -12,6 +12,8 @@ import { useSession } from 'next-auth/react';
 
 import { useRouter } from 'next/navigation';
 
+import { SEO } from '../seoConfig';
+
 async function removeClass(classId) {
     try {
         const token = localStorage.getItem('authToken');
@@ -429,6 +431,7 @@ export default function LMSHome() {
 
     return (
         <div className={styles.container}>
+            <SEO pageTitle="lmshome" />
             {renderContent()}
 
             {addClassOverLayState && (

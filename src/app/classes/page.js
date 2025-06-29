@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import styles from '../../styles/Grades.module.css';
 import '../global.css';
 
+import { SEO } from '../seoConfig';
 import Loading from '../components/Loading';
 import Payer from '../components/Payer';
 import {
@@ -16,6 +17,7 @@ import {
     fetchDataWhereAttrIs,
     getDate
 } from '../lib/helpers';
+
 
 export default function GradesPage() {
     const router = useRouter();
@@ -409,6 +411,7 @@ export default function GradesPage() {
     // Main render - now shows for all authentication states
     return (
         <div className={styles.container}>
+            <SEO pageKey={"classes"} />
             {/* Side Panel with Grade Selection */}
             <div className={styles.sidePanel}>
                 <h1 className={styles.header}>

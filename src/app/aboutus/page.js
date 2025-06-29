@@ -1,5 +1,7 @@
 import styles from '../../styles/AboutUs.module.css';
 import '../global.css';
+import { getMetadata } from '../seoConfig';
+export const metadata = getMetadata('aboutus');
 
 export default function AboutUs() {
     return (

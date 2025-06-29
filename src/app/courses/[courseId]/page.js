@@ -5,6 +5,7 @@ import { use } from 'react';
 import { fetchData } from '../../lib/helpers.js';
 import Loading from '../../components/Loading.js';
 import '../../global.css';
+import { SEO } from '../../seoConfig';
 
 export default function CoursePage({ params }) {
     const resolvedParams = use(params);
@@ -26,6 +27,7 @@ export default function CoursePage({ params }) {
 
     return (
         <div className={styles.container}>
+            <SEO pageKey="courses"/>
             <h2 className={styles.subjectTitle}>
                 {getCourse(parseInt(resolvedParams.courseId)).course_name[0].toUpperCase() +
                     getCourse(parseInt(resolvedParams.courseId)).course_name.slice(1)}

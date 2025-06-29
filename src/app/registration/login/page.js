@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react';
 
 // Project-specific imports
 import Input from '../../components/Input.js';
+import { SEO } from '../../seoConfig.js';
 import styles from '../../../styles/Registration.module.css';
 import '../../global.css';
 
@@ -76,6 +77,7 @@ export default function Login() {
     // Render Login Form
     return (
         <div className={styles.registrationContainer}>
+            <SEO pageKey="login" />
             {/* Login Process Guide */}
             <div className={styles.processGuide}>
                 <div className={styles.processHeader}>

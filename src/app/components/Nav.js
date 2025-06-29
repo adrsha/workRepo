@@ -11,11 +11,11 @@ const USER_NAV_ITEMS = [
 ];
 
 const UNAUTHENTICATED_NAV_ITEMS = [
-    { name: 'Classes', path: '/registration/login' },
-    { name: 'Preparation', path: '/registration/login' },
-    { name: 'Language Classes', path: '/registration/login' },
-    { name: 'Other Classes', path: '/registration/login' },
-    { name: 'Downloads', path: '/registration/login' },
+    { name: 'Classes', path: '/classes' },
+    { name: 'Preparation', path: '#' },
+    { name: 'Language Classes', path: '#' },
+    { name: 'Other Classes', path: '/registration/other-classes' },
+    { name: 'Downloads', path: '/downloads' },
     { name: 'Login', path: '/registration/login' }
 ];
 

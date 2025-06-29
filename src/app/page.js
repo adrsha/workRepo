@@ -291,7 +291,9 @@ export default function HomePage() {
     };
 
     return (
+
         <div className={styles.container}>
+
             <section className={styles.hero}>
                 <Carousel />
                 <section

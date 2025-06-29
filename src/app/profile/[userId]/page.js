@@ -7,6 +7,13 @@ import '../../global.css';
 import TeacherVideoUpload from "../../components/teacherUpload";
 import { TeacherVideoPlayer } from '../../components/teacherFetch';
 
+import { SEO } from '../../seoConfig';
+
+// export const metadata = {
+//     title: 'Profile | MeroTuition',
+//     description: 'View and manage your MeroTuition profile.',
+// }
+
 export default function Profile({ params }) {
     const { data: session, status } = useSession();
     const [userData, setUserData] = useState(null);
@@ -158,6 +165,7 @@ export default function Profile({ params }) {
 
     return (
         <div className={styles.profileContainer}>
+            <SEO pageKey="profile" />
             <div className={styles.profileHeader}>
                 <div className={styles.profileAvatar}>
                     {userData.user_name?.charAt(0) || '?'}

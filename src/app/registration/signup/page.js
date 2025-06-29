@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 // Project-specific imports
 import Input from '../../components/Input.js';
 import FileUpload from '../../components/FileUpload.js'; // Add this import
+import { SEO } from '../../seoConfig.js';
 import styles from '../../../styles/Registration.module.css';
 import '../../global.css';
 
@@ -129,6 +130,7 @@ export default function Signup() {
 
     return (
         <div className={styles.registrationContainer}>
+            <SEO pageKey="signup" />
             {/* Registration Process Guide */}
             <div className={styles.processGuide}>
                 <div className={styles.processHeader}>

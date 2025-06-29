@@ -4,6 +4,7 @@ import { signOut } from 'next-auth/react';
 import styles from '../../styles/Profile.module.css';
 
 import Input from '../components/Input.js';
+import { SEO } from '../seoConfig';
 import { updateTableData } from '../lib/helpers.js';
 
 import { useSession } from 'next-auth/react';
@@ -75,6 +76,7 @@ export default function Profile() {
 
     return status === 'authenticated' ? (
         <div className={styles.container}>
+            <SEO pageKey="settings" />
             <div className={styles.profile}>
                 {!showEditProfileMenu ? (
                     <>

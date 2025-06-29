@@ -1,7 +1,7 @@
 
 // Updated TeachersTab.js
-import { teachersFieldMappings, pendingTeachersFieldMappings } from './tabFieldMappings';
-import { createActionButtons } from './Table/utils.js';
+import { teachersFieldMappings, pendingTeachersFieldMappings } from './common/tabFieldMappings';
+import { createActionButtons } from './common/Table/utils.js';
 
 const PendingTeachersTable = ({ 
     pendingTeachers, 
