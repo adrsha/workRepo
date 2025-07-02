@@ -16,7 +16,6 @@ const UNAUTHENTICATED_NAV_ITEMS = [
     { name: 'Language Classes', path: '#' },
     { name: 'Other Classes', path: '/registration/other-classes' },
     { name: 'Downloads', path: '/downloads' },
-    { name: 'Login', path: '/registration/login' }
 ];
 
 // API utilities
@@ -186,7 +185,7 @@ const NotificationsDropdown = ({ notifications, unreadCount, onNavigate, onMarkR
 );
 
 const UserDropdown = ({ session, onNavigate, onSignOut, classname }) => (
-  <span className={`${styles.dropdown} ${classname}`} >
+    <span className={`${styles.dropdown} ${classname}`} >
         <a
             className={styles.dropdownUname}
             onClick={onNavigate(`/profile/${session?.user?.id}`)}
@@ -246,6 +245,11 @@ const UnauthenticatedNav = ({ onNavigate }) => (
                 {name}
             </NavButton>
         ))}
+        <NavButton
+            onClick={onNavigate('/registration/login')}
+        >
+            Log In
+        </NavButton>
         <NavButton
             className={styles.specialNavButton}
             onClick={onNavigate('/registration/signup')}
@@ -313,7 +317,7 @@ export default function Nav() {
 
     const handleSignOut = () => {
         signOut();
-        router.push('/');
+        // router.push('/');
         setMenuOpen(false);
     };
 
@@ -330,41 +334,43 @@ export default function Nav() {
             <Logo onNavigate={navigateTo} />
 
             <div className={styles.hamburgerContainer} ref={hamburgerRef}>
-                <div className={styles.navItems}>
-                  <NavLinks
-                      isAuthenticated={isAuthenticated}
-                      isStudent={isStudent}
-                      isHomePage={isHomePage}
-                      isLmsHomePage={isLmsHomePage}
-                      session={session}
-                      menuOpen={menuOpen}
-                      onNavigate={navigateTo}
-                      onSignOut={handleSignOut}
-                      notificationProps={notificationProps}
-                      notificationRef={notificationRef}
-                  />
-                  <div className={`${styles.notificationContainer} ${styles.fixedNavItem}`} ref={notificationRef}>
-                      <NotificationBell
-                          unreadCount={notificationProps.unreadCount}
-                          onToggle={() => notificationProps.setShowNotifications(!notificationProps.showNotifications)}
-                      />
-                      {notificationProps.showNotifications && (
-                          <NotificationsDropdown
-                              notifications={notificationProps.notifications}
-                              unreadCount={notificationProps.unreadCount}
-                              onNavigate={navigateTo}
-                              onMarkRead={notificationProps.markAsRead}
-                              onClose={() => notificationProps.setShowNotifications(false)}
-                          />
-                      )}
-                  </div>
-
-            <UserDropdown session={session} onNavigate={navigateTo} onSignOut={handleSignOut} classname={styles.fixedNavItem} />
-            <HamburgerButton
-                isOpen={menuOpen}
-                onToggle={() => setMenuOpen(!menuOpen)}
-            />
+                <NavLinks
+                    isAuthenticated={isAuthenticated}
+                    isStudent={isStudent}
+                    isHomePage={isHomePage}
+                    isLmsHomePage={isLmsHomePage}
+                    session={session}
+                    menuOpen={menuOpen}
+                    onNavigate={navigateTo}
+                    onSignOut={handleSignOut}
+                    notificationProps={notificationProps}
+                    notificationRef={notificationRef}
+                />
+                {isAuthenticated &&
+                <div className={`${styles.notificationContainer} ${styles.fixedNavItem}`} ref={notificationRef}>
+                    <NotificationBell
+                        unreadCount={notificationProps.unreadCount}
+                        onToggle={() => notificationProps.setShowNotifications(!notificationProps.showNotifications)}
+                    />
+                    {notificationProps.showNotifications && (
+                        <NotificationsDropdown
+                            notifications={notificationProps.notifications}
+                            unreadCount={notificationProps.unreadCount}
+                            onNavigate={navigateTo}
+                            onMarkRead={notificationProps.markAsRead}
+                            onClose={() => notificationProps.setShowNotifications(false)}
+                        />
+                    )}
                 </div>
+                }
+
+                {isAuthenticated &&
+                    <UserDropdown session={session} onNavigate={navigateTo} onSignOut={handleSignOut} classname={styles.fixedNavItem} />
+                }
+                <HamburgerButton
+                    isOpen={menuOpen}
+                    onToggle={() => setMenuOpen(!menuOpen)}
+                />
             </div>
         </nav>
     );

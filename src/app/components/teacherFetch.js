@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from "../../styles/teacherVideos.module.css";
 
 // ===================== HOOKS =====================
@@ -35,36 +36,41 @@ const useThumbnailGenerator = () => {
     return { generateThumbnail };
 };
 
-const useVideos = () => {
-    const [videos, setVideos] = useState([]);
+const useTeachers = () => {
+    const [teachers, setTeachers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [thumbnailCache, setThumbnailCache] = useState(new Map());
     const { generateThumbnail } = useThumbnailGenerator();
 
-    const fetchVideos = async () => {
+    const fetchTeachers = async (videoOnly = true) => {
         setLoading(true);
         setError('');
 
         try {
-            const response = await fetch('/api/teacherFetchVideos');
+            const url = videoOnly 
+                ? '/api/teacherDetails?video_only=true' 
+                : '/api/teacherDetails';
+            
+            const response = await fetch(url);
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: Failed to fetch videos`);
+                throw new Error(`HTTP ${response.status}: Failed to fetch teachers`);
             }
 
             const data = await response.json();
-            if (data) {
-                console.log(data.teachers);
-                setVideos(data.teachers);
+            if (data && data.teachers) {
+                console.log('Teacher data:', data.teachers);
+                setTeachers(data.teachers);
                 
-                data.teachers.forEach(async (video) => {
-                    if (!video.thumbnail && !thumbnailCache.has(video.user_id)) {
+                // Generate thumbnails for teachers with videos but no thumbnails
+                data.teachers.forEach(async (teacher) => {
+                    if (teacher.video_path && !thumbnailCache.has(teacher.user_id)) {
                         try {
-                            const thumbnail = await generateThumbnail(video.video_path);
-                            setThumbnailCache(prev => new Map(prev.set(video.user_id, thumbnail)));
+                            const thumbnail = await generateThumbnail(teacher.video_path);
+                            setThumbnailCache(prev => new Map(prev.set(teacher.user_id, thumbnail)));
                         } catch (err) {
-                            console.warn(`Failed to generate thumbnail for video ${video.user_id}:`, err);
+                            console.warn(`Failed to generate thumbnail for teacher ${teacher.user_id}:`, err);
                         }
                     }
                 });
@@ -72,40 +78,39 @@ const useVideos = () => {
             
         } catch (err) {
             setError(err.message);
-            setVideos([]);
+            setTeachers([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchVideoById = async (teacherId) => {
+    const fetchTeacherById = async (teacherId) => {
         setLoading(true);
         setError('');
 
         try {
-            // Use query parameter instead of path parameter
-            const response = await fetch(`/api/teacherFetchVideos?teacher_id=${teacherId}`);
+            const response = await fetch(`/api/teacherDetails?teacher_id=${teacherId}`);
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: Failed to fetch video`);
+                throw new Error(`HTTP ${response.status}: Failed to fetch teacher`);
             }
 
             const data = await response.json();
             if (data && data.teachers && data.teachers.length > 0) {
-                const video = data.teachers[0]; // Get the first (and should be only) teacher
+                const teacher = data.teachers[0];
                 
-                if (!video.thumbnail && !thumbnailCache.has(video.user_id)) {
+                if (teacher.video_path && !thumbnailCache.has(teacher.user_id)) {
                     try {
-                        const thumbnail = await generateThumbnail(video.video_path);
-                        setThumbnailCache(prev => new Map(prev.set(video.user_id, thumbnail)));
+                        const thumbnail = await generateThumbnail(teacher.video_path);
+                        setThumbnailCache(prev => new Map(prev.set(teacher.user_id, thumbnail)));
                     } catch (err) {
-                        console.warn(`Failed to generate thumbnail for video ${video.user_id}:`, err);
+                        console.warn(`Failed to generate thumbnail for teacher ${teacher.user_id}:`, err);
                     }
                 }
                 
-                return video;
+                return teacher;
             } else {
-                throw new Error('Teacher not found or has no video');
+                throw new Error('Teacher not found');
             }
             
         } catch (err) {
@@ -117,48 +122,50 @@ const useVideos = () => {
     };
 
     return { 
-        videos, 
+        teachers, 
         loading, 
         error, 
-        fetchVideos, 
-        fetchVideoById,
+        fetchTeachers, 
+        fetchTeacherById,
         thumbnailCache 
     };
 };
 
 const useVideoPlayer = () => {
-    const [selectedVideo, setSelectedVideo] = useState(null);
+    const [selectedTeacher, setSelectedTeacher] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const selectVideo = (video) => {
-        setSelectedVideo(video);
+    const selectTeacher = (teacher) => {
+        setSelectedTeacher(teacher);
         setIsPlaying(true);
     };
 
     const closeVideo = () => {
-        setSelectedVideo(null);
+        setSelectedTeacher(null);
         setIsPlaying(false);
     };
 
-    return { selectedVideo, isPlaying, selectVideo, closeVideo };
+    return { selectedTeacher, isPlaying, selectTeacher, closeVideo };
 };
 
 // ===================== UTILS =====================
 
-const filterVideos = (videos, searchTerm) => {
-    if (!searchTerm) return videos;
+const filterTeachers = (teachers, searchTerm) => {
+    if (!searchTerm) return teachers;
     
     const lowercaseSearch = searchTerm.toLowerCase();
     
-    return videos.filter(video => 
-        video.user_name?.toLowerCase().includes(lowercaseSearch)
+    return teachers.filter(teacher => 
+        teacher.user_name?.toLowerCase().includes(lowercaseSearch) ||
+        teacher.qualification?.toLowerCase().includes(lowercaseSearch) ||
+        teacher.courses?.some(course => course.toLowerCase().includes(lowercaseSearch))
     );
 };
 
 // ===================== COMPONENTS =====================
 
-const VideoPlayer = ({ video, onClose }) => {
-    if (!video) return null;
+const VideoPlayer = ({ teacher, onClose }) => {
+    if (!teacher) return null;
 
     const handleOverlayClick = (e) => {
         if (e.target === e.currentTarget) {
@@ -173,7 +180,7 @@ const VideoPlayer = ({ video, onClose }) => {
                     ×
                 </button>
                 <video
-                    src={video.video_path}
+                    src={teacher.video_path}
                     controls
                     autoPlay
                     className={styles.videoPlayer}
@@ -181,23 +188,39 @@ const VideoPlayer = ({ video, onClose }) => {
                     Your browser does not support the video tag.
                 </video>
                 <div className={styles.videoInfo}>
-                    <h4>{video.user_name || 'Unknown Teacher'}</h4>
+                    <h4>{teacher.user_name || 'Unknown Teacher'}</h4>
+                    <div className={styles.teacherDetails}>
+                        {teacher.qualification && (
+                            <p><strong>Qualification:</strong> {teacher.qualification}</p>
+                        )}
+                        {teacher.experience && (
+                            <p><strong>Experience:</strong> {teacher.experience}</p>
+                        )}
+                        {teacher.classes_count > 0 && (
+                            <p><strong>Classes:</strong> {teacher.classes_count}</p>
+                        )}
+                        {teacher.students_count > 0 && (
+                            <p><strong>Students:</strong> {teacher.students_count}</p>
+                        )}
+                        {teacher.courses && teacher.courses.length > 0 && (
+                            <p><strong>Courses:</strong> {teacher.courses.join(', ')}</p>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
 
-const VideoThumbnail = ({ video, thumbnailCache }) => {
+const VideoThumbnail = ({ teacher, thumbnailCache }) => {
     const [imgError, setImgError] = useState(false);
-    const [thumbnailLoading, setThumbnailLoading] = useState(false);
     
     const getThumbnailSrc = () => {
-        if (video.thumbnail && !imgError) {
-            return video.thumbnail;
+        if (teacher.thumbnail && !imgError) {
+            return teacher.thumbnail;
         }
-        if (thumbnailCache.has(video.user_id)) {
-            return thumbnailCache.get(video.user_id);
+        if (thumbnailCache.has(teacher.user_id)) {
+            return thumbnailCache.get(teacher.user_id);
         }
         return null;
     };
@@ -212,10 +235,9 @@ const VideoThumbnail = ({ video, thumbnailCache }) => {
         return (
             <img
                 src={thumbnailSrc}
-                alt={video.user_id || 'Video thumbnail'}
+                alt={`${teacher.user_name} video thumbnail`}
                 className={styles.thumbnailImg}
                 onError={handleImageError}
-                onLoad={() => setThumbnailLoading(false)}
             />
         );
     }
@@ -228,32 +250,63 @@ const VideoThumbnail = ({ video, thumbnailCache }) => {
     );
 };
 
-const VideoCard = ({ video, onSelect, thumbnailCache }) => {
+const TeacherCard = ({ teacher, onSelect, thumbnailCache }) => {
     const handleCardClick = () => {
-        onSelect?.(video);
+        onSelect?.(teacher);
     };
+    const router = useRouter();
 
     return (
         <div className={styles.card}>
             <div className={styles.thumb} onClick={handleCardClick}>
-                <VideoThumbnail video={video} thumbnailCache={thumbnailCache} />
+                <VideoThumbnail teacher={teacher} thumbnailCache={thumbnailCache} />
                 <div className={styles.overlay}>▶</div>
             </div>
             <div className={styles.cardInfo}>
-                <div className={styles.teacherName}>
-                    {video.user_name || 'Unknown Teacher'}
+                <div className={styles.teacherName} onClick={()=>router.push(`/profile/${teacher.user_id}`)}>
+                    {teacher.user_name || 'Unknown Teacher'}
+                </div>
+                <div className={styles.teacherMeta}>
+                    {teacher.qualification && (
+                        <div className={styles.qualification}>
+                            <strong> Qualification:</strong> {teacher.qualification}
+                        </div>
+                    )}
+                    {teacher.experience && (
+                        <div className={styles.experience}>
+                            <strong> Experience:</strong> {teacher.experience}
+                        </div>
+                    )}
+                    <div className={styles.stats}>
+                        {teacher.classes_count > 0 && (
+                            <span className={styles.stat}>
+                                📚 {teacher.classes_count} classes
+                            </span>
+                        )}
+                        {teacher.students_count > 0 && (
+                            <span className={styles.stat}>
+                                👥 {teacher.students_count} students
+                            </span>
+                        )}
+                    </div>
+                    {teacher.courses && teacher.courses.length > 0 && (
+                        <div className={styles.courses}>
+                            <strong>Courses:</strong> {teacher.courses.slice(0, 2).join(', ')}
+                            {teacher.courses.length > 2 && '...'}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
     );
 };
 
-const VideoSearch = ({ search, onSearchChange }) => {
+const TeacherSearch = ({ search, onSearchChange }) => {
     return (
         <div className={styles.search}>
             <input
                 type="text"
-                placeholder="Search videos by title"
+                placeholder="Search teachers by name, qualification, or course"
                 value={search}
                 onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -261,7 +314,7 @@ const VideoSearch = ({ search, onSearchChange }) => {
     );
 };
 
-const VideoHeader = ({ loading, onRefresh, title = "Teacher Introduction Videos" }) => {
+const TeacherHeader = ({ loading, onRefresh, title = "Teacher Introduction Videos" }) => {
     return (
         <div className={styles.header}>
             <h3>{title}</h3>
@@ -285,7 +338,7 @@ const ErrorDisplay = ({ error }) => {
 const LoadingDisplay = () => {
     return (
         <div className={styles.loading}>
-            Loading videos...
+            Loading teachers...
         </div>
     );
 };
@@ -293,19 +346,19 @@ const LoadingDisplay = () => {
 const EmptyState = ({ search }) => {
     return (
         <div className={styles.empty}>
-            📹 {search ? 'No matching videos' : 'No videos yet'}
+            📹 {search ? 'No matching teachers' : 'No teachers found'}
         </div>
     );
 };
 
-const VideoGrid = ({ videos, onVideoSelect, thumbnailCache }) => {
+const TeacherGrid = ({ teachers, onTeacherSelect, thumbnailCache }) => {
     return (
         <div className={styles.grid}>
-            {videos.map(video => (
-                <VideoCard
-                    key={video.user_id}
-                    video={video}
-                    onSelect={onVideoSelect}
+            {teachers.map(teacher => (
+                <TeacherCard
+                    key={teacher.user_id}
+                    teacher={teacher}
+                    onSelect={onTeacherSelect}
                     thumbnailCache={thumbnailCache}
                 />
             ))}
@@ -313,37 +366,33 @@ const VideoGrid = ({ videos, onVideoSelect, thumbnailCache }) => {
     );
 };
 
-// ===================== MAIN COMPONENTS =====================
-
-// Component that directly shows a video player for a specific teacher (inline display)
+// Component that directly shows a video player for a specific teacher (video only)
 export const TeacherVideoPlayer = ({ teacherId, autoPlay = true, className = '' }) => {
-    const [video, setVideo] = useState(null);
+    const [teacher, setTeacher] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const { generateThumbnail } = useThumbnailGenerator();
 
-    const fetchVideo = async () => {
+    const fetchTeacher = async () => {
         setLoading(true);
         setError('');
 
         try {
-            // Use query parameter instead of path parameter
-            const response = await fetch(`/api/teacherFetchVideos?teacher_id=${teacherId}`);
+            const response = await fetch(`/api/teacherDetails?teacher_id=${teacherId}`);
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: Failed to fetch video`);
+                throw new Error(`HTTP ${response.status}: Failed to fetch teacher`);
             }
 
             const data = await response.json();
             if (data && data.teachers && data.teachers.length > 0) {
-                setVideo(data.teachers[0]); // Get the first (and should be only) teacher
+                setTeacher(data.teachers[0]);
             } else {
-                throw new Error('Teacher not found or has no video');
+                throw new Error('Teacher not found');
             }
             
         } catch (err) {
             setError(err.message);
-            setVideo(null);
+            setTeacher(null);
         } finally {
             setLoading(false);
         }
@@ -351,7 +400,7 @@ export const TeacherVideoPlayer = ({ teacherId, autoPlay = true, className = '' 
 
     useEffect(() => {
         if (teacherId) {
-            fetchVideo();
+            fetchTeacher();
         }
     }, [teacherId]);
 
@@ -363,14 +412,14 @@ export const TeacherVideoPlayer = ({ teacherId, autoPlay = true, className = '' 
         return <ErrorDisplay error={error} />;
     }
 
-    if (!video) {
+    if (!teacher || !teacher.video_path) {
         return <EmptyState search={false} />;
     }
 
     return (
         <div className={`${styles.inlineVideoContainer} ${className}`}>
             <video
-                src={video.video_path}
+                src={teacher.video_path}
                 controls
                 autoPlay={autoPlay}
                 className={styles.inlineVideoPlayer}
@@ -381,45 +430,107 @@ export const TeacherVideoPlayer = ({ teacherId, autoPlay = true, className = '' 
     );
 };
 
-// Main component for displaying all teacher videos
-const TeacherVideoFetch = ({ onVideoSelect }) => {
+// // Wrapper component that shows video with teacher details
+// export const TeacherVideoWithDetails = ({ teacherId, autoPlay = true, className = '' }) => {
+//     const [teacher, setTeacher] = useState(null);
+//     const [loading, setLoading] = useState(false);
+//     const [error, setError] = useState('');
+//
+//     const fetchTeacher = async () => {
+//         setLoading(true);
+//         setError('');
+//
+//         try {
+//             const response = await fetch(`/api/teacherDetails?teacher_id=${teacherId}`);
+//
+//             if (!response.ok) {
+//                 throw new Error(`HTTP ${response.status}: Failed to fetch teacher`);
+//             }
+//
+//             const data = await response.json();
+//             if (data && data.teachers && data.teachers.length > 0) {
+//                 setTeacher(data.teachers[0]);
+//             } else {
+//                 throw new Error('Teacher not found');
+//             }
+//             
+//         } catch (err) {
+//             setError(err.message);
+//             setTeacher(null);
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+//
+//     useEffect(() => {
+//         if (teacherId) {
+//             fetchTeacher();
+//         }
+//     }, [teacherId]);
+//
+//     if (loading) {
+//         return <LoadingDisplay />;
+//     }
+//
+//     if (error) {
+//         return <ErrorDisplay error={error} />;
+//     }
+//
+//     if (!teacher || !teacher.video_path) {
+//         return <EmptyState search={false} />;
+//     }
+//
+//     return (
+//         <div className={`${styles.inlineVideoContainer} ${className}`}>
+//             <TeacherVideoPlayer teacherId={teacherId} autoPlay={autoPlay} />
+//             <div className={styles.inlineTeacherInfo}>
+//                 <h4>{teacher.user_name}</h4>
+//                 {teacher.qualification && <p>🎓 {teacher.qualification}</p>}
+//                 {teacher.experience && <p>💼 {teacher.experience}</p>}
+//             </div>
+//         </div>
+//     );
+// };
+//
+// Main component for displaying all teacher videos with details
+const TeacherVideoFetch = ({ onTeacherSelect }) => {
     const [search, setSearch] = useState('');
-    const { videos, loading, error, fetchVideos, thumbnailCache } = useVideos();
-    const { selectedVideo, selectVideo, closeVideo } = useVideoPlayer();
+    const { teachers, loading, error, fetchTeachers, thumbnailCache } = useTeachers();
+    const { selectedTeacher, selectTeacher, closeVideo } = useVideoPlayer();
 
-    const handleVideoSelect = (video) => {
-        selectVideo(video);
-        onVideoSelect?.(video);
+    const handleTeacherSelect = (teacher) => {
+        selectTeacher(teacher);
+        onTeacherSelect?.(teacher);
     };
 
-    const filteredVideos = filterVideos(videos, search);
+    const filteredTeachers = filterTeachers(teachers, search);
 
     useEffect(() => {
-        fetchVideos();
+        fetchTeachers(true); // Only fetch teachers with videos by default
     }, []);
 
     return (
         <>
             <div className={styles.container}>
-                <VideoHeader loading={loading} onRefresh={fetchVideos} />
-                <VideoSearch search={search} onSearchChange={setSearch} />
+                <TeacherHeader loading={loading} onRefresh={() => fetchTeachers(true)} />
+                <TeacherSearch search={search} onSearchChange={setSearch} />
                 <ErrorDisplay error={error} />
 
                 {loading ? (
                     <LoadingDisplay />
-                ) : filteredVideos.length === 0 ? (
+                ) : filteredTeachers.length === 0 ? (
                     <EmptyState search={search} />
                 ) : (
-                    <VideoGrid 
-                        videos={filteredVideos} 
-                        onVideoSelect={handleVideoSelect}
+                    <TeacherGrid 
+                        teachers={filteredTeachers} 
+                        onTeacherSelect={handleTeacherSelect}
                         thumbnailCache={thumbnailCache}
                     />
                 )}
             </div>
 
             <VideoPlayer 
-                video={selectedVideo} 
+                teacher={selectedTeacher} 
                 onClose={closeVideo} 
             />
         </>

@@ -121,6 +121,7 @@
 .toggleVisibleButton {
     position: absolute;
     padding: 0.5rem;
+    height: 3rem;
     right: 0;
     display: flex;
     top: 50%;

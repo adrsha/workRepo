@@ -250,14 +250,6 @@ export default function HomePage() {
             ) : notices.length > 0 ? (
                 <div className={styles.noticesList}>
                     {notices.slice(0, 3).map(renderNoticeItem)}
-                    {notices.length > 3 && (
-                        <button
-                            className={styles.viewAllButton}
-                            onClick={() => navigateToRoute('/notices')}
-                        >
-                            View All Updates
-                        </button>
-                    )}
                 </div>
             ) : (
                 <div className={styles.noNotices}>No updates available</div>
@@ -282,7 +274,7 @@ export default function HomePage() {
                         {FEATURE_SIDES_DATA.map(renderFeatureSide)}
                         <center>
                             "for no cost low cost tuition" <br />
-                            <button className={styles.ctaButton}>Register Now!</button>
+                            <a href='/registration/signup'><button className={styles.ctaButton}>Register Now!</button></a>
                         </center>
                     </div>
                 </div>
@@ -303,7 +295,7 @@ export default function HomePage() {
                     {FEATURE_SIDES_DATA.map(renderFeatureSide)}
                     <center>
                         "for no cost low cost tuition" <br />
-                        <button className={styles.ctaButton}>Register Now!</button>
+                        <a href='/registration/signup'><button className={styles.ctaButton}>Register Now!</button></a>
                     </center>
                 </section>
 

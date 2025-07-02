@@ -3,7 +3,6 @@ import { compare } from 'bcryptjs';
 import { executeQueryWithRetry } from '../../lib/db';
 import { NextResponse } from 'next/server';
 
-
 export async function POST(request) {
     try {
         const body = await request.json();
@@ -21,6 +20,25 @@ export async function POST(request) {
         });
         
         if (users.length === 0) {
+            // Check if user is in pending_teachers table
+            const pendingTeachers = await executeQueryWithRetry({
+                query: 'SELECT * FROM pending_teachers WHERE contact = ?',
+                values: [contact],
+            });
+
+            if (pendingTeachers.length > 0) {
+                const pendingTeacher = pendingTeachers[0];
+                
+                // Verify password for pending teacher
+                const passwordMatch = await compare(password, pendingTeacher.user_passkey);
+                
+                if (passwordMatch) {
+                    return NextResponse.json({ 
+                        error: 'Your teacher account is pending approval. Please wait for admin approval before logging in.' 
+                    }, { status: 403 });
+                }
+            }
+            
             return NextResponse.json({ error: 'Contact could not be found' }, { status: 401 });
         }
 

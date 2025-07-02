@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 
 // Project-specific imports
 import Input from '../../components/Input.js';
-import FileUpload from '../../components/FileUpload.js'; // Add this import
+import FileUpload from '../../components/FileUpload.js';
+import TeacherSignupPopup from '../../components/teacherSignupPopup.js';
 import { SEO } from '../../seoConfig.js';
 import styles from '../../../styles/Registration.module.css';
 import '../../global.css';
@@ -19,7 +20,7 @@ const MAX_LENGTHS = {
     guardianContact: 10,
     school: 100,
     address: 100,
-    dateOfBirth: 10, // YYYY-MM-DD
+    dateOfBirth: 10,
     experience: 255,
     qualification: 255,
 };
@@ -29,11 +30,29 @@ export default function Signup() {
     const [loading, setLoading] = useState(false);
     const [userLevel, setUserLevel] = useState('student');
     const [certificateUploaded, setCertificateUploaded] = useState(false);
+    const [showTeacherPopup, setShowTeacherPopup] = useState(false);
+    const [isPreviewMode, setIsPreviewMode] = useState(false);
     const router = useRouter();
 
     const handleCertificateUpload = (fileData) => {
         setCertificateUploaded(true);
-        setError(''); // Clear any previous errors
+        setError('');
+    };
+
+    const handlePopupClose = () => {
+        setShowTeacherPopup(false);
+        
+        // Only redirect if it's not preview mode
+        if (!isPreviewMode) {
+            router.push('/registration/login');
+        }
+        
+        setIsPreviewMode(false);
+    };
+
+    const handleInfoClick = () => {
+        setIsPreviewMode(true);
+        setShowTeacherPopup(true);
     };
 
     async function handleSubmit(e) {
@@ -73,7 +92,7 @@ export default function Signup() {
             setLoading(false);
             return;
         }
-        
+
         // Base user data (common for all user types)
         let payload = {
             username: formData.get('username'),
@@ -101,9 +120,10 @@ export default function Signup() {
                 ...payload,
                 experience: formData.get('experience') || '',
                 qualification: formData.get('qualification') || '',
-                certificatePath: formData.get('certificate_path') || '', // Add certificate path
+                certificatePath: formData.get('certificate_path') || '',
             };
         }
+
         try {
             const response = await fetch('/api/signup', {
                 method: 'POST',
@@ -117,9 +137,14 @@ export default function Signup() {
             if (!response.ok) {
                 throw new Error(data.error || 'Signup failed');
             }
-            
-            // Successful signup: Navigate to login page
-            router.push('/registration/login');
+
+            // Successful signup: Show popup for teachers, redirect for students
+            if (userLevel === 'teacher') {
+                setIsPreviewMode(false);
+                setShowTeacherPopup(true);
+            } else {
+                router.push('/registration/login');
+            }
         } catch (error) {
             console.error(error);
             setError(error.message);
@@ -131,33 +156,40 @@ export default function Signup() {
     return (
         <div className={styles.registrationContainer}>
             <SEO pageKey="signup" />
+
+            {/* Teacher Signup Success Popup */}
+            <TeacherSignupPopup
+                isOpen={showTeacherPopup}
+                onClose={handlePopupClose}
+                isPreview={isPreviewMode}
+            />
+
             {/* Registration Process Guide */}
             <div className={styles.processGuide}>
                 <div className={styles.processHeader}>
                     <h2>Welcome to</h2>
                     <h1>MeroTuition Registration</h1>
                 </div>
-                
+
                 <div className={styles.processSteps}>
                     <div className={styles.step}>
                         <div className={styles.stepNumber}>1</div>
                         <p>Complete the registration form with valid personal information as a student or teacher.</p>
                     </div>
-                    
+
                     <div className={styles.step}>
                         <div className={styles.stepNumber}>2</div>
-                        <p>After submitting the form, if you are a teacher, you will receive your secret key confirmation message in your email. Once the admin contacts you, share this with them in order to get access as a teacher.
-                        </p>
+                        <p>After submitting the form, if you are a teacher, you will receive your secret key confirmation message in your email. Once the admin contacts you, share this with them in order to get access as a teacher.</p>
                     </div>
-                    
+
                     <div className={styles.step}>
                         <div className={styles.stepNumber}>3</div>
                         <p>Once logged in, you can start your learning journey.</p>
                     </div>
                 </div>
-                
+
                 <div className={styles.processFooter}>
-                    <p>For any issues or queries, please contact us at support@merotuition.com</p>
+                    <p>For any issues or queries, please contact us at info@merotuition.com</p>
                 </div>
             </div>
 
@@ -182,7 +214,19 @@ export default function Signup() {
                             checked={userLevel === 'student'}
                             onChange={() => setUserLevel('student')}
                         />
+                        
                     </div>
+                        {/* Info button for teachers */}
+                        {userLevel === 'teacher' && (
+                            <button
+                                type="button"
+                                onClick={handleInfoClick}
+                                className={styles.infoButton}
+                                title="Preview what happens after teacher registration"
+                            >
+                                <span id="info-icon">i</span> What happens next?
+                            </button>
+                        )}
 
                     <Input
                         label="Name"
@@ -232,20 +276,20 @@ export default function Signup() {
                     />
                     {userLevel === 'student' && (
                         <>
-                            <Input 
-                                label="Email" 
-                                type="email" 
-                                name="email" 
-                                id="email" 
-                                maxLength={MAX_LENGTHS.email} 
+                            <Input
+                                label="Email"
+                                type="email"
+                                name="email"
+                                id="email"
+                                maxLength={MAX_LENGTHS.email}
                             />
-                            <Input 
-                                label="Guardian Name" 
-                                type="text" 
-                                name="guardianName" 
-                                id="guardianName" 
+                            <Input
+                                label="Guardian Name"
+                                type="text"
+                                name="guardianName"
+                                id="guardianName"
                                 maxLength={MAX_LENGTHS.guardianName}
-                                required 
+                                required
                             />
                             <div className={styles.formRow}>
                                 <Input
@@ -280,25 +324,25 @@ export default function Signup() {
                                 maxLength={MAX_LENGTHS.school}
                                 required
                             />
-                            <Input 
-                                label="Date Of Birth" 
-                                type="date" 
-                                name="dateOfBirth" 
-                                id="dateOfBirth" 
-                                required 
+                            <Input
+                                label="Date Of Birth"
+                                type="date"
+                                name="dateOfBirth"
+                                id="dateOfBirth"
+                                required
                             />
                         </>
                     )}
 
                     {userLevel === 'teacher' && (
                         <>
-                            <Input 
-                                label="Email" 
-                                type="email" 
-                                name="email" 
-                                id="email" 
-                                maxLength={MAX_LENGTHS.email} 
-                                required 
+                            <Input
+                                label="Email"
+                                type="email"
+                                name="email"
+                                id="email"
+                                maxLength={MAX_LENGTHS.email}
+                                required
                             />
                             <Input
                                 label="Brief Work Experience"
@@ -314,13 +358,13 @@ export default function Signup() {
                                 id="qualification"
                                 maxLength={MAX_LENGTHS.qualification}
                             />
-                            
+
                             {/* Certificate Upload Section */}
                             <div className={styles.formGroup}>
                                 <label className={styles.inputLabel}>Certificate Upload *</label>
                                 <FileUpload
                                     onFileUpload={handleCertificateUpload}
-                                    classId="teacher-certificates" // You can use a generic classId for teacher certificates
+                                    classId="teacher-certificates"
                                     isSignUpForm={true}
                                     hiddenInputName="certificate_path"
                                 />
@@ -331,20 +375,20 @@ export default function Signup() {
                         </>
                     )}
 
-                    <Input 
-                        label="I agree to Terms and Conditions" 
-                        type="checkbox" 
-                        name="terms" 
-                        id="terms" 
-                        required 
+                    <Input
+                        label="I agree to Terms and Conditions"
+                        type="checkbox"
+                        name="terms"
+                        id="terms"
+                        required
                     />
-                    
+
                     {error && <p className={styles.errorDisplay}>{error}</p>}
 
                     <button className={styles.submitButton} type="submit" disabled={loading}>
                         {loading ? 'Signing Up...' : 'Sign Up'}
                     </button>
-                    
+
                     <div className={styles.authLink}>
                         Already have an account? <a href="/registration/login">Login here</a>
                     </div>

@@ -177,6 +177,23 @@
     font-size: 0.95rem;
 }
 
+.infoButton {
+    cursor: pointer;
+    width: fit-content;
+    margin: auto;
+}
+
+.infoButton > span{
+    border-radius: 50%;
+    border: 1px solid var(--lightBlue);
+    aspect-ratio: 1;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    color: var(--lightBlue);
+    font-size: 1.2rem;
+    transition: all 0.2s ease-in-out;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .registrationContainer {

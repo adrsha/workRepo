@@ -6,19 +6,17 @@ import '../../global.css';
 
 import TeacherVideoUpload from "../../components/teacherUpload";
 import { TeacherVideoPlayer } from '../../components/teacherFetch';
+import { fetchDataWhereAttrIs, fetchJoinableData, getDate } from '../../lib/helpers';
 
 import { SEO } from '../../seoConfig';
-
-// export const metadata = {
-//     title: 'Profile | MeroTuition',
-//     description: 'View and manage your MeroTuition profile.',
-// }
 
 export default function Profile({ params }) {
     const { data: session, status } = useSession();
     const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [teacherClasses, setTeacherClasses] = useState([]);
+    const [loadingClasses, setLoadingClasses] = useState(false);
     const userId = parseInt(use(params).userId);
 
     useEffect(() => {
@@ -48,6 +46,35 @@ export default function Profile({ params }) {
             fetchProfile();
         }
     }, [userId, status]);
+
+    // Fetch teacher's classes when userData is loaded and user is a teacher
+    useEffect(() => {
+        async function fetchTeacherClasses() {
+            if (!userData || userData.user_level !== 1) return;
+
+            setLoadingClasses(true);
+            try {
+                const authToken = localStorage.getItem('authToken');
+                
+                // Fetch classes with course and grade information
+                const classesData = await fetchJoinableData(
+                    ['classes', 'courses', 'grades'],
+                    ['classes.course_id = courses.course_id', 'classes.grade_id = grades.grade_id'],
+                    '*',
+                    { 'classes.teacher_id': userId },
+                    authToken
+                );
+
+                setTeacherClasses(classesData || []);
+            } catch (err) {
+                console.error('Error fetching teacher classes:', err);
+            } finally {
+                setLoadingClasses(false);
+            }
+        }
+
+        fetchTeacherClasses();
+    }, [userData, userId]);
 
     // Map user levels to readable names
     const getUserLevelName = (level) => {
@@ -102,14 +129,20 @@ export default function Profile({ params }) {
         'reset_token', 'updated_at', 'user_id', 'student_data', 'teacher_data'
     ];
 
+    // Helper to check if field contains 'path' in its name
+    const hasPathInName = (fieldName) => {
+        return fieldName.toLowerCase().includes('path');
+    };
+
     // Render a section with dynamic fields
     const renderDynamicSection = (title, data, excludeList = []) => {
         if (!data) return null;
 
-        // Filter out sensitive and unwanted fields
+        // Filter out sensitive fields, unwanted fields, and fields with 'path' in name
         const fields = Object.keys(data).filter(field =>
             !excludedFields.includes(field) &&
             !excludeList.includes(field) &&
+            !hasPathInName(field) &&
             data[field] !== null
         );
 
@@ -124,6 +157,70 @@ export default function Profile({ params }) {
                         <span className={styles.infoValue}>{formatFieldValue(field, data[field])}</span>
                     </div>
                 ))}
+            </div>
+        );
+    };
+
+    // Render teacher's classes section
+    const renderTeacherClasses = () => {
+        if (userData?.user_level !== 1) return null;
+
+        return (
+            <div className={styles.profileSection}>
+                <h2>Classes Teaching</h2>
+                {loadingClasses ? (
+                    <div className={styles.loadingSpinner}>Loading classes...</div>
+                ) : teacherClasses.length > 0 ? (
+                    <div className={styles.teacherClassesList}>
+                        {teacherClasses.map(classItem => (
+                            <div key={classItem.class_id} className={styles.classCard}>
+                                <div className={styles.classHeader}>
+                                    <h3 className={styles.courseName}>{classItem.course_name}</h3>
+                                    <span className={styles.gradeBadge}>{classItem.grade_name}</span>
+                                </div>
+                                
+                                {classItem.class_description && (
+                                    <p className={styles.classDescription}>{classItem.class_description}</p>
+                                )}
+                                
+                                <div className={styles.classDetails}>
+                                    <div className={styles.classTime}>
+                                        <strong>Schedule:</strong>
+                                        <div>
+                                            {getDate(classItem.start_time).yyyymmdd} to {getDate(classItem.end_time).yyyymmdd}
+                                        </div>
+                                        <div>
+                                            {getDate(classItem.start_time).hhmmss} - {getDate(classItem.end_time).hhmmss}
+                                        </div>
+                                        <div>
+                                            Repeats every {classItem.repeat_every_n_day} day{classItem.repeat_every_n_day !== 1 ? 's' : ''}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className={styles.classCost}>
+                                        <strong>Cost:</strong> ${classItem.cost}
+                                    </div>
+                                    
+                                    {classItem.meeting_url && (
+                                        <div className={styles.meetingUrl}>
+                                            <strong>Meeting:</strong>
+                                            <a 
+                                                href={classItem.meeting_url} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className={styles.meetingLink}
+                                            >
+                                                Join Class
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className={styles.noClasses}>No classes found for this teacher.</p>
+                )}
             </div>
         );
     };
@@ -186,7 +283,11 @@ export default function Profile({ params }) {
 
                 {userData.user_level === 0 && userData.student_data &&
                     renderDynamicSection('Student Information', userData.student_data)}
+
+                {/* Teacher's classes section */}
+                {renderTeacherClasses()}
             </div>
+
             {userData.user_level === 1 && userData.teacher_data && <TeacherVideoPlayer teacherId={userData.user_id} />}
 
             {

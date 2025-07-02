@@ -189,6 +189,138 @@
   color: var(--foreground);
 }
 
+/* Teacher Classes Styles */
+.teacherClassesList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.classCard {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: box-shadow 0.2s ease;
+}
+
+.classCard:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.classHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.courseName {
+    margin: 0;
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.gradeBadge {
+    background: #007bff;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.classDescription {
+    color: #666;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.classDetails {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: start;
+}
+
+.classTime {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.classTime strong {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.classTime div {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.classCost {
+    text-align: right;
+}
+
+.classCost strong {
+    color: #333;
+}
+
+.meetingUrl {
+    grid-column: 1 / -1;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.meetingLink {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 0.5rem;
+}
+
+.meetingLink:hover {
+    text-decoration: underline;
+}
+
+.noClasses {
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.loadingSpinner {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .classDetails {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .classCost {
+        text-align: left;
+    }
+    
+    .classHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
 /* Responsive adjustments */
 @media (max-width: 600px) {
   .profileHeader {

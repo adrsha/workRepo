@@ -103,7 +103,7 @@ export default function Login() {
                 </div>
                 
                 <div className={styles.processFooter}>
-                    <p>Forgot your password? Contact support at support@merotuition.com</p>
+                    <p>Forgot your password? Contact support at info@merotuition.com</p>
                 </div>
             </div>
 
