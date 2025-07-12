@@ -1,5 +1,6 @@
 // TableRow.js - Enhanced with hidden column support
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { createPortal } from 'react-dom';
 import { TeacherVideoPlayer } from '../../teacherFetch';
 import FileViewer from '../../FileViewer';
@@ -20,6 +21,8 @@ const PreviewButton = ({ onClick }) => (
 
 const PreviewModal = ({ previewData, onClose }) => {
     if (!previewData) return null;
+    const {data: session} = useSession();
+    const isAdmin = session?.user?.level === 2;
 
     const { fieldName, item } = previewData;
     
@@ -28,7 +31,7 @@ const PreviewModal = ({ previewData, onClose }) => {
         const teacherId = item.user_id || item.teacher_id || item.id;
         previewContent = <TeacherVideoPlayer teacherId={teacherId} />;
     } else if (fieldName === 'certificate_path') {
-        previewContent = <FileViewer filePath={item[fieldName]} />;
+        previewContent = <FileViewer filePath={item[fieldName]} allowFileChange={isAdmin} />;
     } else {
         previewContent = <div>Preview not available for this file type</div>;
     }

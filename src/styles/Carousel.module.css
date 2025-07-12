@@ -197,7 +197,6 @@
 .carouselSlide {
     flex: 0 0 100%;
     position: relative;
-    cursor: pointer;
 }
 
 .carouselSlide img {

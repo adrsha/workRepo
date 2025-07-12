@@ -1,6 +1,49 @@
 import { fetchViewData } from './helpers.js';
 import { getSchema, getIdField, getStateKey } from './schema.js';
 
+
+export const listFiles = async (directory = '') => {
+    const authToken = localStorage.getItem('authToken');
+    
+    const response = await fetch(`/api/files/list?directory=${encodeURIComponent(directory)}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${authToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch files');
+    }
+
+    return response.json();
+};
+
+
+export const updateFilePath = async (table, id, fileField, newFilePath) => {
+    const authToken = localStorage.getItem('authToken');
+    
+    const response = await fetch('/api/changeData', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ 
+            table, 
+            id, 
+            updates: { [fileField]: newFilePath } 
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to update file path in ${table}`);
+    }
+
+    return response.json();
+};
+
 export const pendingTeachers = async (pendingId, approved) => {
     const authToken = localStorage.getItem('authToken');
 

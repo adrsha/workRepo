@@ -151,10 +151,6 @@
     order: -1;
 }
 
-.navbar.overflowing .notificationsDropdown {
-    right: -150px;
-    width: 280px;
-}
 
 .navbar.overflowing .notificationHeader {
     padding: 0.75rem;
@@ -216,10 +212,6 @@
         order: -1;
     }
 
-    .notificationsDropdown {
-        right: -150px;
-        width: 280px;
-    }
 
     .notificationHeader {
         padding: 0.75rem;

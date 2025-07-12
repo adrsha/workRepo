@@ -17,6 +17,7 @@ export default function Profile({ params }) {
     const [error, setError] = useState(null);
     const [teacherClasses, setTeacherClasses] = useState([]);
     const [loadingClasses, setLoadingClasses] = useState(false);
+    const [userEnrolledClasses, setUserEnrolledClasses] = useState([]);
     const userId = parseInt(use(params).userId);
 
     useEffect(() => {
@@ -47,6 +48,32 @@ export default function Profile({ params }) {
         }
     }, [userId, status]);
 
+    // Fetch current user's enrolled classes
+    useEffect(() => {
+        async function fetchUserEnrolledClasses() {
+            if (!session?.user?.id) return;
+
+            try {
+                const authToken = localStorage.getItem('authToken');
+                
+                // Fetch classes the current user is enrolled in
+                const enrolledClasses = await fetchDataWhereAttrIs(
+                    'classes_users',
+                    { user_id: session.user.id },
+                    authToken
+                );
+
+                setUserEnrolledClasses(enrolledClasses?.map(enrollment => enrollment.class_id) || []);
+            } catch (err) {
+                console.error('Error fetching user enrolled classes:', err);
+            }
+        }
+
+        if (session?.user?.id) {
+            fetchUserEnrolledClasses();
+        }
+    }, [session?.user?.id]);
+
     // Fetch teacher's classes when userData is loaded and user is a teacher
     useEffect(() => {
         async function fetchTeacherClasses() {
@@ -75,6 +102,32 @@ export default function Profile({ params }) {
 
         fetchTeacherClasses();
     }, [userData, userId]);
+
+    // Check if current user can view class details (enrolled or is the teacher)
+    const canViewClassDetails = (classId) => {
+        // If viewing own profile (teacher), can see all details
+        if (session?.user?.id === userId) {
+            return true;
+        }
+        
+        // If enrolled in the class, can see details
+        if (userEnrolledClasses.includes(classId)) {
+            return true;
+        }
+        
+        // Admin can see all details
+        if (session?.user?.level === 2) {
+            return true;
+        }
+        
+        return false;
+    };
+
+    // Check if current user can see meeting URL
+    const canViewMeetingUrl = (classId) => {
+        // Only enrolled students, the teacher, or admins can see meeting URLs
+        return canViewClassDetails(classId);
+    };
 
     // Map user levels to readable names
     const getUserLevelName = (level) => {
@@ -161,7 +214,7 @@ export default function Profile({ params }) {
         );
     };
 
-    // Render teacher's classes section
+    // Render teacher's classes section with access restrictions
     const renderTeacherClasses = () => {
         if (userData?.user_level !== 1) return null;
 
@@ -172,51 +225,67 @@ export default function Profile({ params }) {
                     <div className={styles.loadingSpinner}>Loading classes...</div>
                 ) : teacherClasses.length > 0 ? (
                     <div className={styles.teacherClassesList}>
-                        {teacherClasses.map(classItem => (
-                            <div key={classItem.class_id} className={styles.classCard}>
-                                <div className={styles.classHeader}>
-                                    <h3 className={styles.courseName}>{classItem.course_name}</h3>
-                                    <span className={styles.gradeBadge}>{classItem.grade_name}</span>
-                                </div>
-                                
-                                {classItem.class_description && (
-                                    <p className={styles.classDescription}>{classItem.class_description}</p>
-                                )}
-                                
-                                <div className={styles.classDetails}>
-                                    <div className={styles.classTime}>
-                                        <strong>Schedule:</strong>
-                                        <div>
-                                            {getDate(classItem.start_time).yyyymmdd} to {getDate(classItem.end_time).yyyymmdd}
-                                        </div>
-                                        <div>
-                                            {getDate(classItem.start_time).hhmmss} - {getDate(classItem.end_time).hhmmss}
-                                        </div>
-                                        <div>
-                                            Repeats every {classItem.repeat_every_n_day} day{classItem.repeat_every_n_day !== 1 ? 's' : ''}
-                                        </div>
+                        {teacherClasses.map(classItem => {
+                            const canViewDetails = canViewClassDetails(classItem.class_id);
+                            const canViewMeeting = canViewMeetingUrl(classItem.class_id);
+                            
+                            return (
+                                <div key={classItem.class_id} className={styles.classCard}>
+                                    <div className={styles.classHeader}>
+                                        <h3 className={styles.courseName}>{classItem.course_name}</h3>
+                                        <span className={styles.gradeBadge}>{classItem.grade_name}</span>
                                     </div>
                                     
-                                    <div className={styles.classCost}>
-                                        <strong>Cost:</strong> ${classItem.cost}
-                                    </div>
+                                    {classItem.class_description && (
+                                        <p className={styles.classDescription}>{classItem.class_description}</p>
+                                    )}
                                     
-                                    {classItem.meeting_url && (
-                                        <div className={styles.meetingUrl}>
-                                            <strong>Meeting:</strong>
-                                            <a 
-                                                href={classItem.meeting_url} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className={styles.meetingLink}
-                                            >
-                                                Join Class
-                                            </a>
+                                    {canViewDetails ? (
+                                        <div className={styles.classDetails}>
+                                            <div className={styles.classTime}>
+                                                <strong>Schedule:</strong>
+                                                <div>
+                                                    {getDate(classItem.start_time).yyyymmdd} to {getDate(classItem.end_time).yyyymmdd}
+                                                </div>
+                                                <div>
+                                                    {getDate(classItem.start_time).hhmmss} - {getDate(classItem.end_time).hhmmss}
+                                                </div>
+                                                <div>
+                                                    Repeats every {classItem.repeat_every_n_day} day{classItem.repeat_every_n_day !== 1 ? 's' : ''}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className={styles.classCost}>
+                                                <strong>Cost:</strong> ${classItem.cost}
+                                            </div>
+                                            
+                                            {canViewMeeting && classItem.meeting_url && (
+                                                <div className={styles.meetingUrl}>
+                                                    <strong>Meeting:</strong>
+                                                    <a 
+                                                        href={classItem.meeting_url} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className={styles.meetingLink}
+                                                    >
+                                                        Join Class
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className={styles.restrictedAccess}>
+                                            <p className={styles.restrictedMessage}>
+                                                <strong>Enrollment Required:</strong> Join this class to view schedule and meeting details.
+                                            </p>
+                                            <div className={styles.classCost}>
+                                                <strong>Cost:</strong> ${classItem.cost}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 ) : (
                     <p className={styles.noClasses}>No classes found for this teacher.</p>

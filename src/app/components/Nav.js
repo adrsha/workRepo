@@ -163,22 +163,23 @@ const NotificationsDropdown = ({ notifications, unreadCount, onNavigate, onMarkR
             <h3>Notifications</h3>
             {unreadCount > 0 && <span>{unreadCount} unread</span>}
         </div>
+        <div className={styles.notificationContent}>
 
-        {notifications.length > 0 ? (
-            <ul className={styles.notificationsList}>
-                {notifications.map(notif => (
-                    <NotificationItem
-                        key={notif.notif_id}
-                        notification={notif}
-                        onNavigate={onNavigate}
-                        onMarkRead={onMarkRead}
-                    />
-                ))}
-            </ul>
-        ) : (
-            <p className={styles.noNotifications}>No notifications</p>
-        )}
-
+            {notifications.length > 0 ? (
+                <ul className={styles.notificationsList}>
+                    {notifications.map(notif => (
+                        <NotificationItem
+                            key={notif.notif_id}
+                            notification={notif}
+                            onNavigate={onNavigate}
+                            onMarkRead={onMarkRead}
+                        />
+                    ))}
+                </ul>
+            ) : (
+                <p className={styles.noNotifications}>No notifications</p>
+            )}
+        </div>
         <div className={styles.notificationFooter}>
             <button onClick={() => { onNavigate('/notifications')(); onClose(); }}>
                 See all notifications
@@ -282,9 +283,9 @@ const NavLinks = ({
                 isLmsHomePage={isLmsHomePage}
                 // session={session}
                 onNavigate={onNavigate}
-                // onSignOut={onSignOut}
-                // notificationProps={notificationProps}
-                // notificationRef={notificationRef}
+            // onSignOut={onSignOut}
+            // notificationProps={notificationProps}
+            // notificationRef={notificationRef}
             />
         ) : (
             <UnauthenticatedNav onNavigate={onNavigate} />
@@ -368,7 +369,7 @@ export default function Nav() {
                 {isAuthenticated &&
                     <UserDropdown session={session} onNavigate={navigateTo} onSignOut={handleSignOut} classname={styles.fixedNavItem} />
                 }
-                
+
                 <HamburgerButton
                     isOpen={menuOpen}
                     onToggle={() => setMenuOpen(!menuOpen)}

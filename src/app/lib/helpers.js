@@ -63,7 +63,6 @@ export async function fetchViewData(viewName, token) {
     }
 }
 
-
 export async function getUserData(userId, authToken = null) {
     try {
         const response = await fetch(`/api/general?table=users`, {
@@ -116,7 +115,6 @@ export async function fetchDataWhereAttrIs(tableName, conditions, authToken = nu
 }
 
 export async function fetchJoinableData(tables, joinConditions, selectionAttrs = '*', additionalFilters = {}, authToken = null) {
-
     try {
         // Validate input
         if (!Array.isArray(tables) || tables.length < 2) {
@@ -152,6 +150,133 @@ export async function fetchJoinableData(tables, joinConditions, selectionAttrs =
         return await response.json();
     } catch (error) {
         console.error('Error in fetchJoinableData:', error);
+        throw new Error(error.message);
+    }
+}
+
+// New function to check if user is enrolled in a class
+export async function checkUserEnrollment(userId, classId, authToken = null) {
+    try {
+        const enrollmentData = await fetchDataWhereAttrIs(
+            'classes_users',
+            { user_id: userId, class_id: classId },
+            authToken
+        );
+        
+        return enrollmentData && enrollmentData.length > 0;
+    } catch (error) {
+        console.error('Error checking user enrollment:', error);
+        return false;
+    }
+}
+
+// New function to get user's enrolled classes
+export async function getUserEnrolledClasses(userId, authToken = null) {
+    try {
+        const enrollmentData = await fetchDataWhereAttrIs(
+            'classes_users',
+            { user_id: userId },
+            authToken
+        );
+        
+        return enrollmentData?.map(enrollment => enrollment.class_id) || [];
+    } catch (error) {
+        console.error('Error fetching user enrolled classes:', error);
+        return [];
+    }
+}
+
+// New function to get class details with enrollment check
+export async function getClassDetailsWithEnrollmentCheck(classId, userId, authToken = null) {
+    try {
+        // First check if user is enrolled or is the teacher
+        const classData = await fetchDataWhereAttrIs('classes', { class_id: classId }, authToken);
+        if (!classData || classData.length === 0) {
+            throw new Error('Class not found');
+        }
+
+        const classInfo = classData[0];
+        
+        // Check if user is the teacher
+        if (classInfo.teacher_id === userId) {
+            return { ...classInfo, hasAccess: true, accessReason: 'teacher' };
+        }
+
+        // Check if user is enrolled
+        const isEnrolled = await checkUserEnrollment(userId, classId, authToken);
+        
+        if (isEnrolled) {
+            return { ...classInfo, hasAccess: true, accessReason: 'enrolled' };
+        }
+
+        // Return limited information for non-enrolled users
+        return {
+            class_id: classInfo.class_id,
+            course_name: classInfo.course_name,
+            class_description: classInfo.class_description,
+            cost: classInfo.cost,
+            teacher_id: classInfo.teacher_id,
+            hasAccess: false,
+            accessReason: 'not_enrolled'
+        };
+    } catch (error) {
+        console.error('Error fetching class details with enrollment check:', error);
+        throw new Error(error.message);
+    }
+}
+
+// New function to get secure class list for teacher profile
+export async function getSecureTeacherClasses(teacherId, viewerId, authToken = null) {
+    try {
+        // Get all classes for the teacher
+        const classesData = await fetchJoinableData(
+            ['classes', 'courses', 'grades'],
+            ['classes.course_id = courses.course_id', 'classes.grade_id = grades.grade_id'],
+            '*',
+            { 'classes.teacher_id': teacherId },
+            authToken
+        );
+
+        if (!classesData || classesData.length === 0) {
+            return [];
+        }
+
+        // Get viewer's enrolled classes if they're not the teacher
+        let viewerEnrolledClasses = [];
+        if (viewerId !== teacherId) {
+            viewerEnrolledClasses = await getUserEnrolledClasses(viewerId, authToken);
+        }
+
+        // Filter and secure the class data based on viewer's access
+        const secureClasses = classesData.map(classItem => {
+            const isTeacher = viewerId === teacherId;
+            const isEnrolled = viewerEnrolledClasses.includes(classItem.class_id);
+            const hasAccess = isTeacher || isEnrolled;
+
+            if (hasAccess) {
+                return {
+                    ...classItem,
+                    hasAccess: true,
+                    accessReason: isTeacher ? 'teacher' : 'enrolled'
+                };
+            } else {
+                // Return limited information for non-enrolled viewers
+                return {
+                    class_id: classItem.class_id,
+                    course_name: classItem.course_name,
+                    grade_name: classItem.grade_name,
+                    class_description: classItem.class_description,
+                    cost: classItem.cost,
+                    teacher_id: classItem.teacher_id,
+                    hasAccess: false,
+                    accessReason: 'not_enrolled'
+                };
+            }
+        });
+
+        return secureClasses;
+    } catch (error) {
+        console.error('Error fetching secure teacher classes:', error);
         throw new Error(error.message);
     }
 }
