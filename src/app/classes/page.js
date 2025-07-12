@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
-import styles from '../../styles/Grades.module.css';
 import '../global.css';
+import styles from '../../styles/Grades.module.css';
 
 import { SEO } from '../seoConfig';
 import Loading from '../components/Loading';
@@ -88,17 +88,17 @@ export default function GradesPage() {
             { 'grades.grade_id': activeGradeId },
             isAuthenticated ? authToken : null
         )
-          .then(data => {
-            return (
-              setClassesData(data),
-              setClassItem(prev => [
-                ...prev,
-                ...data.filter(
-                  newItem => !prev.some(existing => existing.class_id === newItem.class_id)
+            .then(data => {
+                return (
+                    setClassesData(data),
+                    setClassItem(prev => [
+                        ...prev,
+                        ...data.filter(
+                            newItem => !prev.some(existing => existing.class_id === newItem.class_id)
+                        )
+                    ])
                 )
-              ])
-           )
-          })
+            })
             .catch(error => console.error('Error fetching classes:', error));
 
         if (isAuthenticated) {
@@ -425,7 +425,7 @@ export default function GradesPage() {
                         gradesData.map(grade => (
                             <div
                                 key={grade.grade_id}
-                                className={`${styles.gradeCard} ${activeGradeId === grade.grade_id ? styles.activegrade : ''} fade-in`}
+                                className={`${styles.gradeCard} ${activeGradeId === grade.grade_id ? styles.activeGrade : ''} fade-in`}
                                 onClick={() => setActiveGradeId(grade.grade_id)}
                             >
                                 <h2>{grade.grade_name[0].toUpperCase() + grade.grade_name.slice(1)}</h2>
@@ -458,74 +458,229 @@ export default function GradesPage() {
                 )}
             </main>
 
-            {/* Full-screen Classroom Overlay */}
+            {/* Modern Full-screen Classroom Overlay */}
             {showClassroomOverlay && selectedCourse && (
                 <div className={styles.fullScreenOverlay}>
                     <div className={styles.overlayContent}>
                         <div className={styles.overlayHeader}>
-                            <h2>{selectedCourse.course_name} Classrooms</h2>
-                            <button className={styles.closeButton} onClick={closeClassroomOverlay}>×</button>
+                            <div className={styles.headerContent}>
+                                <h2 className={styles.overlayTitle}>Selected Classes</h2>
+                                <span className={styles.subtitle}>Available Classrooms</span>
+                            </div>
+                            <button className={styles.closeButton} onClick={closeClassroomOverlay}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M18 6L6 18M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
+
                         <div className={styles.overlayBody}>
-                            <ul className={`${styles.classroomList} scrollable`}>
+                            <div className={styles.classroomGrid}>
                                 {selectedCourse.classes.map(classItem => {
+                                    const teacher = getTeacher(classItem.teacher_id);
+                                    const startDate = getDate(classItem.start_time);
+                                    const endDate = getDate(classItem.end_time);
+
                                     return (
-                                        <li key={classItem.class_id} className={styles.classroomItem}>
-                                            <div className={styles.classroomInfo}>
-                                                <div className={styles.classroomDetails}>
-                                                    <span className={styles.teacher}>
-                                                        {getTeacher(classItem.teacher_id)?.user_name || 'Teacher'}
-                                                        <button onClick={() => router.push(`/profile/${classItem.teacher_id}`)}>View Profile</button>
-                                                    </span>
-                                                    <span className={styles.time}>
-                                                        <div>
-                                                            <div>
-                                                                <time>
-                                                                    {getDate(classItem.start_time).yyyymmdd}
-                                                                </time>
-                                                                to
-                                                                <time>
-                                                                    {getDate(classItem.end_time).yyyymmdd}
-                                                                </time>
-                                                            </div>
-                                                            <div>
-                                                                <time>
-                                                                    {getDate(classItem.start_time).hhmmss}
-                                                                </time>
-                                                                -
-                                                                <time>
-                                                                    {getDate(classItem.end_time).hhmmss}
-                                                                </time>
-                                                            </div>
-                                                        </div>
-                                                        <span>
-                                                            every
-                                                            <time>
-                                                                {classItem.repeat_every_n_day}
-                                                            </time>
-                                                            days
-                                                        </span>
-                                                    </span>
-                                                    <span className={styles.cost}>
-                                                        {classItem.cost}
-                                                    </span>
+                                        <div key={classItem.class_id} className={styles.classroomCard}>
+                                            {/* Teacher Section */}
+                                            <div className={styles.teacherSection}>
+                                                <div className={styles.teacherInfo}>
+                                                    <div className={styles.teacherAvatar}>
+                                                        {teacher?.user_name?.charAt(0) || 'T'}
+                                                    </div>
+                                                    <div className={styles.teacherDetails}>
+                                                        <h3 className={styles.teacherName}>
+                                                            {teacher?.user_name || 'Teacher'}
+                                                        </h3>
+                                                        <span className={styles.teacherRole}>Instructor</span>
+                                                    </div>
                                                 </div>
+                                                <button
+                                                    className={styles.profileButton}
+                                                    onClick={() => router.push(`/profile/${classItem.teacher_id}`)}
+                                                >
+                                                    View Profile
+                                                </button>
+                                            </div>
+
+                                            {/* Schedule Section */}
+                                            <div className={styles.scheduleSection}>
+                                                <div className={styles.scheduleGrid}>
+                                                    <div className={styles.scheduleItem}>
+                                                        <div className={styles.scheduleLabel}>
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                                                <line x1="16" y1="2" x2="16" y2="6" />
+                                                                <line x1="8" y1="2" x2="8" y2="6" />
+                                                                <line x1="3" y1="10" x2="21" y2="10" />
+                                                            </svg>
+                                                            Duration
+                                                        </div>
+                                                        <div className={styles.scheduleValue}>
+                                                            <span className={styles.dateChip}>
+                                                                {startDate.yyyymmdd}
+                                                            </span>
+                                                            <span className={styles.dateSeparator}>to</span>
+                                                            <span className={styles.dateChip}>
+                                                                {endDate.yyyymmdd}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className={styles.scheduleItem}>
+                                                        <div className={styles.scheduleLabel}>
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                <circle cx="12" cy="12" r="10" />
+                                                                <polyline points="12,6 12,12 16,14" />
+                                                            </svg>
+                                                            Time
+                                                        </div>
+                                                        <div className={styles.scheduleValue}>
+                                                            <span className={styles.timeChip}>
+                                                                {startDate.hhmmss}
+                                                            </span>
+                                                            <span className={styles.timeSeparator}>–</span>
+                                                            <span className={styles.timeChip}>
+                                                                {endDate.hhmmss}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className={styles.scheduleItem}>
+                                                        <div className={styles.scheduleLabel}>
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                                                <circle cx="12" cy="10" r="3" />
+                                                            </svg>
+                                                            Repeats
+                                                        </div>
+                                                        <div className={styles.scheduleValue}>
+                                                            <span className={styles.repeatChip}>
+                                                                Every {classItem.repeat_every_n_day} days
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className={styles.scheduleItem}>
+                                                        <div className={styles.scheduleLabel}>
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                <line x1="12" y1="1" x2="12" y2="23" />
+                                                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                                                            </svg>
+                                                            Cost
+                                                        </div>
+                                                        <div className={styles.scheduleValue}>
+                                                            <span className={styles.costChip}>
+                                                                {classItem.cost}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Action Section */}
+                                            <div className={styles.actionSection}>
                                                 {renderClassActionButton(classItem)}
                                             </div>
-                                        </li>
+                                        </div>
                                     );
                                 })}
-                            </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Cart Checkout Overlay - Only for students */}
+
+            {/* Enhanced Cart Checkout Bar - Only for students */}
             {cart.length > 0 && getUserLevel() === 0 && (
-                <div className={styles.cartFloatingButton} onClick={() => handlePaymentFlow()}>
-                    <span>{cart.length}</span>
-                    <span>{isJoining ? 'Processing...' : 'Checkout'}</span>
+                <div className={styles.checkoutBar}>
+                    <div className={styles.checkoutContent}>
+
+                        <div className={styles.cartSummary}>
+                            <span className={styles.itemCount}>
+                                {cart.length} {cart.length === 1 ? 'Class' : 'Classes'} Selected
+                            </span>
+                            <div className={styles.cartDetails}>
+                                {cart.map(classId => {
+                                    const classData = classItem.find(c => c.class_id === classId);
+                                    if (!classData) return null;
+
+                                    const teacher = getTeacher(classData.teacher_id);
+                                    return (
+                                        <div key={classId} className={styles.cartItem}>
+                                            <div className={styles.classesHeader}>
+                                                <span className={styles.courseName}>
+                                                    {classData.course_name}
+                                                </span>
+                                            </div>
+                                            <span className={styles.teacherName}>
+                                                with {teacher?.user_name || 'Teacher'}
+                                            </span>
+                                            <span className={styles.classTime}>
+                                                {getDate(classData.start_time).yyyymmdd} - {getDate(classData.end_time).yyyymmdd}
+                                            </span>
+                                            <span className={styles.classCost}>
+                                                ${classData.cost}
+                                            </span>
+                                            <button
+                                                className={styles.removeItemBtn}
+                                                onClick={() => removeFromCart(classId)}
+                                                title="Remove from cart"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <div className={styles.totalSection}>
+                            <div className={styles.totalAmount}>
+                                Total: ${cart.reduce((total, classId) => {
+                                    const classData = classItem.find(c => c.class_id === classId);
+                                    return total + (parseFloat(classData?.cost || 0));
+                                }, 0).toFixed(2)}
+                            </div>
+                            <div className={styles.checkoutActions}>
+                                <button
+                                    className={styles.clearCartBtn}
+                                    onClick={() => setCart([])}
+                                    disabled={isJoining}
+                                >
+                                    Clear Cart
+                                </button>
+                                <button
+                                    className={styles.checkoutBtn}
+                                    onClick={() => handlePaymentFlow()}
+                                    disabled={isJoining}
+                                >
+                                    {isJoining ? (
+                                        <span className={styles.loadingText}>
+                                            <span className={styles.spinner}></span>
+                                            Processing...
+                                        </span>
+                                    ) : (
+                                            'Proceed to Checkout'
+                                        )}
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            className={styles.toggleCartBtn}
+                            onClick={() => {
+                                const cartDetails = document.querySelector(`.${styles.cartDetails}`);
+                                if (cartDetails) {
+                                    cartDetails.classList.toggle(styles.collapsed);
+                                }
+                            }}
+                        >
+                            {/* Toggle icon */}
+                            <span className={styles.toggleIcon}>⌄</span>
+                        </button>
+                    </div>
                 </div>
             )}
 

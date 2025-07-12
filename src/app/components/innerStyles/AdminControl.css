@@ -1,4 +1,17 @@
 /* Admin Control Styles */
+.profile-link-btn {
+    background: var(--background);
+    border: 1px solid var(--offWhite);
+    color: var(--foreground);
+    padding: 1rem;
+    border-radius: 4px;
+    transition: 0.2s ease;
+    cursor: pointer;
+}
+
+.profile-link-btn:hover {
+    background: var(--offWhite);
+}
 .admin-panel {
     display: flex;
     flex-direction: column;
@@ -110,7 +123,7 @@
 }
 
 .approve-btn,
-.deny-btn,
+.reject-btn,
 .classDetailsButton {
     background-color: var(--secondary);
     color: var(--white);
@@ -124,11 +137,11 @@
 }
 
 .approve-btn {
-    background-color: var(--success, #28a745);
+    background-color: var(--lightGreen, #28a745);
 }
 
-.deny-btn {
-    background-color: var(--danger, #dc3545);
+.reject-btn {
+    background-color: var(--lightRed, #dc3545);
 }
 
 .approve-btn:hover,

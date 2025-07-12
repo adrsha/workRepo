@@ -11,7 +11,7 @@ export const metadata = {
     },
     description: 'MeroTuition offers comprehensive online education in Nepal. Join courses, preparation classes, language learning, and connect with expert teachers. Start learning today!',
     keywords: [
-        'MeroTuition', 'merotuition', 'online learning Nepal', 'LMS Nepal', 'online classes Nepal', 
+        'MeroTuition', 'merotuition', 'online learning Nepal', 'LMS Nepal', 'online classes Nepal',
         'tutoring Nepal', 'education platform', 'online courses Nepal', 'best LMS Nepal',
         'online education', 'comprehensive learning', 'expert teachers Nepal'
     ],
@@ -53,6 +53,7 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+
     const structuredData = {
         "@context": "https://schema.org",
         "@type": "EducationalOrganization",
@@ -84,15 +85,15 @@ export default function RootLayout({ children }) {
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
                 <link rel="dns-prefetch" href="//merotuition.com" />
-                
+
                 {/* Security Headers */}
                 <meta httpEquiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
                 <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
                 <meta httpEquiv="X-Frame-Options" content="DENY" />
-                
+
                 {/* Cache Control */}
                 <meta httpEquiv="Cache-Control" content="public, max-age=31536000, immutable" />
-                
+
                 {/* Structured Data */}
                 <script
                     type="application/ld+json"
@@ -100,7 +101,7 @@ export default function RootLayout({ children }) {
                         __html: JSON.stringify(structuredData)
                     }}
                 />
-                
+
                 {/* Google Analytics */}
                 <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
                 <script
@@ -113,7 +114,7 @@ export default function RootLayout({ children }) {
                         `
                     }}
                 />
-                
+
                 {/* Social Media Integration */}
                 <meta property="fb:app_id" content="your-facebook-app-id" />
                 <meta name="twitter:site" content="@merotuition" />
@@ -126,7 +127,7 @@ export default function RootLayout({ children }) {
                         <main className={defaultStyle.background}>
                             {children}
                         </main>
-                        <Footer />
+                        <Footer/>
                     </ClientLayout>
                 </div>
             </body>

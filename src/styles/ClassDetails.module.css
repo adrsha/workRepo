@@ -230,7 +230,7 @@
 }
 
 .backButton:hover {
-    background-color: var(--primary)
+    background-color: var(--primary);
 }
 
 .toast {
@@ -392,7 +392,7 @@
     font-size: 0.9rem;
     background-color: var(--white);
     color: var(--foreground);
-    transition: var(--transition-fast);
+    transition: all 0.2s ease;
     font-family: var(--font-sans);
 }
 
@@ -422,7 +422,7 @@
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
-    transition: var(--transition-fast);
+    transition: all 0.2s ease;
     font-family: var(--font-sans);
 }
 
@@ -446,7 +446,7 @@
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
-    transition: var(--transition-fast);
+    transition: all 0.2s ease;
     font-family: var(--font-sans);
 }
 
@@ -485,7 +485,7 @@
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
-    transition: var(--transition-fast);
+    transition: all 0.2s ease;
     font-family: var(--font-sans);
 }
 
@@ -503,7 +503,7 @@
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
-    transition: var(--transition-fast);
+    transition: all 0.2s ease;
     font-family: var(--font-sans);
 }
 

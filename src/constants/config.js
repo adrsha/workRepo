@@ -5,6 +5,7 @@ export const CONFIG = {
     ERRORS: {
         UNAUTHORIZED: 'Unauthorized',
         MISSING_CLASS_ID: 'Missing classId',
+        MISSING_NOTICE_ID: 'Missing noticeId',
         MISSING_CONTENT: 'Missing file or textContent',
         DB_FAILED: 'Database operation failed',
         INTERNAL: 'Internal Server Error'

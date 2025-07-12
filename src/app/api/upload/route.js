@@ -3,7 +3,7 @@ import { authOptions } from '../auth/[...nextauth]/authOptions';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { CONFIG } from '../../../constants/config';
-import { generateFileName, getPublicFilePath } from '../../../utils/contentUtils';
+import { generateFileName } from '../../../utils/contentUtils';
 
 const SIGNUP_FILE_CONFIG = {
     allowedTypes: ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
@@ -23,37 +23,36 @@ const authService = {
     }
 };
 
-const getFileConfig = (classId) => ({
-    isCertificate: classId === 'teacher-certificates',
-    config: classId === 'teacher-certificates' ? SIGNUP_FILE_CONFIG : null
+const getFileConfig = (parentId) => ({
+    isCertificate: parentId === 'teacher-certificates',
+    config: parentId === 'teacher-certificates' ? SIGNUP_FILE_CONFIG : null
 });
 
 const pathService = {
-    buildServerPath(classId, isSignupForm) {
-        const { isCertificate } = getFileConfig(classId);
+    buildServerPath(parentId, parentType, isSignupForm) {
+        const { isCertificate } = getFileConfig(parentId);
 
         if (isSignupForm && isCertificate) {
             return join(CONFIG.SERVER_UPLOADS_DIR, 'signup-certificates', 'teacher-certificates');
         }
-        return join(CONFIG.SERVER_UPLOADS_DIR, 'classes', classId);
+        
+        // Use parentType as main directory, parentId as subdirectory
+        return join(CONFIG.SERVER_UPLOADS_DIR, parentType, parentId);
     },
 
-    buildPublicPath(classId, fileName, isSignupForm) {
-        const { isCertificate } = getFileConfig(classId);
-
-        if (isSignupForm && isCertificate) {
-            return `/uploads/signup-certificates/teacher-certificates/${fileName}`;
-        }
-        return getPublicFilePath(classId, fileName);
+    // Convert server path to public path by removing server uploads dir
+    getPublicPath(serverPath) {
+        const relativePath = serverPath.replace(CONFIG.SERVER_UPLOADS_DIR, '');
+        return `/uploads${relativePath}`.replace(/\\/g, '/'); // Normalize path separators
     }
 };
 
-const validateFile = (file, classId, isSignupForm) => {
+const validateFile = (file, parentId, isSignupForm) => {
     if (!file?.name || !file?.size || !file?.type) {
         throw new Error(CONFIG.ERRORS.MISSING_FILE);
     }
 
-    const { config } = getFileConfig(classId);
+    const { config } = getFileConfig(parentId);
 
     if (isSignupForm && config) {
         if (!config.allowedTypes.includes(file.type)) {
@@ -88,11 +87,11 @@ const fileService = {
         };
     },
 
-    async processUpload(file, classId, userId, isSignupForm = false) {
+    async processUpload(file, parentId, parentType, userId, isSignupForm = false) {
         const fileName = generateFileName(userId, file.name);
-        const serverDir = pathService.buildServerPath(classId, isSignupForm);
+        const serverDir = pathService.buildServerPath(parentId, parentType, isSignupForm);
         const serverPath = join(serverDir, fileName);
-        const publicPath = pathService.buildPublicPath(classId, fileName, isSignupForm);
+        const publicPath = pathService.getPublicPath(serverPath);
 
         await this.createDirectory(serverDir);
         await this.save(file, serverPath);
@@ -114,7 +113,7 @@ const createErrorResponse = (error) => {
 
     const errorMap = {
         [CONFIG.ERRORS.UNAUTHORIZED]: 401,
-        [CONFIG.ERRORS.MISSING_CLASS_ID]: 400,
+        [CONFIG.ERRORS.MISSING_PARENT_ID]: 400,
         [CONFIG.ERRORS.MISSING_FILE]: 400,
         [SIGNUP_FILE_CONFIG.typeError]: 400,
         [SIGNUP_FILE_CONFIG.sizeError]: 400
@@ -131,10 +130,11 @@ export async function POST(req) {
         const formData = await req.formData();
         const file = formData.get('file');
         const isSignupForm = formData.get('isSignupForm') === 'true';
-        const classId = formData.get('classId');
+        const parentId = formData.get('parentId');
+        const parentType = formData.get('parentType');
 
-        if (!classId) {
-            throw new Error(CONFIG.ERRORS.MISSING_CLASS_ID);
+        if (!parentId) {
+            throw new Error(CONFIG.ERRORS.MISSING_PARENT_ID || 'Parent ID is required');
         }
 
         if (!isSignupForm) {
@@ -142,13 +142,12 @@ export async function POST(req) {
             if (!session?.user) {
                 throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
             }
-
         }
 
-        validateFile(file, classId, isSignupForm);
+        validateFile(file, parentId, isSignupForm);
 
         const userId = await authService.getUserId();
-        const fileData = await fileService.processUpload(file, classId, userId, isSignupForm);
+        const fileData = await fileService.processUpload(file, parentId, parentType, userId, isSignupForm);
 
         return createResponse(fileData);
     } catch (error) {

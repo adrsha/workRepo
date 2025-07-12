@@ -1,4 +1,15 @@
 :root {
+    
+  --input-padding: var(--inputThickness);
+  --input-border-radius: var(--border-radius-sm);
+  --input-border-width: 2px;
+  --input-font-size: 1rem;
+  --label-font-size: 0.875rem;
+  --label-offset: calc(-1.5 * var(--inputThickness));
+  
+  /* Focus ring using your tertiary color */
+  --focus-ring: 0 0 0 3px;
+  --focus-ring-color: rgba(61, 176, 183, 0.25);
   --navheight: 6rem;
   --inputThickness: 1rem;
   --card-shadow: 0 5px 25px rgba(0, 0, 10, 0.1); /* deeper shadow for more contrast */
@@ -42,7 +53,6 @@
   --darkGreen: #00685d;
   --darkRed: #a53844;
 
-  /* Whites and Blacks */
   --white: #ffffff;
   --offWhite: #dbe6f0;
   --gray: #9ca5b0;

@@ -1,32 +1,65 @@
 .contentContainer {
     margin-top: 2rem;
     padding-top: 1.5rem;
-    border-top: 1px solid #edf1f7;
+    border-top: 1px solid var(--offWhite);
+}
+
+.clickable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.clickable:hover {
+    transform: translateY(-1px);
+}
+
+.clickable:active {
+    transform: translateY(0);
+}
+
+.visibilityText{
+    font-size: 0.7em;
 }
 
 .contentTitle {
     margin-bottom: 1rem;
     font-size: 1.1rem;
-    color: #435365;
+    color: var(--darkforeground);
     font-weight: 500;
 }
 
 .contentList {
     display: flex;
     flex-direction: column;
-    gap: 0rem;
+    gap: 1rem;
 }
 
 .contentItem {
+    background-color: var(--white);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--card-shadow);
+    transition: var(--transition-normal);
+    overflow: hidden;
+    border: 1px solid var(--offWhite);
     position: relative;
-    background-color: #f9fbfd;
-    margin: 0;
+}
+
+.contentBody {
     padding: 1.5rem;
-    transition: all 0.2s ease;
 }
 
 .contentItem:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--hover-shadow);
+    transform: translateY(-2px);
+}
+
+.contentActions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background-color: var(--background);
+    border-top: 1px solid var(--offWhite);
 }
 
 .imageContent img {
@@ -54,7 +87,9 @@
 
 .fileContent {
     padding: 1rem;
-    background-color: #f1f5f9;
+    background-color: var(--background);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--offWhite);
     border-radius: 4px;
     display: flex;
     align-items: center;
@@ -76,29 +111,34 @@
 }
 
 .contentMeta {
-    margin-top: 1rem;
-    font-size: 0.8rem;
-    color: #718096;
-    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
 }
 
-.emptyState {
-    color: #718096;
-    font-style: italic;
-    padding: 1.5rem;
-    background-color: #f9fbfd;
-    border-radius: 6px;
-    text-align: center;
-    border: 1px solid #edf1f7;
+.metaInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
+.timestamp {
+    font-size: 0.875rem;
+    color: var(--gray);
+    font-weight: 400;
+}
+
+
+.emptyState,
 .loadingState {
-    color: #718096;
-    padding: 1.5rem;
-    background-color: #f9fbfd;
-    border-radius: 6px;
+    color: var(--gray);
+    font-style: italic;
+    padding: 2rem;
+    background-color: var(--background);
+    border-radius: var(--border-radius-md);
     text-align: center;
-    border: 1px solid #edf1f7;
+    border: 1px solid var(--offWhite);
 }
 
 .addContentSection {
@@ -244,25 +284,39 @@
 }
 
 .deleteButton {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    background: none;
-    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--offWhite);
+    background-color: var(--white);
     color: var(--lightRed);
     cursor: pointer;
-    font-size: 1.2rem;
-    padding: 0.2rem;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.contentItem:hover .deleteButton {
-    opacity: 0.7;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    padding: 0;
 }
 
 .deleteButton:hover {
-    opacity: 1 !important;
+    background-color: var(--primaryLighter);
+    border-color: var(--lightRed);
+    transform: scale(1.05);
+}
+
+.deleteButton:active {
+    transform: scale(0.95);
+}
+
+.deleteButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.deleteButton.deleting {
+    animation: pulse 1s infinite;
 }
 
 .toast {
@@ -277,23 +331,28 @@
 }
 
 .toastContent {
-    background-color: #fff0f0;
-    color: var(--lightRed);
-    border-left: 3px solid var(--lightRed);
-    border-radius: 4px;
-    padding: 0.8rem 1rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background-color: var(--white);
+    border: 1px solid var(--offWhite);
+    border-radius: var(--border-radius-md);
+    padding: 1rem;
+    box-shadow: var(--hover-shadow);
     display: flex;
     align-items: center;
     justify-content: space-between;
     pointer-events: all;
-    animation: slideIn 0.3s ease forwards;
+    animation: slideInUp 0.3s ease forwards;
 }
 
-.successToast .toastContent {
-    background-color: #ecfdf5;
-    color: #10b981;
-    border-left: 3px solid #10b981;
+.toastContent.error {
+    border-left: 4px solid var(--lightRed);
+    background-color: var(--primaryLighter);
+    color: var(--lightRed);
+}
+
+.toastContent.success {
+    border-left: 4px solid var(--lightGreen);
+    background-color: var(--quaternaryLighter);
+    color: var(--lightGreen);
 }
 
 .toastMessage {
@@ -315,28 +374,117 @@
     opacity: 1;
 }
 
-.visibilityBadge {
-    color: white;
-    padding: 0.2rem 0.4rem;
-    margin-left: 1.4rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
+
+/* Focus states for better accessibility */
+.visibilityToggle:focus-visible,
+.deleteButton:focus-visible {
+    outline: 2px solid var(--tertiary);
+    outline-offset: 2px;
 }
 
-.visibilityBadge.publicBadge {
-    background-color: var(--primary);
+/* Improved animations */
+.contentItem {
+    animation: fadeInUp 0.3s ease-out;
 }
 
-.visibilityBadge.privateBadge {
-    background-color: var(--secondary);
+.visibilityContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
 }
 
 .visibilityToggle {
-    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid transparent;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+    background: none;
 }
 
-.visibilityToggle p {
-    font-size: 0.8rem;
+
+.visibilityToggle.canToggle {
+    border-color: var(--offWhite);
+    background-color: var(--white);
+}
+
+.visibilityToggle.canToggle:hover {
+    border-color: var(--gray);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.visibilityToggle.canToggle:active {
+    transform: translateY(0);
+}
+
+.visibilityToggle.readOnly {
+    cursor: default;
+    opacity: 0.8;
+}
+
+.visibilityToggle.publicToggle {
+    color: var(--tertiary);
+}
+
+.visibilityToggle.privateToggle {
+    color: var(--secondary);
+}
+
+.visibilityToggle.canToggle.publicToggle:hover {
+    background-color: var(--tertiaryLighter);
+    border-color: var(--tertiary);
+}
+
+.visibilityToggle.canToggle.privateToggle:hover {
+    background-color: var(--secondaryLighter);
+    border-color: var(--secondary);
+}
+
+.visibilityToggle:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.visibilityIcon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.visibilityLabel {
+    font-weight: 500;
+    letter-spacing: 0.025em;
+}
+
+.toggleHint {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-left: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.visibilityToggle.canToggle:hover .toggleHint {
+    opacity: 1;
+}
+
+.visibilityHelp {
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-left: 0.5rem;
+    font-style: italic;
+}
+
+.splitView .markdownPreview {
+    padding: 1rem;
+    overflow: auto;
+    flex: 1;
 }
 
 /* Enhanced Editor Styles */
@@ -408,7 +556,6 @@
     flex-direction: column;
     border: 1px solid #e9ecef;
     border-radius: 0 0 4px 4px;
-    overflow: hidden;
 }
 
 .editorContainer.splitView {
@@ -435,149 +582,124 @@
     height: 100%;
 }
 
-/* Shared markdown styles for both preview and content display */
-.markdownPreview,
 .textContent :global(.markdown-content),
 .defaultContent :global(.markdown-content) {
-    padding: 12px;
-    background: white;
-    overflow-y: auto;
-    flex: 1;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    color: var(--foreground);
+}
+
+.textContent :global(.markdown-content) h1,
+.defaultContent :global(.markdown-content) h1 {
+    font-size: 1.5rem;
+    margin: 1rem 0 0.75rem 0;
+    color: var(--darkforeground);
+    font-weight: 600;
+    border-bottom: 2px solid var(--offWhite);
+    padding-bottom: 0.5rem;
+}
+
+.textContent :global(.markdown-content) h2,
+.defaultContent :global(.markdown-content) h2 {
+    font-size: 1.25rem;
+    margin: 1rem 0 0.5rem 0;
+    color: var(--darkforeground);
+    font-weight: 600;
+}
+
+.textContent :global(.markdown-content) h3,
+.defaultContent :global(.markdown-content) h3 {
+    font-size: 1.125rem;
+    margin: 0.75rem 0 0.5rem 0;
+    color: var(--darkforeground);
+    font-weight: 500;
+}
+
+.textContent :global(.markdown-content) p,
+.defaultContent :global(.markdown-content) p {
+    margin: 0.75rem 0;
     line-height: 1.6;
 }
 
-.splitView .markdownPreview {
-    width: 50%;
-    border-left: 1px solid #e9ecef;
-}
-
-/* Remove padding for content display (already handled by parent) */
-.textContent,
-.defaultContent {
-    padding: 0;
-    background: transparent;
-}
-
-.markdownPreview h1,
-.textContent h1,
-.defaultContent h1 {
-    font-size: 24px;
-    margin: 16px 0 12px 0;
-    color: #333;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 8px;
-}
-
-.markdownPreview h2,
-.textContent h2,
-.defaultContent h2 {
-    font-size: 20px;
-    margin: 14px 0 10px 0;
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 6px;
-}
-
-.markdownPreview h3,
-.textContent h3,
-.defaultContent h3 {
-    font-size: 16px;
-    margin: 12px 0 8px 0;
-    color: #333;
-}
-
-.markdownPreview code,
-.textContent code,
-.defaultContent code {
-    background: #f8f9fa;
-    padding: 2px 4px;
-    border-radius: 3px;
+.textContent :global(.markdown-content) code,
+.defaultContent :global(.markdown-content) code {
+    background-color: var(--background);
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    font-size: 13px;
-    color: #e83e8c;
+    font-size: 0.875rem;
+    color: var(--tertiary);
+    border: 1px solid var(--offWhite);
 }
 
-.markdownPreview pre,
-.textContent pre,
-.defaultContent pre {
-    background: #f8f9fa;
-    padding: 12px;
-    border-radius: 4px;
+.textContent :global(.markdown-content) pre,
+.defaultContent :global(.markdown-content) pre {
+    background-color: var(--background);
+    padding: 1rem;
+    border-radius: var(--border-radius-sm);
     overflow-x: auto;
-    margin: 12px 0;
+    margin: 1rem 0;
+    border: 1px solid var(--offWhite);
 }
 
-.markdownPreview pre code,
-.textContent pre code,
-.defaultContent pre code {
+.textContent :global(.markdown-content) pre code,
+.defaultContent :global(.markdown-content) pre code {
     background: none;
     padding: 0;
-    color: #333;
+    border: none;
+    color: var(--foreground);
 }
 
-.markdownPreview blockquote,
-.textContent blockquote,
-.defaultContent blockquote {
-    margin: 12px 0;
-    padding: 8px 16px;
-    background: #f8f9fa;
-    border-left: 4px solid var(--tertiary);
-    color: #6c757d;
+.textContent :global(.markdown-content) blockquote,
+.defaultContent :global(.markdown-content) blockquote {
+    margin: 1rem 0;
+    padding: 0.75rem 1rem;
+    background-color: var(--background);
+    border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+    color: var(--foreground);
     font-style: italic;
 }
 
-.markdownPreview ul,
-.markdownPreview ol,
-.textContent ul,
+.textContent :global(.markdown-content) ul,
 .textContent :global(.markdown-content) ol,
-.defaultContent ul,
+.defaultContent :global(.markdown-content) ul,
 .defaultContent :global(.markdown-content) ol {
-    margin: 12px 0;
-    padding-left: 24px;
+    margin: 0.75rem 0;
+    padding-left: 1.5rem;
 }
 
-.markdownPreview li,
-.textContent li,
-.defaultContent li {
-    margin: 4px 0;
+.textContent :global(.markdown-content) li,
+.defaultContent :global(.markdown-content) li {
+    margin: 0.25rem 0;
 }
 
-.markdownPreview a,
-.textContent a,
-.defaultContent a {
+.textContent :global(.markdown-content) a,
+.defaultContent :global(.markdown-content) a {
     color: var(--tertiary);
     text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s ease;
 }
 
-.markdownPreview a:hover,
-.textContent a:hover,
-.defaultContent a:hover {
-    text-decoration: underline;
+.textContent :global(.markdown-content) a:hover,
+.defaultContent :global(.markdown-content) a:hover {
+    border-bottom-color: var(--tertiary);
 }
 
-.markdownPreview hr,
-.textContent hr,
-.defaultContent hr {
-    margin: 20px 0;
+.textContent :global(.markdown-content) hr,
+.defaultContent :global(.markdown-content) hr {
+    margin: 1.5rem 0;
     border: none;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--offWhite);
 }
 
-.markdownPreview del,
-.textContent del,
-.defaultContent del {
-    color: #6c757d;
-    text-decoration: line-through;
-}
-
-.markdownPreview img,
-.textContent img,
-.defaultContent img {
+.textContent :global(.markdown-content) img,
+.defaultContent :global(.markdown-content) img {
     max-width: 100%;
     height: auto;
-    border-radius: 4px;
-    margin: 8px 0;
+    border-radius: var(--border-radius-sm);
+    margin: 0.75rem 0;
+    box-shadow: var(--card-shadow);
 }
 
 /* File Upload Component Styles */
@@ -834,12 +956,6 @@
     outline-offset: 2px;
 }
 
-.contentTextarea:focus {
-    outline: 2px solid var(--tertiary);
-    outline-offset: 2px;
-    border-color: var(--tertiary);
-}
-
 /* Loading states */
 .uploadButton.loading {
     position: relative;
@@ -874,12 +990,12 @@
     line-height: 1.6;
 }
 
-@keyframes slideIn {
+
+@keyframes slideInUp {
     from {
-        transform: translateY(20px);
+        transform: translateY(100px);
         opacity: 0;
     }
-
     to {
         transform: translateY(0);
         opacity: 1;
@@ -897,5 +1013,21 @@
 
     .actionButtons {
         flex-direction: column;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

@@ -6,6 +6,12 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { CONFIG } from '../../../../constants/config';
 
+// ============== CONFIGURATION ==============
+const CONTENT_TABLES = [
+    { table: 'classes_content', idColumn: 'classes_id', parentType: 'classes' },
+    { table: 'notices_content', idColumn: 'notices_id', parentType: 'notices' },
+];
+
 // ============== AUTHENTICATION SERVICE ==============
 const authService = {
     async getAuthenticatedUser() {
@@ -17,31 +23,38 @@ const authService = {
 
 // ============== DATABASE SERVICE ==============
 const dbService = {
-    async getContentWithClass(contentId) {
-        const query = `
-            SELECT 
-                c.content_id,
-                c.content_type, 
-                c.content_data, 
-                c.is_public,
-                cc.class_id
-            FROM content c
-            JOIN class_content cc ON c.content_id = cc.content_id
-            WHERE c.content_id = ?
-        `;
+    async getContentWithParent(contentId) {
+        // Try each content table until we find the content
+        for (const { table, idColumn, parentType } of CONTENT_TABLES) {
+            const query = `
+                SELECT 
+                    c.content_id,
+                    c.content_type, 
+                    c.content_data, 
+                    c.is_public,
+                    ct.${idColumn} as parent_id,
+                    '${parentType}' as parent_type
+                FROM content c
+                JOIN ${table} ct ON c.content_id = ct.content_id
+                WHERE c.content_id = ?
+            `;
+                
+            const rows = await executeQueryWithRetry({ 
+                query, 
+                values: [contentId] 
+            });
+            console.log("ROWS", rows)
+            if (rows.length > 0) {
+                return rows[0];
+            }
+        }
 
-        const [rows] = await executeQueryWithRetry({ 
-            query, 
-            values: [contentId] 
-        });
-
-        return rows;
+        throw new Error(CONFIG.ERRORS.CONTENT_NOT_FOUND);
     },
 
     parseContentData(content_data) {
         try {
-            const op = JSON.parse(content_data);
-            return op;
+            return JSON.parse(content_data);
         } catch (error) {
             throw new Error(CONFIG.ERRORS.INVALID_FILE_DATA);
         }
@@ -50,9 +63,9 @@ const dbService = {
 
 // ============== FILE SERVICE ==============
 const fileService = {
-    async readFileFromDisk(classId, fileName) {
+    async readFileFromDisk(parentType, parentId, fileName) {
         try {
-            const filePath = join(CONFIG.SERVER_UPLOADS_DIR, 'classes', classId, fileName);
+            const filePath = join(CONFIG.SERVER_UPLOADS_DIR, parentType, parentId.toString(), fileName);
             return await readFile(filePath);
         } catch (error) {
             console.error('Failed to read file from disk:', error);
@@ -129,19 +142,21 @@ export async function GET(request, { params }) {
         // Validate and extract content ID
         const staticParams = await params;
         const contentId = validationService.validateContentId(staticParams.contentId);
+        console.log("Content Params", staticParams);
 
-        // Fetch content with class information
-        const content = await dbService.getContentWithClass(contentId);
-        
+        // Fetch content with parent information
+        const content = await dbService.getContentWithParent(contentId);
+        console.log("Content", content);
         // Validate it's a file
         validationService.validateFileContent(content);
 
         // Parse file metadata
         const fileData = dbService.parseContentData(content.content_data);
 
-        // Read file from disk using class ID and file name
+        // Read file from disk
         const fileBuffer = await fileService.readFileFromDisk(
-            content.class_id.toString(), 
+            content.parent_type,
+            content.parent_id,
             fileData.fileName
         );
 

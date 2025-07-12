@@ -11,6 +11,8 @@
     display: flex;
     max-width: 20rem;
     flex-wrap: wrap;
+    flex:1;
+    gap: 0.5rem;
     flex-direction: row;
     margin: 0;
 }
@@ -34,14 +36,14 @@
 
 .featureSide {
     background: var(--background);
-    width: calc(100%/2) ;
+    width: calc(100%/2 - 0.5rem) ;
     padding: 1rem;
     text-align: center;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border-radius: 16px;
     cursor: pointer;
-    backdrop-filter: blur(6px);
-    border: 1px solid var(--offWhite);
     position: relative;
+    box-shadow: 0 0px 10px rgba(0, 0, 0, 0.12);
     overflow: hidden;
     z-index: 1;
     font-size: 0.8rem;
@@ -50,6 +52,7 @@
 
 .featureSide:hover {
     transform: translateY(-10px) scale(1.03);
+    background-color: white;
     box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
 }
 
@@ -211,36 +214,6 @@
     gap: 1.5rem;
 }
 
-.noticesSection {
-    flex: 2 1 300px;
-    background: var(--background);
-    padding: 2rem;
-    padding-top: 0;
-    padding-left: 0;
-    padding-right: 0;
-    border-radius: 0px;
-    border: 1px solid var(--offWhite);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    max-height: 500px;
-    overflow-y: scroll;
-}
-
-.noticesSection div {
-    margin-left: 1rem;
-}
-
-.noticesSection h2 {
-    margin-bottom: 1.5rem;
-    margin-top: 0;
-    padding-top: 1rem;
-    margin-left: 0;
-    padding-left: 1rem;
-    width: 100%;
-    background-color: var(--tertiaryLighter);
-    padding-bottom: 0.75rem;
-    position: relative;
-    display: inline-block;
-}
 
 .noticeItem {
     background: rgba(255, 255, 255, 0.8);
@@ -309,6 +282,74 @@
     transform: translateX(3px);
 }
 
+.clickableNotice {
+    cursor: pointer;
+    transition: var(--transition-normal);
+    position: relative;
+}
+
+.clickableNotice:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--hover-shadow);
+    border-color: var(--tertiary);
+}
+
+.noticeTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--darkforeground);
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.noticePreview {
+    font-size: 0.9rem;
+    color: var(--gray);
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.readMore {
+    font-size: 0.8rem;
+    color: var(--tertiary);
+    font-weight: 500;
+    text-align: right;
+    opacity: 0;
+    transition: var(--transition-normal);
+}
+
+.clickableNotice:hover .readMore {
+    opacity: 1;
+}
+
+/* Update existing notice styles if needed */
+.noticeItem {
+    background: var(--white);
+    border: 1px solid var(--secondaryBackground);
+    border-radius: var(--border-radius-md);
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: var(--card-shadow);
+}
+
+.noticeHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.noticeDateTime {
+    font-size: 0.85rem;
+    color: var(--gray);
+    font-weight: 500;
+}
+
+.noticeContent {
+    color: var(--foreground);
+    line-height: 1.5;
+}
+
 /* ========= CTA Button ========= */
 .viewAllButton {
     display: block;
@@ -352,7 +393,7 @@
     justify-content: space-around;
     margin-left: 1rem;
     margin-right: 1rem;
-    align-items: center;
+    align-items: stretch;
     gap: 2rem;
 }
 
@@ -362,7 +403,6 @@
     padding-top: 2rem;
     font-family: var(--font-serif);
     font-size: 0.9rem;
-    border: 1px solid var(--offWhite);
     text-transform: uppercase;
 }
 
@@ -575,7 +615,7 @@
 
 .closeButton:hover {
     transform: scale(1.1);
-    color: rgb(0,0,0)
+    color: rgb(0,0,0);
 }
 
 .fullscreenFeatureSides {

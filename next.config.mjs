@@ -7,6 +7,7 @@ const nextConfig = {
                 tls: false,
                 fs: false,
             };
+            config.optimization.minimize = false;
         }
         return config;
     },

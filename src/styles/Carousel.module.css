@@ -1,83 +1,359 @@
-.carousel {
-    width: 40vw;
-    height: 500px;
+.carouselContainer {
+    flex: 1;
+    min-width: 700px;
+    margin: 0 auto;
+    font-family: var(--font-sans);
+}
+
+.carouselEmpty {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--background);
+    border-radius: var(--border-radius-lg);
+    color: var(--gray);
+}
+
+.adminControls {
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.adminToggle {
+    padding: 10px 20px;
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+}
+
+.adminToggle:hover {
+    background: var(--darkRed);
+}
+
+.adminToggleActive {
+    background: var(--lightRed);
+}
+
+.adminPanel {
+    background: var(--background);
+    border-radius: var(--border-radius-md);
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--offWhite);
+}
+
+.adminUpload {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--offWhite);
+}
+
+.adminImages {
+    /* No additional styles needed */
+}
+
+.adminImagesList {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.adminImageWrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 15px;
+    background: var(--white);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--offWhite);
+    cursor: move;
+    box-shadow: var(--card-shadow);
+}
+
+.dragHandle {
+    font-size: 18px;
+    color: var(--gray);
+    cursor: grab;
+    padding: 5px;
+    user-select: none;
+}
+
+.dragHandle:active {
+    cursor: grabbing;
+}
+
+.adminImageItem {
+    display: flex;
+    gap: 15px;
+    flex: 1;
+}
+
+.adminImagePreview img {
+    width: 120px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--border-radius-sm);
+}
+
+.adminImageForm,
+.adminImageInfo {
+    flex: 1;
+}
+
+.adminInput,
+.adminTextarea {
+    width: 100%;
+    padding: var(--inputThickness);
+    border: 1px solid var(--offWhite);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.adminTextarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.adminButtons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.saveBtn,
+.editBtn {
+    background: var(--lightGreen);
+    color: var(--white);
+    padding: 6px 12px;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background var(--transition-fast);
+}
+
+.saveBtn:hover,
+.editBtn:hover {
+    background: var(--darkGreen);
+}
+
+.cancelBtn {
+    background: var(--gray);
+    color: var(--white);
+    padding: 6px 12px;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background var(--transition-fast);
+}
+
+.cancelBtn:hover {
+    background: var(--foreground);
+}
+
+.deleteBtn {
+    background: var(--lightRed);
+    color: var(--white);
+    padding: 6px 12px;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background var(--transition-fast);
+}
+
+.deleteBtn:hover {
+    background: var(--darkRed);
+}
+
+.carouselWrapper {
     position: relative;
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+}
+
+.carouselMain {
+    position: relative;
+    height: 500px;
     overflow: hidden;
 }
 
 .carouselTrack {
-    max-width: 100%;
     display: flex;
-    width: calc(100% * var(--total-images));
+    transition: transform var(--transition-normal);
     height: 100%;
 }
 
-.carouselItem {
+.carouselSlide {
     flex: 0 0 100%;
-    height: 100%;
     position: relative;
+    cursor: pointer;
 }
 
-.carouselImage {
+.carouselSlide img {
     width: 100%;
-    height: 80%;
+    height: 100%;
     object-fit: cover;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 1rem;
+    display: block;
 }
 
-.descriptionBox {
+.carouselCaption {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    display: none;
-    background: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 1.5rem;
-    border-radius: 0 0 1rem 1rem;
-    z-index: 10;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    color: var(--white);
+    padding: 40px 30px 20px;
+    transform: translateY(100%);
+    transition: transform var(--transition-fast);
 }
 
-.descriptionText {
-    color: white;
+.carouselSlide:hover .carouselCaption {
+    transform: translateY(0);
+}
+
+.carouselCaption p {
     margin: 0;
-    font-size: 1rem;
-    line-height: 1.4;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    font-size: 16px;
+    line-height: 1.5;
 }
 
-/* Media Queries */
-@media (max-width: 1300px) {
-    .carousel {
-        width: 80vw;
-        height: 40vw;
-    }
+.carouselNav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--white);
+    border: none;
+    width: 50px;
+    backdrop-filter: blur(10px);
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    color: var(--black);
+}
 
-    .descriptionBox {
-        padding: 1rem;
-    }
+.carouselNav:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
 
-    .descriptionText {
-        font-size: 0.9rem;
-    }
+.carouselNavPrev {
+    left: 20px;
+}
+
+.carouselNavNext {
+    right: 20px;
+}
+
+.carouselPlayPause {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border: none;
+    color: var(--black);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.carouselPlayPause:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.carouselIndicators {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.indicator {
+    padding: 5px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    background: transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.indicatorActive {
+    background: var(--white);
+    border-color: var(--white);
+}
+
+.indicator:hover {
+    border-color: var(--white);
+    background: rgba(255, 255, 255, 0.5);
 }
 
 @media (max-width: 768px) {
-    .carousel {
-        width: 90vw;
-        height: 50vw;
+    .carouselContainer {
+        min-width: auto;
+    }
+    
+    .carouselMain {
+        height: 300px;
     }
 
-    .descriptionBox {
-        padding: 0.8rem;
+    .carouselNav {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
     }
 
-    .descriptionText {
-        font-size: 0.8rem;
+    .carouselNavPrev {
+        left: 10px;
+    }
+
+    .carouselNavNext {
+        right: 10px;
+    }
+
+    .carouselCaption {
+        padding: 20px 15px 10px;
+    }
+    
+    .carouselCaption p {
+        font-size: 14px;
+    }
+
+    .adminImageWrapper,
+    .adminImageItem {
+        flex-direction: column;
+    }
+    
+    .adminImagePreview img {
+        width: 100%;
+        height: 120px;
     }
 }

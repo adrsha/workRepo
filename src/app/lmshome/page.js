@@ -457,8 +457,8 @@ export default function LMSHome() {
                                 required
                                 data={gradeData.map((grade) => ({ id: grade.grade_id, name: grade.grade_name }))}
                             />
-                            <Input label="Start Time" type="time" name="startTime" id="startTime" required />
-                            <Input label="End Time" type="time" name="endTime" id="endTime" required />
+                            <Input label="Start Time" type="time" name="startTime" id="startTime" defaultValue="09:00" required />
+                            <Input label="End Time" type="time" name="endTime" id="endTime" defaultValue="10:00" required />
                             <Input label="Start Date" type="date" name="startDate" id="startDate" required />
                             <Input label="End Date" type="date" name="endDate" id="endDate" required />
                             <Input label="Every ? Days" type="number" name="repeatEveryNDay" id="repeatEveryNDay" required />
@@ -474,6 +474,7 @@ export default function LMSHome() {
                             </button>
                         </form>
                         <button
+                            className={styles.addClassOverlayCancelButton}
                             onClick={() => {
                                 setAddClassOverlayState(false);
                             }}>

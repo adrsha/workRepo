@@ -1,476 +1,1132 @@
 .container {
-  min-height: calc(100vh - var(--navheight));
-  display: flex;
-  position: relative;
-  overflow: hidden;
+    min-height: calc(100vh - var(--navheight));
+    display: flex;
+    position: relative;
+    overflow: hidden;
 }
 
 .sidePanel {
-  width: 200px;
-  height: calc(100vh - var(--navheight));
-  padding: 2rem;
-  background-color: var(--background);
-  display: flex;
-  flex-direction: column;
-  box-shadow: 2px 0 15px rgba(0, 0, 0, 0.08);
-  position: sticky;
-  top: var(--navheight);
-  left: 0;
-  z-index: 5;
+    width: 250px;
+    height: calc(100vh - var(--navheight));
+    padding: 2rem;
+    background-color: var(--lightGray);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: var(--navheight);
+    left: 0;
+    z-index: 5;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .header {
-  font-size: 1.75rem;
-  font-family: var(--font-serif);
-  color: var(--foreground);
-  margin-bottom: 2rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--primary);
+    font-size: 2rem;
+    font-family: var(--font-serif);
+    color: var(--primary);
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid var(--primary);
 }
 
 .gradeCards {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-  margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .gradeCard {
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  color: var(--foreground);
-  border-radius: 0.5rem;
-  transition: all 0.2s ease-in-out;
-  border: 1px solid transparent;
+    padding: 1rem;
+    cursor: pointer;
+    color: var(--foreground);
+    border-radius: 0.8rem;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    will-change: transform;
 }
+
 
 .gradeCard:hover {
-  background-color: var(--primaryLight);
-  color: var(--darkforeground);
-  transform: translateX(5px);
+    background-color: var(--primaryLight);
+    color: var(--darkForeground);
+    transform: translateX(7px) scale(1.03);
 }
 
-.activegrade {
-  background-color: var(--primary);
-  color: var(--white);
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 8px rgba(255, 143, 125, 0.3);
+.activeGrade {
+    background-color: var(--primary);
+    color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
 }
 
 .gradeCard h2 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 500;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
 }
 
 .mainSection {
-  flex: 1;
-  padding: 2rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  overflow-y: auto;
-  height: calc(100vh - var(--navheight));
+    flex: 1;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    overflow-y: auto;
+    height: calc(100vh - var(--navheight));
+    scrollbar-width: thin;
+    scrollbar-color: var(--secondary) transparent;
 }
 
+.classCards span.label {
+    font-size: 0.75rem;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.classCards .infoChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.infoChip {
+    padding: 0.4rem 0.7rem;
+    background: var(--offWhite);
+    color: var(--darkForeground);
+    font-size: 0.8rem;
+    border-radius: 12px;
+    font-weight: 500;
+}
 .classCards {
-  background-color: var(--background);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 0 10rem 0 rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  position: relative;
-  height: fit-content;
-  max-height: 400px;
-  overflow: hidden;
+    background-color: var(--background);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 10rem 0 rgba(0, 0, 0, 0.1);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+    position: relative;
+    height: fit-content;
+    max-height: 400px;
+    overflow: hidden;
 }
 
 .classCards:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0 10rem 0 rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+    box-shadow: 0 0 10rem 0 rgba(0, 0, 0, 0.1);
 }
 
 .classCards h3 {
-  margin: 0 0 0.5rem 0;
-  font-family: var(--font-serif);
-  color: var(--foreground);
-  font-size: 1.25rem;
+    margin: 0 0 0.5rem 0;
+    font-family: var(--font-serif);
+    color: var(--foreground);
+    font-size: 1.25rem;
 }
 
 .classCards span {
-  color: var(--foreground);
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-  display: block;
-  line-height: 1.5;
+    color: var(--foreground);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    display: block;
+    line-height: 1.5;
 }
 
 .classCards ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  border-radius: 0.5rem;
-  background-color: var(--background);
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
-  transition:
-    max-height 0.5s ease,
-    opacity 0.3s ease;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 0.5rem;
+    background-color: var(--background);
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition:
+        max-height 0.5s ease,
+        opacity 0.3s ease;
 }
 
 .classCards:hover ul {
-  max-height: 300px;
-  opacity: 1;
-  overflow-y: auto;
+    max-height: 300px;
+    opacity: 1;
+    overflow-y: auto;
 }
 
 .classCards ul li {
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  background-color: var(--white);
-  transition: background-color 0.2s ease;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background-color: white;
+    transition: background-color 0.2s ease;
 }
 
 .classCards ul li:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .classCards li:hover {
-  background-color: var(--background);
+    background-color: var(--background);
 }
 
 .classCards li a {
-  font-weight: 500;
-  margin-right: auto;
+    font-weight: 500;
+    margin-right: auto;
 }
 
 .classCards button {
-  background: var(--offWhite);
-  border-radius: 1rem;
-  cursor: pointer;
-  transition: 0.5s ease;
+    background: var(--offWhite);
+    border-radius: 1rem;
+    cursor: pointer;
+    flex-wrap: wrap;
 }
+
 .classCards button:hover {
-  filter: brightness(0.9);
+    filter: brightness(0.9);
 }
 
-.teacher {
-  display: flex;
-  align-items: center;
-}
-.teacher button {
-  cursor: pointer;
-  border: 2px solid var(--offWhite);
-  padding: 0.5rem;
-  margin: 0rem 1rem;
-  border-radius: 10px;
-  transition: 0.5s ease;
-  color: var(--foreground);
-}
-.teacher button:hover {
-  border-color: var(--foreground);
-  background-color: var(--foreground);
-  color: var(--offWhite);
+
+.time .date {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
 }
 
-.time {
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
-}
 
-.time time {
-  font-size: 0.75rem;
-  margin-left: 0.15rem;
-  margin-right: 0.15rem;
-  color: var(--foreground);
-  background-color: var(--offWhite);
-  padding: 0.25rem 0.5rem;
-  border-radius: 1rem;
-}
-.time {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-.time > div {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-.time > div > div {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.cost {
-  background-color: var(--darkGreen);
-  padding: 0.25rem 0.5rem;
-  border-radius: 1rem;
-  color: var(--offWhite);
-  font-weight: 500;
-  margin-left: 1rem;
-  white-space: nowrap;
-  margin-right: 1rem;
-  display: inline;
-}
-.cost::before {
-  content: "Rs. ";
-}
-
-.joinIn {
-  background-color: var(--tertiary);
-  color: var(--white);
-  font-weight: 500;
-  border-radius: 1rem;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
-  min-width: 100px;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.joinIn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(0, 191, 146, 0.4);
-}
-
-.disabledJoinButton {
-  background-color: var(--backgroundGreen);
-  color: var(--lightGreen);
-  cursor: default;
-  opacity: 0.7;
-}
-
-.disabledJoinButton:hover {
-  transform: none;
-  box-shadow: none;
-  background-color: var(--backgroundGreen);
-  color: var(--lightGreen);
-}
 
 /* Media Queries for Responsiveness */
 @media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-  }
+    .container {
+        flex-direction: column;
+    }
 
-  .sidePanel {
-    width: 100%;
-    height: auto;
-    padding: 1rem;
-    position: relative;
-    margin-bottom: 6rem;
-  }
+    .sidePanel {
+        width: 100%;
+        height: auto;
+        padding: 1rem;
+        position: relative;
+        margin-bottom: 6rem;
+    }
 
-  .gradeCards {
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-  }
+    .gradeCards {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
 
-  .gradeCard {
-    min-width: 120px;
-  }
+    .gradeCard {
+        min-width: 120px;
+    }
 
-  .mainSection {
-    grid-template-columns: 1fr;
-    height: auto;
-    padding: 1rem;
-  }
+    .mainSection {
+        grid-template-columns: 1fr;
+        height: auto;
+        padding: 1rem;
+    }
 }
 
-/* Full-screen Overlay */
-.fullScreenOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: fadeIn 0.3s ease-out;
-}
-
-.overlayContent {
-  width: 80%;
-  height: 80%;
-  background-color: var(--background);
-  border-radius: 8px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.overlayHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #ddd;
-}
 
 .overlayHeader h2 {
-  margin: 0;
-  font-size: 1.5rem;
+    margin: 0;
+    font-size: 1.5rem;
 }
 
-.closeButton {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #333;
-}
-
-.overlayBody {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0px;
-}
 
 .classroomList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+}
+
+
+
+.classroomCard .joinIn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
 }
 
 .classroomItem {
-  border-bottom: 1px solid #eee;
-  padding: 15px 0;
+    background: var(--white);
+    border: 1px solid var(--offWhite);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
 }
 
-.classroomItem:last-child {
-  border-bottom: none;
+.classroomItem:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    background-color: var(--background);
 }
 
-.classroomInfo {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 1rem;
-}
-.classroomItem:nth-child(odd) {
-  background-color: var(--secondaryBackground);
-}
-
-.classroomDetails {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* Teacher Row */
+.classroomItem .teacher {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--darkforeground);
 }
 
-/* Cart Styles */
+/* /* View Profile Button */
+/* .classroomItem .teacher button { */
+/*     background-color: var(--tertiary); */
+/*     color: var(--white); */
+/*     border: none; */
+/*     padding: 0.5rem 1rem; */
+/*     font-size: 0.9rem; */
+/*     font-weight: 500; */
+/*     border-radius: 0.5rem; */
+/*     cursor: pointer; */
+/*     transition: background-color 0.3s ease; */
+/* } */
+/**/
+
+
+/* .classroomItem .teacher button:hover { */
+/*     background-color: var(--lightBlue); */
+/* } */
+
+
+/* Time and Schedule Details */
+.classroomItem .time {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    color: var(--foreground);
+    font-size: 0.95rem;
+}
+
+
+
+.classroomItem .time time {
+    background-color: var(--offWhite);
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.4rem;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    color: var(--darkforeground);
+}
+
+.classroomItem .time time:hover {
+    background-color: var(--tertiaryLighter);
+}
+
+/* Cost Tag */
+.classroomItem .cost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background-color: var(--backgroundGreen);
+    color: var(--lightGreen);
+    margin-top: 0.5rem;
+    max-width: fit-content;
+}
+
+
+
 .cartSection {
-  padding: 15px;
-  background-color: #f0f8ff;
-  margin-top: 20px;
-  border-radius: 8px;
+    padding: 15px;
+    background-color: #f0f8ff;
+    margin-top: 20px;
+    border-radius: 8px;
 }
 
 .checkoutButton {
-  background-color: var(--lightGreen);
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-  width: 100%;
-  font-weight: bold;
+    background-color: var(--lightGreen);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+    font-weight: bold;
 }
 
 .checkoutButton:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Enhanced Checkout Bar */
+.checkoutBar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--darkforeground);
+    color: black;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.checkoutContent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    gap: 24px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+}
+
+
+.cartSummary {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.itemCount {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.cartDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+}
+
+.cartDetails.collapsed {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+}
+
+.cartItem {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr 80px 30px;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: background 0.2s ease;
+}
+
+.cartItem:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.courseName {
+    font-weight: 600;
+    color: #fff;
+}
+
+
+.classTime {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+}
+
+.classCost {
+    font-weight: 600;
+    color: #4ade80;
+    text-align: right;
+}
+
+.removeItemBtn {
+    background: rgba(239, 68, 68, 0.8);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.removeItemBtn:hover {
+    background: rgba(239, 68, 68, 1);
+    transform: scale(1.1);
+}
+
+.totalSection {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.totalAmount {
+    font-size: 20px;
+    font-weight: 700;
+    color: #4ade80;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.checkoutActions {
+    display: flex;
+    gap: 12px;
+}
+
+.clearCartBtn {
+    background: rgba(239, 68, 68, 0.8);
+    border: none;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.clearCartBtn:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 1);
+    transform: translateY(-1px);
+}
+
+.clearCartBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.checkoutBtn {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    border: none;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 160px;
+    justify-content: center;
+}
+
+.checkoutBtn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 222, 128, 0.4);
+}
+
+.checkoutBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.loadingText {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.toggleCartBtn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: 12px;
+}
+
+.toggleCartBtn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.toggleIcon {
+    font-size: 18px;
+    transition: transform 0.2s ease;
+}
+
+.cartDetails.collapsed+.toggleCartBtn .toggleIcon {
+    transform: rotate(180deg);
 }
 
 .cartButton {
-  background-color: var(--lightGreen);
-  white-space: nowrap;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: 0.5s ease;
+    background-color: var(--lightGreen);
+    white-space: nowrap;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.5s ease;
 }
 
 .cartButton:hover {
-  background-color: var(--darkGreen);
+    background-color: var(--darkGreen);
 }
 
 .removeCart {
-  background-color: var(--lightRed);
+    background-color: var(--lightRed);
 }
 
 .joinStatus {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: bold;
 }
 
 .joined {
-  background-color: var(--background);
-  color: var(--foreground);
+    background-color: var(--background);
+    color: var(--foreground);
 }
 
 .cartFloatingButton {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: var(--lightBlue);
-  color: var(--foreground);
-  border-radius: 50px;
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  z-index: 100;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--lightBlue);
+    color: var(--foreground);
+    border-radius: 50px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 100;
 }
 
 .cartFloatingButton span:first-child {
-  background-color: var(--background);
-  color: var(--lightBlue);
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: bold;
+    background-color: var(--background);
+    color: var(--lightBlue);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+/* Modern Full-screen Overlay */
+.fullScreenOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(18, 23, 31, 0.8);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease-out;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.overlayContent {
+    background: linear-gradient(135deg, var(--white) 0%, var(--background) 100%);
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(18, 23, 31, 0.25);
+    width: 100%;
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Modern Header */
+.overlayHeader {
+    background: var(--tertiary);
+    color: var(--white);
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.overlayHeader::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+}
+
+.headerContent {
+    position: relative;
+    z-index: 1;
+}
+
+.overlayTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(45deg, white, var(--offWhite));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    display: block;
+    color: var(--white);
+}
+
+.closeButton {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: var(--white);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1;
+}
+
+.closeButton:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+/* Modern Body */
+.overlayBody {
+    padding: 2rem;
+    max-height: calc(90vh - 120px);
+    background: var(--background);
+    overflow-y: auto;
+}
+
+.overlayBody::-webkit-scrollbar {
+    width: 8px;
+}
+
+.overlayBody::-webkit-scrollbar-track {
+    background: var(--background);
+    border-radius: 4px;
+}
+
+.overlayBody::-webkit-scrollbar-thumb {
+    background: var(--gray);
+    border-radius: 4px;
+}
+
+.overlayBody::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+}
+
+/* Modern Grid Layout */
+.classroomGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+/* Modern Card Design */
+.classroomCard {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(18, 23, 31, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.classroomCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--tertiary), var(--primary));
+}
+
+/* Teacher Section */
+.teacherSection {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--background);
+}
+
+.teacherInfo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.teacherAvatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-weight: 600;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(61, 176, 183, 0.3);
+}
+
+.teacherDetails {
+    display: flex;
+    flex-direction: column;
+}
+
+.teacherName {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--darkforeground);
+    margin: 0;
+}
+
+.teacherRole {
+    font-size: 0.85rem;
+    color: var(--foreground);
+    font-weight: 500;
+}
+
+.profileButton {
+    background: var(--tertiary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(61, 176, 183, 0.3);
+}
+
+.profileButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(61, 176, 183, 0.4);
+}
+
+/* Schedule Section */
+.scheduleSection {
+    margin-bottom: 1.5rem;
+}
+
+.scheduleGrid {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.scheduleItem {
+    flex:1;
+    flex-wrap: nowrap;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.scheduleLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.scheduleLabel svg {
+    opacity: 0.7;
+}
+
+.scheduleValue {
+    white-space: nowrap;
+}
+.scheduleValue span{
+    margin-left: 0.5rem;
+}
+
+/* Modern Chips */
+.dateChip,
+.timeChip,
+.repeatChip,
+.costChip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.dateChip {
+    background: var(--secondaryLighter);
+    color: var(--secondary);
+}
+
+.timeChip {
+    background: var(--tertiaryLighter);
+    color: var(--tertiary);
+}
+
+.repeatChip {
+    background: var(--primaryLighter);
+    color: var(--primary);
+}
+
+.costChip {
+    background: var(--backgroundGreen);
+    color: var(--lightGreen);
+    font-weight: 600;
+}
+
+.dateSeparator,
+.timeSeparator {
+    color: var(--gray);
+    font-weight: 500;
+}
+
+/* Action Section */
+.actionSection {
+    padding-top: 1rem;
+    border-top: 1px solid var(--background);
+}
+.actionSection span{
+    color: grey;
+}
+
+.classroomCard .joinIn {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--lightRed) 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 105, 124, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.classroomCard .joinIn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 105, 124, 0.4);
+}
+
+.classroomCard .disabledJoinButton {
+    background: var(--background);
+    color: var(--gray);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.classroomCard .disabledJoinButton:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .fullScreenOverlay {
+        padding: 1rem;
+    }
+
+    .overlayHeader {
+        padding: 1.5rem;
+    }
+
+    .overlayTitle {
+        font-size: 1.5rem;
+    }
+
+    .classroomGrid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .teacherSection {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .profileButton {
+        align-self: stretch;
+        text-align: center;
+    }
+
+    .scheduleValue {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .sidePanel {
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 1rem 0.5rem;
+        gap: 1rem;
+        position: sticky;
+        top: 0;
+        display: flex;
+        flex-direction: column;
+        z-index: 100;
+        background-color: var(--background);
+    }
+
+    .header {
+        font-size: 1.25rem;
+        border: none;
+        margin-bottom: 0;
+    }
+
+    .gradeCards {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 0;
+        margin: 0;
+    }
+
+    .gradeCard {
+        min-width: 100px;
+        text-align: center;
+    }
+    
+    .overlayBody {
+        padding: 1rem;
+    }
+    
+    .classroomCard {
+        padding: 1rem;
+    }
+    
+    .scheduleGrid {
+        gap: 0.75rem;
+    }
 }

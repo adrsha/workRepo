@@ -3,7 +3,10 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { useState, useEffect, useRef } from 'react';
-import styles from '../../styles/Nav.module.css';
+import "../global.css";
+import { styles } from '../../styles/NavCss.js';
+
+
 
 // Constants
 const USER_NAV_ITEMS = [
@@ -192,7 +195,7 @@ const UserDropdown = ({ session, onNavigate, onSignOut, classname }) => (
         >
             {session?.user?.name}
         </a>
-        <ul>
+        <ul className={styles.dropdownBase}>
             {USER_NAV_ITEMS.map(({ name, path }) => (
                 <a key={name} onClick={onNavigate(path)}>
                     <li>{name}</li>
@@ -212,20 +215,16 @@ const NavButton = ({ children, onClick, className = styles.navButton }) => (
 );
 
 const AuthenticatedNav = ({
-    isStudent,
-    isHomePage,
+    // isStudent,
+    // isHomePage,
     isLmsHomePage,
-    session,
+    // session,
     onNavigate,
-    onSignOut,
-    notificationProps,
-    notificationRef
+    // onSignOut,
+    // notificationProps,
+    // notificationRef
 }) => (
     <>
-        {isStudent && !isHomePage && (
-            <NavButton onClick={onNavigate('/classes')}>Courses</NavButton>
-        )}
-
         <NavButton onClick={onNavigate('/classes')}>Classes</NavButton>
         <NavButton onClick={onNavigate('/preparation')}>Preparation</NavButton>
         <NavButton onClick={onNavigate('/language-classes')}>Language Classes</NavButton>
@@ -278,14 +277,14 @@ const NavLinks = ({
 
         {isAuthenticated ? (
             <AuthenticatedNav
-                isStudent={isStudent}
-                isHomePage={isHomePage}
+                // isStudent={isStudent}
+                // isHomePage={isHomePage}
                 isLmsHomePage={isLmsHomePage}
-                session={session}
+                // session={session}
                 onNavigate={onNavigate}
-                onSignOut={onSignOut}
-                notificationProps={notificationProps}
-                notificationRef={notificationRef}
+                // onSignOut={onSignOut}
+                // notificationProps={notificationProps}
+                // notificationRef={notificationRef}
             />
         ) : (
             <UnauthenticatedNav onNavigate={onNavigate} />
@@ -316,8 +315,10 @@ export default function Nav() {
     };
 
     const handleSignOut = () => {
-        signOut();
-        // router.push('/');
+        signOut({
+            callbackUrl: '/',
+            redirect: true
+        });
         setMenuOpen(false);
     };
 
@@ -347,26 +348,27 @@ export default function Nav() {
                     notificationRef={notificationRef}
                 />
                 {isAuthenticated &&
-                <div className={`${styles.notificationContainer} ${styles.fixedNavItem}`} ref={notificationRef}>
-                    <NotificationBell
-                        unreadCount={notificationProps.unreadCount}
-                        onToggle={() => notificationProps.setShowNotifications(!notificationProps.showNotifications)}
-                    />
-                    {notificationProps.showNotifications && (
-                        <NotificationsDropdown
-                            notifications={notificationProps.notifications}
+                    <div className={`${styles.notificationContainer} ${styles.fixedNavItem}`} ref={notificationRef}>
+                        <NotificationBell
                             unreadCount={notificationProps.unreadCount}
-                            onNavigate={navigateTo}
-                            onMarkRead={notificationProps.markAsRead}
-                            onClose={() => notificationProps.setShowNotifications(false)}
+                            onToggle={() => notificationProps.setShowNotifications(!notificationProps.showNotifications)}
                         />
-                    )}
-                </div>
+                        {notificationProps.showNotifications && (
+                            <NotificationsDropdown
+                                notifications={notificationProps.notifications}
+                                unreadCount={notificationProps.unreadCount}
+                                onNavigate={navigateTo}
+                                onMarkRead={notificationProps.markAsRead}
+                                onClose={() => notificationProps.setShowNotifications(false)}
+                            />
+                        )}
+                    </div>
                 }
 
                 {isAuthenticated &&
                     <UserDropdown session={session} onNavigate={navigateTo} onSignOut={handleSignOut} classname={styles.fixedNavItem} />
                 }
+                
                 <HamburgerButton
                     isOpen={menuOpen}
                     onToggle={() => setMenuOpen(!menuOpen)}

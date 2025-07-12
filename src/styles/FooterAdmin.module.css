@@ -1,0 +1,399 @@
+/* FooterAdmin.module.css - Modern Clean Design */
+
+.adminContainer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--background) 0%, var(--offWhite) 100%);
+    min-height: 100vh;
+}
+
+/* Toggle Button */
+.toggleButton {
+    width: 100%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: var(--white);
+    border: none;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition-normal);
+    z-index: 1000;
+}
+
+.toggleButton:hover {
+    filter: brightness(0.7);
+}
+
+.toggleButton:active {
+    transform: scale(0.95);
+}
+
+/* Header */
+.adminContainer h2 {
+    font-family: var(--font-serif);
+    color: var(--darkforeground);
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--tertiary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Loading and Error States */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+    font-size: 1.1rem;
+    color: var(--foreground);
+}
+
+.error {
+    background: linear-gradient(135deg, var(--lightRed) 0%, #ff4757 100%);
+    color: var(--white);
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Modern Section Design */
+.section {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: var(--transition-normal);
+}
+
+.section:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.section h3 {
+    font-family: var(--font-serif);
+    color: var(--foreground);
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(61, 176, 183, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section h3::before {
+    content: "";
+    width: 4px;
+    height: 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--tertiary) 100%);
+    border-radius: 2px;
+}
+
+/* Modern Form Design */
+.form {
+    display: grid;
+    gap: 1rem;
+}
+
+.form input,
+.form textarea,
+.form select {
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(61, 176, 183, 0.2);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--foreground);
+    transition: var(--transition-fast);
+    backdrop-filter: blur(5px);
+}
+
+.form input:focus,
+.form textarea:focus,
+.form select:focus {
+    outline: none;
+    border-color: var(--tertiary);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 0 3px rgba(61, 176, 183, 0.1);
+}
+
+.form input::placeholder,
+.form textarea::placeholder {
+    color: var(--gray);
+}
+
+.form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Modern Button Design */
+.form button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: var(--white);
+    position: relative;
+    overflow: hidden;
+}
+
+.form button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.form button:hover:not(:disabled)::before {
+    left: 100%;
+}
+
+.form button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 105, 124, 0.3);
+}
+
+.form button:disabled {
+    background: var(--gray);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Button Groups */
+.buttonGroup {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.buttonGroup button {
+    flex: 1;
+    min-width: 100px;
+}
+
+.buttonGroup button:first-child {
+    background: linear-gradient(135deg, var(--quaternary) 0%, #00a86b 100%);
+}
+
+.buttonGroup button:last-child {
+    background: linear-gradient(135deg, var(--gray) 0%, var(--foreground) 100%);
+}
+
+/* Config Display */
+.configDisplay {
+    background: linear-gradient(135deg, rgba(61, 176, 183, 0.05) 0%, rgba(255, 255, 255, 0.5) 100%);
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1px solid rgba(61, 176, 183, 0.1);
+}
+
+.configDisplay p {
+    margin-bottom: 0.5rem;
+    color: var(--foreground);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.configDisplay strong {
+    color: var(--darkforeground);
+    font-weight: 600;
+    min-width: 80px;
+    display: inline-block;
+}
+
+.configDisplay button {
+    margin-top: 1rem;
+    padding: 0.6rem 1.25rem;
+    background: linear-gradient(135deg, var(--tertiary) 0%, var(--tertiaryLight) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.configDisplay button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(61, 176, 183, 0.3);
+}
+
+/* Section Items */
+.sectionItem {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(61, 176, 183, 0.1);
+    transition: var(--transition-fast);
+}
+
+.sectionItem:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: translateX(4px);
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.sectionHeader h4 {
+    margin: 0;
+    color: var(--darkforeground);
+    font-size: 1.1rem;
+}
+
+/* Links */
+.links {
+    margin-top: 1rem;
+}
+
+.linkItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(61, 176, 183, 0.1);
+    transition: var(--transition-fast);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.linkItem:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--tertiary);
+}
+
+.linkItem span {
+    color: var(--foreground);
+    font-size: 0.85rem;
+    flex: 1;
+    min-width: 150px;
+}
+
+.noLinks {
+    color: var(--gray);
+    font-style: italic;
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    border: 1px dashed rgba(61, 176, 183, 0.3);
+}
+
+/* Delete Buttons */
+.deleteBtn {
+    background: linear-gradient(135deg, var(--lightRed) 0%, #ff4757 100%) !important;
+    color: var(--white) !important;
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.8rem !important;
+    border-radius: 8px !important;
+    transition: var(--transition-fast);
+    font-weight: 500;
+}
+
+.deleteBtn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(255, 90, 115, 0.3);
+}
+
+.deleteBtn:disabled {
+    background: var(--gray) !important;
+    opacity: 0.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .adminContainer {
+        padding: 1rem;
+    }
+
+    .section {
+        padding: 1.25rem;
+    }
+
+    .adminContainer h2 {
+        font-size: 1.75rem;
+    }
+
+    .toggleButton {
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+
+    .sectionHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .linkItem {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .linkItem span {
+        min-width: auto;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .buttonGroup {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .adminContainer {
+        padding: 0.75rem;
+    }
+
+    .section {
+        padding: 1rem;
+    }
+
+    .form {
+        gap: 0.75rem;
+    }
+
+    .form input,
+    .form textarea,
+    .form select,
+    .form button {
+        font-size: 0.85rem;
+    }
+}

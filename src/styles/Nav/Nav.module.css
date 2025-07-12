@@ -1,0 +1,231 @@
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    padding-right: 1rem;
+    background-color: var(--tertiaryLighter);
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.08), inset 0 1px rgba(255,255,255,0.1);
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+
+.navbar div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.navbar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3) 50%, transparent);
+}
+
+/* Logo */
+.logo {
+    color: var(--foreground);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logo img {
+    max-height: 4rem;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Navigation Container */
+.navItems {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.navLinks {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--foreground);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Container Classes */
+.hamburgerContainer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.fixedNavItem {
+    display: flex;
+    align-items: center;
+}
+
+/* Separator */
+.separator {
+    width: 1px;
+    height: 2rem;
+    background: linear-gradient(to bottom,
+        transparent,
+        var(--offWhite) 20%,
+        var(--offWhite) 80%,
+        transparent);
+    margin: 0 1rem;
+    position: relative;
+}
+
+.separator::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 3px;
+    height: 3px;
+    background: var(--offWhite);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.6;
+}
+
+/* Dynamic hamburger mode - when overflowing */
+.navbar.overflowing .navLinks:not(.hamburgerMode) {
+    display: flex;
+}
+
+.navbar.overflowing .navLinks.hamburgerMode {
+    z-index: 5;
+    position: fixed;
+    top: var(--navheight);
+    width: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 1rem 0;
+    gap: 0.5rem;
+    overflow: hidden;
+    visibility: hidden;
+    max-height: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.navbar.overflowing .navLinks.hamburgerMode::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3) 50%, transparent);
+}
+
+.navbar.overflowing .navLinks.hamburgerMode.showMobileMenu {
+    max-height: 100vh;
+    visibility: visible;
+}
+
+.navbar.overflowing .separator {
+    display: none;
+}
+
+.navbar.overflowing .hamburgerContainer {
+    gap: 0.5rem;
+}
+
+.navbar.overflowing .fixedNavItem {
+    order: -1;
+}
+
+.navbar.overflowing .notificationsDropdown {
+    right: -150px;
+    width: 280px;
+}
+
+.navbar.overflowing .notificationHeader {
+    padding: 0.75rem;
+}
+
+.navbar.overflowing .notificationFooter {
+    padding: 0.5rem;
+}
+
+/* Fallback for smaller screens - maintain existing behavior */
+@media (max-width: 1500px) {
+    .navbar {
+        padding-right: 1rem;
+    }
+
+    .navLinks {
+        z-index: 5;
+        position: fixed;
+        top: var(--navheight);
+        width: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        padding: 1rem 0;
+        gap: 0.5rem;
+        overflow: hidden;
+        visibility: hidden;
+        max-height: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .navLinks::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3) 50%, transparent);
+    }
+
+    .showMobileMenu {
+        max-height: 100vh;
+        visibility: visible;
+    }
+
+    .separator {
+        display: none;
+    }
+
+    .hamburgerContainer {
+        gap: 0.5rem;
+    }
+
+    .fixedNavItem {
+        order: -1;
+    }
+
+    .notificationsDropdown {
+        right: -150px;
+        width: 280px;
+    }
+
+    .notificationHeader {
+        padding: 0.75rem;
+    }
+
+    .notificationFooter {
+        padding: 0.5rem;
+    }
+}

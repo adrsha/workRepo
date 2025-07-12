@@ -58,6 +58,25 @@ const TruncatedText = ({ text, maxLength = 50, title }) => {
     );
 };
 
+// Profile link component
+const ProfileLink = ({ teacherId, isPending = false }) => {
+    if (!teacherId) return <span>No ID</span>;
+    
+    const handleClick = () => {
+        window.open(`/profile/${teacherId}`, '_blank');
+    };
+    
+    return (
+        <button 
+            onClick={handleClick}
+            className="profile-link-btn"
+            title={`View ${isPending ? 'pending ' : ''}teacher profile`}
+        >
+            View Profile
+        </button>
+    );
+};
+
 const PendingTeachersTable = ({ 
     pendingTeachers, 
     actionInProgress, 
@@ -135,11 +154,23 @@ const PendingTeachersTable = ({
         return <span>{teacher[col] || 'Not provided'}</span>;
     };
 
-    const additionalColumns = [{
-        key: 'actions',
-        title: 'Actions',
-        render: (teacher) => renderActionButtons(teacher, 'teacher')
-    }];
+    const additionalColumns = [
+        {
+            key: 'profile',
+            title: 'Profile',
+            render: (teacher) => (
+                <ProfileLink 
+                    teacherId={teacher.user_id || teacher.pending_id} 
+                    isPending={true}
+                />
+            )
+        },
+        {
+            key: 'actions',
+            title: 'Actions',
+            render: (teacher) => renderActionButtons(teacher, 'teacher')
+        }
+    ];
     
     return (
         <Table
@@ -266,6 +297,17 @@ const ApprovedTeachersTable = ({
     const handleAdd = createAsyncHandler(onAddTeacher, 'Error adding teacher');
     const handleBulkAdd = createAsyncHandler(onBulkAddTeachers, 'Error bulk adding teachers');
 
+    const additionalColumns = [{
+        key: 'profile',
+        title: 'Profile',
+        render: (teacher) => (
+            <ProfileLink 
+                teacherId={teacher.user_id} 
+                isPending={false}
+            />
+        )
+    }];
+
     return (
         <Table
             data={teachers}
@@ -282,6 +324,7 @@ const ApprovedTeachersTable = ({
             onBulkAdd={handleBulkAdd}
             requiredFields={['user_id']}
             tableName="Teacher"
+            additionalColumns={additionalColumns}
         />
     );
 };

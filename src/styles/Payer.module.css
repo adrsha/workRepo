@@ -20,28 +20,80 @@
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    position: relative;
 }
 
-.qrImgPayment{
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.modalHeader h3 {
+    margin: 0;
+    color: #333;
+    flex: 1;
+}
+
+.closeButtonX {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.closeButtonX:hover {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.qrImgPayment {
     position: absolute;
     background-color: white;
-    padding: 1rem;;
+    padding: 1rem;
     left: 30%;
     width: 40%;
     z-index: 5;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid #ddd;
 }
 
-.qrImgPayment img{
-    width: 100%;
-}
-
-.modalContent h3 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    color: #333;
+.qrHeader {
     text-align: center;
-    border-bottom: 1px solid #eee;
+    margin-bottom: 15px;
     padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.qrHeader h4 {
+    margin: 0 0 5px 0;
+    color: #333;
+}
+
+.qrHeader p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.qrImage {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 15px;
 }
 
 .selectedClasses {
@@ -71,33 +123,42 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    border-radius: 4px;
+}
+
+.classHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
 }
 
 .classTitle {
-    margin-bottom: 0;
-    font-size: 2rem;
+    margin: 0;
+    font-size: 1.1rem;
     font-weight: 600;
+    color: #333;
 }
 
 .cost {
     font-size: 0.875rem;
     display: inline-block;
-    margin: 4px;
     background-color: var(--lightGreen);
     width: fit-content;
-    padding: 2px 8px;
+    padding: 4px 8px;
     border-radius: 4px;
     color: white;
+    font-weight: 500;
 }
 
 .grade {
     font-size: 0.875rem;
-    margin: 4px;
     background-color: var(--tertiary);
     width: fit-content;
     padding: 2px 8px;
     border-radius: 4px;
     color: white;
+    display: inline-block;
 }
 
 .classDetails {
@@ -112,21 +173,32 @@
     color: #333;
 }
 
-.classCost {
-    font-weight: bold;
-}
-
 .totalRow {
-    display: flex;
-    justify-content: space-between;
     padding-top: 10px;
     margin-top: 10px;
     border-top: 2px solid #ddd;
+}
+
+.totalInfo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-weight: bold;
+}
+
+.totalLabel {
+    color: #333;
 }
 
 .totalCost {
     color: var(--lightGreen);
+    font-size: 1.1rem;
+}
+
+.loadingState {
+    text-align: center;
+    padding: 20px;
+    color: #666;
 }
 
 .uploadSection {
@@ -137,6 +209,13 @@
     display: block;
     margin-bottom: 8px;
     font-weight: bold;
+    color: #333;
+}
+
+.fileInfo {
+    font-size: 0.8rem;
+    color: #666;
+    font-weight: normal;
 }
 
 .uploadSection input {
@@ -144,6 +223,37 @@
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    transition: border-color 0.3s ease;
+}
+
+.uploadSection input:focus {
+    outline: none;
+    border-color: var(--lightGreen);
+}
+
+.uploadSection input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.filePreview {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.fileName {
+    display: block;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.fileSize {
+    font-size: 0.8rem;
+    color: #666;
 }
 
 .buttonGroup {
@@ -161,6 +271,7 @@
     cursor: pointer;
     font-weight: bold;
     flex: 1;
+    transition: all 0.3s ease;
 }
 
 .submitButton {
@@ -168,9 +279,24 @@
     color: white;
 }
 
-#payNowButton{
+.submitButton:hover:not(:disabled) {
+    background-color: var(--darkGreen, #2e7d32);
+}
+
+.submitButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#payNowButton {
     margin-bottom: 15px;
-    margin-right:  15px;
+    margin-right: 15px;
+    width: 100%;
+}
+
+#payNowButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .closeButton {
@@ -178,24 +304,107 @@
     color: white;
 }
 
-.payOptions{
-    margin-bottom: 15px;
-    width: 90%;
-    display: none;
+.closeButton:hover:not(:disabled) {
+    background-color: var(--darkRed, #c62828);
 }
 
-.hoverableButtons{
-    margin-right: 15px;
+.closeButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.payOptions {
+    margin-bottom: 15px;
+    width: 100%;
+    display: none;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+.payOptions h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+    text-align: center;
+}
+
+.paymentButtons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.hoverableButtons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
     border-radius: 4px;
     cursor: pointer;
     transition: 0.3s ease;
+    background-color: white;
+    color: #333;
+    font-weight: 500;
+    min-width: 120px;
+    justify-content: center;
 }
 
-.hoverableButtons:hover{
+.hoverableButtons:hover {
     color: white;
     background-color: var(--lightGreen);
+    border-color: var(--lightGreen);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.paymentIcon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.successMessage,
+.errorMessage {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 15px;
+    margin-top: 15px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.successMessage {
+    color: var(--lightGreen);
+    background-color: #e8f5e9;
+    border: 1px solid #c8e6c9;
+}
+
+.errorMessage {
+    color: var(--lightRed);
+    background-color: #ffebee;
+    border: 1px solid #ffcdd2;
+}
+
+.successIcon,
+.errorIcon {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.successIcon {
+    color: var(--lightGreen);
+}
+
+.errorIcon {
+    color: var(--lightRed);
+}
+
+/* Legacy support for existing success/error classes */
 .success {
     color: var(--lightGreen);
     text-align: center;
@@ -212,4 +421,49 @@
     margin-top: 15px;
     background-color: #ffebee;
     border-radius: 4px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .modalContent {
+        width: 95%;
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    .qrImgPayment {
+        left: 10%;
+        width: 80%;
+    }
+    
+    .classHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .classTitle {
+        font-size: 1rem;
+    }
+    
+    .totalInfo {
+        flex-direction: column;
+        gap: 5px;
+        text-align: center;
+    }
+    
+    .paymentButtons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hoverableButtons {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .buttonGroup {
+        flex-direction: column;
+        gap: 8px;
+    }
 }

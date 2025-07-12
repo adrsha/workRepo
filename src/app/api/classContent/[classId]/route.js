@@ -21,8 +21,8 @@ export async function GET(request, { params }) {
             query: `
                 SELECT content.*
                 FROM content
-                JOIN class_content ON content.content_id = class_content.content_id
-                WHERE class_content.class_id = ?
+                JOIN classes_content ON content.content_id = classes_content.content_id
+                WHERE classes_content.classes_id = ?
                 ORDER BY content.created_at DESC
             `,
             values: [classId],
@@ -53,7 +53,7 @@ export async function POST(request) {
         const teacherQuery = `
             SELECT teacher_id
             FROM classes
-            WHERE class_id = ?
+            WHERE classes_id = ?
         `;
 
         const classData = await executeQueryWithRetry({
@@ -84,7 +84,7 @@ export async function POST(request) {
 
         // Link content to class
         const linkContentQuery = `
-            INSERT INTO class_content (class_id, content_id)
+            INSERT INTO classes_content (classes_id, content_id)
             VALUES (?, ?)
         `;
 
@@ -136,9 +136,9 @@ export async function DELETE(request, { params }) {
     try {
         // Get the class info to verify teacher permissions
         const getClassQuery = `
-            SELECT cc.class_id, c.teacher_id
-            FROM class_content cc
-            JOIN classes c ON cc.class_id = c.class_id
+            SELECT cc.classes_id, c.teacher_id
+            FROM classes_content cc
+            JOIN classes c ON cc.classes_id = c.class_id
             WHERE cc.content_id = ?
         `;
 
@@ -150,7 +150,7 @@ export async function DELETE(request, { params }) {
         if (!classData || classData.length === 0) {
             return NextResponse.json({ error: 'Content not found' }, { status: 404 });
         }
-      console.log('########################',session.user);
+        
         // Check if user is the teacher of this class
         // if (classData[0].teacher_id !== session.user.id) {
         if(!session.user.level>=1){

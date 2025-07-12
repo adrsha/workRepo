@@ -7,6 +7,7 @@ export default function Input({
     name, 
     id, 
     value, 
+    defaultValue,
     onChange, 
     checked, 
     maxLength, 
@@ -14,22 +15,22 @@ export default function Input({
     data = [] 
 }) {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-
+    
     const togglePasswordVisibility = () => {
         setIsPasswordVisible(prev => !prev);
     };
-
+    
     const getPasswordToggleIcon = () => {
         return isPasswordVisible ? '/eye-closed.png' : '/eye-open.png';
     };
-
+    
     const getInputType = () => {
         if (type === 'password') {
             return isPasswordVisible ? 'text' : 'password';
         }
         return type;
     };
-
+    
     const getInputClassName = () => {
         let className = styles.input;
         if (type === 'textarea') {
@@ -39,23 +40,23 @@ export default function Input({
         }
         return className;
     };
-
+    
     const getCommonProps = () => ({
         id,
         name,
         placeholder: label,
-        value,
+        ...(value !== undefined ? { value } : { defaultValue }),
         onChange,
         maxLength
     });
-
+    
     const getCheckableProps = () => {
         const isCheckable = type === 'radio' || type === 'checkbox';
         return isCheckable 
             ? { checked, onChange } 
             : { defaultChecked: checked };
     };
-
+    
     const renderTextarea = () => (
         <textarea
             className={getInputClassName()}
@@ -63,7 +64,7 @@ export default function Input({
             {...getCheckableProps()}
         />
     );
-
+    
     const renderSelect = () => (
         <select
             className={getInputClassName()}
@@ -76,7 +77,7 @@ export default function Input({
             ))}
         </select>
     );
-
+    
     const renderInput = () => (
         <input
             className={getInputClassName()}
@@ -87,7 +88,7 @@ export default function Input({
             {...getCheckableProps()}
         />
     );
-
+    
     const renderPasswordToggle = () => {
         if (type !== 'password') return null;
         
@@ -100,7 +101,7 @@ export default function Input({
             </span>
         );
     };
-
+    
     const renderInputField = () => {
         switch (type) {
             case 'textarea':
@@ -111,7 +112,7 @@ export default function Input({
                 return renderInput();
         }
     };
-
+    
     return (
         <div className={styles.inputContainer}>
             {renderInputField()}

@@ -33,7 +33,7 @@
 
 .contentItem {
     margin: 1rem;
-    transition: var(--transition-fast);
+    transition: all 0.2s ease;
 }
 
 .contentItem:last-child {
@@ -42,12 +42,13 @@
 
 .contentItemInner {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    flex-direction: column;
     padding: 1rem;
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius);
     background-color: var(--background);
     position: relative;
-    transition: var(--transition-fast);
+    transition: all 0.2s ease;
 }
 
 .contentItemInner:hover {
@@ -112,10 +113,10 @@
     margin: 0.5rem 0 0;
     color: var(--foreground);
     overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    /* text-overflow: ellipsis; */
+    /* display: -webkit-box; */
+    /* -webkit-line-clamp: 2; */
+    /* -webkit-box-orient: vertical; */
 }
 
 .downloadLink {
@@ -128,7 +129,7 @@
     color: var(--white);
     border-radius: 50%;
     margin-left: 1rem;
-    transition: var(--transition-fast);
+    transition: all 0.2s ease;
     flex-shrink: 0;
 }
 

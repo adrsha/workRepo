@@ -42,32 +42,6 @@ export const contentService = {
     },
 
     async uploadFile(classId, file, is_public, accessToken) {
-        // Step 1: Upload file
-        // const formData = createFormData(classId, { file });
-        // 
-        // const fileData = await makeRequest('/api/upload', {
-        //     method: 'POST',
-        //     headers: { Authorization: `Bearer ${accessToken}` },
-        //     body: formData,
-        // });
-        //
-        // // Step 2: Save file metadata to database
-        // const payload = {
-        //     contentType: 'file',
-        //     contentData: fileData,
-        //     classId,
-        //     isPublic: is_public
-        // };
-        //
-        // return makeRequest('/api/content/save', {
-        //     method: 'POST',
-        //     headers: { 
-        //         Authorization: `Bearer ${accessToken}`,
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify(payload),
-        // });
-        // uploadedFileData comes from FileUpload component's upload result
         
         const payload = {
             contentType: 'file',
@@ -76,7 +50,7 @@ export const contentService = {
             isPublic: is_public
         };
 
-        return makeRequest('/api/content/save', {
+        return makeRequest('/api/saveContent', {
             method: 'POST',
             headers: { 
                 Authorization: `Bearer ${accessToken}`,
@@ -86,7 +60,21 @@ export const contentService = {
         });
     },
     
+    async toggleContentVisibility(contentId, accessToken) {
+        const payload = {
+            contentId
+        };
 
+        return makeRequest('/api/toggleVisibility', {
+            method: 'PATCH',
+            headers: { 
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload),
+        });
+    },
+    
     async deleteContent(contentId, accessToken) {
         return makeRequest(`/api/classContent/${contentId}`, {
             method: 'DELETE',

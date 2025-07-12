@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import styles from '../styles/Home.module.css';
 import './global.css';
-import { fetchData } from './lib/helpers';
-import Carousel from './components/Carousel';
+import Carousel from './components/Carousel/Carousel';
 import DownloadContent from "./components/DownloadContent";
+import NoticesSection from './components/Notices';
+import ClientLayout from './ClientLayout';
 
 // Feature data configuration
 const FEATURE_SIDES_DATA = [
@@ -68,13 +70,16 @@ const FEATURES_DATA = [
 
 export default function HomePage() {
     const router = useRouter();
-    const [notices, setNotices] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [animatedFeatures, setAnimatedFeatures] = useState({});
     const [isFullscreen, setIsFullscreen] = useState(false);
 
     const featuresRef = useRef(null);
     const noticesRef = useRef(null);
+
+    const { data: session, status } = useSession();
+    
+    // Don't try to access session.user until session is loaded
+    const isAdmin = session?.user?.level === 2;
 
     // Navigation handlers
     const navigateToRoute = (route) => {
@@ -91,22 +96,9 @@ export default function HomePage() {
 
     const handleMainFeatureClick = (feature, index) => {
         if (index === 2 || index === 3) {
-        // if (index === 2 ) {
             handleFullscreenToggle();
         } else {
             navigateToRoute(feature.route);
-        }
-    };
-
-    // Data fetching
-    const loadNotices = async () => {
-        try {
-            const data = await fetchData("notices");
-            setNotices(data);
-        } catch (error) {
-            console.error("Error fetching notices:", error);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -158,21 +150,8 @@ export default function HomePage() {
         return observer;
     };
 
-    // Utility functions
-    const formatDate = (dateTimeString) => {
-        if (!dateTimeString) return '';
-        const date = new Date(dateTimeString);
-        return date.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
     // Effects
     useEffect(() => {
-        loadNotices();
         const observer = setupIntersectionObserver();
 
         return () => {
@@ -184,6 +163,17 @@ export default function HomePage() {
             }
         };
     }, []);
+
+    // Show loading state while session is being fetched
+    if (status === 'loading') {
+        return (
+            <div className={styles.container}>
+                <div className={styles.loadingState}>
+                    <p>Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     // Render functions
     const renderFeatureSide = (feature, index) => (
@@ -225,38 +215,6 @@ export default function HomePage() {
         </div>
     );
 
-    const renderNoticeItem = (notice, index) => (
-        <div
-            key={notice.notices_id}
-            className={styles.noticeItem}
-            style={{ animationDelay: `${0.1 * (index + 1)}s` }}
-        >
-            <div className={styles.noticeHeader}>
-                <div className={styles.noticeDateTime}>
-                    {formatDate(notice.notice_date_time)}
-                </div>
-            </div>
-            <div className={styles.noticeContent}>
-                {notice.notice_content}
-            </div>
-        </div>
-    );
-
-    const renderNoticesSection = () => (
-        <section className={styles.noticesSection}>
-            <h2>Latest Updates</h2>
-            {loading ? (
-                <div className={styles.loadingNotices}>Loading updates...</div>
-            ) : notices.length > 0 ? (
-                <div className={styles.noticesList}>
-                    {notices.slice(0, 3).map(renderNoticeItem)}
-                </div>
-            ) : (
-                <div className={styles.noNotices}>No updates available</div>
-            )}
-        </section>
-    );
-
     const renderFullscreenOverlay = () => {
         if (!isFullscreen) return null;
 
@@ -283,11 +241,9 @@ export default function HomePage() {
     };
 
     return (
-
         <div className={styles.container}>
-
             <section className={styles.hero}>
-                <Carousel />
+                <Carousel isAdmin={isAdmin} />
                 <section
                     className={`${styles.featureSides} ${animatedFeatures.visible ? styles.featuresVisible : ''}`}
                     ref={featuresRef}
@@ -299,7 +255,7 @@ export default function HomePage() {
                     </center>
                 </section>
 
-                {renderNoticesSection()}
+                <NoticesSection />
             </section>
 
             <section

@@ -1,9 +1,68 @@
-
-// Updated ClassesTab.js
 import { Section } from './Table/Section.js';
 import { Table } from './Table/index.js';
-import { createFieldRenderer, createOptions, createAsyncHandler, createConfirmHandler } from './fieldRendererFactory';
-import { studentsFieldMappings } from './tabFieldMappings';
+import { createFieldRenderer, createOptions } from './fieldRendererFactory.js';
+import { studentsFieldMappings } from './tabFieldMappings.js';
+import { createActionButtons } from './Table/utils.js';
+import { useState } from 'react';
+import FullScreenableImage from '../FullScreenableImage.js';
+
+const EnrolledClassesCell = ({ userId, enrolledCount, enrolledClasses }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const handleToggle = () => {
+        setIsExpanded(!isExpanded);
+    };
+
+    const handleClassClick = (classId, e) => {
+        e.stopPropagation();
+        window.open(`/classes/${classId}`, '_blank');
+    };
+
+    return (
+        <div className="enrolled-classes-container">
+            <div
+                className="enrolled-classes-count clickable"
+                onClick={handleToggle}
+                title="Click to view enrolled classes"
+            >
+                <span className="class-count-badge">
+                    {enrolledCount} class{enrolledCount !== 1 ? 'es' : ''}
+                    <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
+                        {isExpanded ? '▼' : '▶'}
+                    </span>
+                </span>
+            </div>
+
+            {isExpanded && (
+                <div className="enrolled-classes-list">
+                    {enrolledClasses.length > 0 ? (
+                        <div className="classes-grid">
+                            {enrolledClasses.map((classItem) => (
+                                <div
+                                    key={classItem.class_id}
+                                    className="class-item"
+                                    onClick={(e) => handleClassClick(classItem.class_id, e)}
+                                    title={`Click to view ${classItem.class_name}'s details`}
+                                >
+                                    <div className="class-name">{classItem.class_name}</div>
+                                    {classItem.course_name && (
+                                        <div className="class-course">{classItem.course_name}</div>
+                                    )}
+                                    {classItem.teacher_name && (
+                                        <div className="class-teacher">Teacher: {classItem.teacher_name}</div>
+                                    )}
+                                    <div className="class-link-icon">📚</div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="no-classes">No classes enrolled</div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
 
 const getClassCountForStudent = (studentId, classesUsersData) =>
     classesUsersData.filter(relation => relation.user_id === studentId).length;
@@ -34,7 +93,85 @@ const enrichStudentsWithClassData = (studentsData, classesUsersData, classesData
         enrolled_classes_list: getEnrolledClassesForStudent(student.user_id, classesUsersData, classesData, teachersData, courseData)
     }));
 
-const StudentsTable = ({
+// Async handlers
+const createAsyncHandler = (fn, errorMessage) => async (...args) => {
+    try {
+        await fn(...args);
+    } catch (error) {
+        alert(`${errorMessage}: ${error.message}`);
+        throw error;
+    }
+};
+
+const createConfirmHandler = (fn, message) => async (...args) => {
+    if (window.confirm(message)) {
+        await fn(...args);
+    }
+};
+
+const QueuedStudentsTable = ({
+    studentsQueued,
+    actionInProgress,
+    onStudentQueueApproval,
+    onStudentQueueRejection,
+    getUserName,
+    getClassName
+}) => {
+    const actions = [
+        {
+            text: 'Approve',
+            action: (student) => onStudentQueueApproval(student.class_id, student.user_id, student.pending_id),
+            key: 'approve'
+        },
+        {
+            text: 'Deny',
+            action: (student) => onStudentQueueRejection(student.pending_id),
+            key: 'reject'
+        }
+    ];
+
+    const renderActionButtons = createActionButtons(actions, actionInProgress);
+    const additionalColumns = [
+        {
+            key: 'student_name',
+            title: 'Student Name',
+            render: (student) => getUserName(student.user_id) || 'Unknown'
+        },
+        {
+            key: 'payment_proof',
+            title: 'Payment Proof',
+            render: (student) => (
+                <FullScreenableImage
+                    src={student.screenshot_path}
+                    alt="payment proof"
+                    className="payment-proof-img"
+                />
+            )
+        },
+        {
+            key: 'class_name',
+            title: 'Class',
+            render: (student) => getClassName(student.class_id) || 'Unknown'
+        },
+        {
+            key: 'actions',
+            title: 'Actions',
+            render: (student) => renderActionButtons(student, 'student')
+        }
+    ];
+
+    return (
+        <Table
+            data={studentsQueued}
+            className="students-table"
+            keyField="pending_id"
+            additionalColumns={additionalColumns}
+            emptyMessage="No students in queue"
+        />
+    );
+};
+
+const ApprovedStudentsTable = ({
     students,
     gradesData,
     rolesData,
@@ -54,6 +191,20 @@ const StudentsTable = ({
     const dependencies = { gradesData, rolesData, schemas };
     const handlers = { onSaveData, onMultiSaveData };
     const renderCell = createFieldRenderer(studentsFieldMappings, dependencies, handlers);
+
+    // Enhanced renderCell to handle enrolled_classes specially
+    const enhancedRenderCell = (student, col) => {
+        if (col === 'enrolled_classes') {
+            return (
+                <EnrolledClassesCell
+                    userId={student.user_id}
+                    enrolledCount={student.enrolled_classes || 0}
+                    enrolledClasses={student.enrolled_classes_list || []}
+                />
+            );
+        }
+        return renderCell(student, col);
+    };
 
     const handleDelete = createConfirmHandler(
         createAsyncHandler(onDeleteStudent, 'Error deleting student'),
@@ -77,13 +228,13 @@ const StudentsTable = ({
     return (
         <Table
             data={enrichedStudents}
-            className="students-table"
-            keyField="user_id"
-            renderCell={renderCell}
+            renderCell={enhancedRenderCell}
             fieldMappings={studentsFieldMappings}
             dependencies={dependencies}
             handlers={handlers}
-            createFieldRenderer={renderCell}
+            className="students-table"
+            keyField="user_id"
+            createFieldRenderer={enhancedRenderCell}
             dropdownOptions={dropdownOptions}
             additionalColumns={additionalColumns}
             emptyMessage="No students available"
@@ -102,15 +253,36 @@ const StudentsTable = ({
 
 export const StudentsTab = ({
     state,
+    actionInProgress,
     handleSaveData,
     handleMultiSaveData,
     handleAddStudent,
     handleDeleteStudent,
     handleBulkAddStudents,
+    handleStudentQueueApproval,
+    handleStudentQueueRejection,
+    getUserName,
+    getClassName,
     schemas = {}
 }) => (
-        <Section title="Students" className="students-section scrollable">
-            <StudentsTable
+    <Section title="Students" className="students-section scrollable">
+        {/* Queued Students Section */}
+        {state.studentsQueued && state.studentsQueued.length > 0 && (
+            <Section title="Queued Students">
+                <QueuedStudentsTable
+                    studentsQueued={state.studentsQueued}
+                    actionInProgress={actionInProgress}
+                    onStudentQueueApproval={handleStudentQueueApproval}
+                    onStudentQueueRejection={handleStudentQueueRejection}
+                    getUserName={getUserName}
+                    getClassName={getClassName}
+                />
+            </Section>
+        )}
+
+        {/* All Students Section */}
+        <Section title="Approved Students">
+            <ApprovedStudentsTable
                 students={state.studentsData || state.usersData?.filter(user => user.role_name === 'student') || []}
                 gradesData={state.gradesData}
                 rolesData={state.rolesData}
@@ -126,4 +298,5 @@ export const StudentsTab = ({
                 schemas={schemas}
             />
         </Section>
-    );
+    </Section>
+);

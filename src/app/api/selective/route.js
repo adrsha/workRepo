@@ -2,7 +2,7 @@ import { executeQueryWithRetry } from '../../lib/db';
 import { getServerSession } from 'next-auth/next'; 
 import { authOptions } from "../auth/[...nextauth]/authOptions";
 
-const publicDataTables = ['grades', 'classes', 'courses', 'classes_users'];
+const publicDataTables = ['grades', 'classes', 'courses', 'classes_users', 'notices'];
 
 export async function GET(req) {
     try {
@@ -50,6 +50,7 @@ export async function GET(req) {
             query: query,
             values: values,
         });
+        console.log(results)
 
         return new Response(JSON.stringify(results), { status: 200 });
     } catch (error) {

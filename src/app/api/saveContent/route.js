@@ -38,7 +38,7 @@ const dbService = {
 
     async linkContentToClass(classId, contentId) {
         await executeQueryWithRetry({
-            query: 'INSERT INTO class_content (class_id, content_id) VALUES (?, ?)',
+            query: 'INSERT INTO classes_content (classes_id, content_id) VALUES (?, ?)',
             values: [classId, contentId]
         });
     },
@@ -48,8 +48,8 @@ const dbService = {
             query: `
                 SELECT c.content_id, c.content_type, c.content_data, c.created_at, c.is_public
                 FROM content c
-                JOIN class_content cc ON c.content_id = cc.content_id
-                WHERE c.content_id = ? AND cc.class_id = ?
+                JOIN classes_content cc ON c.content_id = cc.content_id
+                WHERE c.content_id = ? AND cc.classes_id = ?
             `,
             values: [contentId, classId]
         });

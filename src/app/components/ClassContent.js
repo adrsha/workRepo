@@ -39,7 +39,8 @@ const AddContentSection = ({ isTeacher, currentUser, formControls, contentHandle
         <div className={styles.addContentSection}>
             {formControls.isEditing ? (
                 <ContentEditor
-                    classId={classId}
+                    parentId={classId}
+                    parentType="classes"
                     contentForm={formControls.contentForm}
                     onUpdateForm={formControls.updateForm}
                     onSaveText={() => contentHandlers.handleAddTextContent(formControls.contentForm)}
@@ -71,6 +72,7 @@ const ContentSection = ({ contents, isTeacher, contentHandlers, currentUser }) =
             isTeacher={isTeacher}
             currentUser={currentUser}
             onDelete={contentHandlers.handleDeleteContent}
+            onToggleVisibility={contentHandlers.handleToggleVisibility}
         />
     );
 };

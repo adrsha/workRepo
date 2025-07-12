@@ -86,11 +86,11 @@ const EmptyState = () => (
 const ContentItem = ({ item }) => (
     <li key={item.content_id} className={styles.contentItem}>
         <div className={styles.contentItemInner}>
-            
+
             <div className={styles.contentIcon}>
                 {item.isFile ? getFileIcon(item.fileType) : '📝'}
             </div>
-            
+
             <div className={styles.contentDetails}>
                 <h3 className={styles.contentTitle}>
                     {item.isFile ? item.originalName : 'Text Note'}
@@ -108,13 +108,13 @@ const ContentItem = ({ item }) => (
                         </span>
                     )}
                 </div>
-                {!item.isFile && item.text && (
-                    <div className={styles.contentTextPreview}>
-                        <MarkdownContent content={JSON.parse(item.text).text} />
-                    </div>
-                )}
             </div>
-            
+
+            {!item.isFile && item.text && (
+                <div className={styles.contentTextPreview}>
+                    <MarkdownContent content={JSON.parse(item.text).text} />
+                </div>
+            )}
             {item.isFile && item.url && (
                 <a
                     href={item.url}
@@ -128,7 +128,7 @@ const ContentItem = ({ item }) => (
                 </a>
             )}
         </div>
-        
+
     </li>
 );
 
@@ -145,7 +145,7 @@ const usePublicContent = () => {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                 });
-                
+
                 if (!response.ok) {
                     throw new Error(`API error: ${response.status} ${response.statusText}`);
                 }

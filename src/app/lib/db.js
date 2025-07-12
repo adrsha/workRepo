@@ -14,8 +14,7 @@ function createPool() {
             waitForConnections: true,
             connectionLimit: 8, // Reduced to stay under phpMyAdmin limit
             queueLimit: 0,
-            acquireTimeout: 60000,
-            timeout: 60000,
+            connectTimeout: 60000,
             idleTimeout: 300000, // Close idle connections after 5 minutes
             maxIdle: 3 // Keep fewer idle connections in dev
         });

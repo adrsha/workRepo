@@ -11,19 +11,16 @@ export const createContentHandlers = (
     refetch // Add refetch from useClassContent
 ) => {
     const handleAddTextContent = async (contentForm) => {
-        console.log("BeforeContent", contentForm)
         if (!validateTextContent(contentForm)) {
             showError('Content cannot be empty');
             return;
         }
-
         try {
             await contentService.addTextContent(
                 classId,
                 contentForm,
                 session?.accessToken
             );
-
             // Refetch to ensure data consistency
             await refetch();
             resetForm();
@@ -43,7 +40,6 @@ export const createContentHandlers = (
                 is_public,
                 session?.accessToken
             );
-
             // Refetch to ensure data consistency
             await refetch();
             resetForm();
@@ -60,7 +56,6 @@ export const createContentHandlers = (
             showError('Please select a file to upload');
             return;
         }
-
         try {
             await contentService.uploadFile(
                 classId,
@@ -68,7 +63,6 @@ export const createContentHandlers = (
                 is_public,
                 session?.accessToken
             );
-
             // Refetch to ensure data consistency
             await refetch();
             resetForm();
@@ -82,7 +76,6 @@ export const createContentHandlers = (
     const handleDeleteContent = async (contentId) => {
         try {
             await contentService.deleteContent(contentId, session?.accessToken);
-
             // Optimistic update for delete (safer since we're removing)
             setContents(contents.filter(content => content.content_id !== contentId));
             showSuccess('Content deleted successfully');
@@ -94,10 +87,31 @@ export const createContentHandlers = (
         }
     };
 
+    const handleToggleVisibility = async (contentId) => {
+        try {
+            const result = await contentService.toggleContentVisibility(contentId, session?.accessToken);
+            
+            // Update local state optimistically
+            setContents(contents.map(content => 
+                content.content_id === contentId 
+                    ? { ...content, is_public: result.isPublic }
+                    : content
+            ));
+            
+            showSuccess(result.message || 'Content visibility updated');
+        } catch (err) {
+            console.error('Error toggling visibility:', err);
+            showError(err.message || 'Network error. Please try again.');
+            // Refetch on error to restore state
+            await refetch();
+        }
+    };
+
     return {
         handleAddTextContent,
         handleFileUpload,
-        handleFileSave, // Add this to the returned object
-        handleDeleteContent
+        handleFileSave,
+        handleDeleteContent,
+        handleToggleVisibility
     };
 };

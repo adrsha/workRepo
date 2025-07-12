@@ -202,7 +202,6 @@ export const Table = ({
                 onSelectAll={handleSelectAll}
                 onDelete={onDelete}
             />
-            {console.log(fieldMappings, dependencies)}
             {showAddForm && (
                 <AddRecordForm
                     fields={editableFields}

@@ -33,7 +33,7 @@
     border-radius: var(--border-radius-md);
     cursor: pointer;
     font-size: 1.25rem;
-    transition: all var(--transition-fast);
+    transition: all all 0.2s ease;
     box-shadow: var(--card-shadow);
 }
 
@@ -61,7 +61,7 @@
     font-size: 1rem;
     color: var(--foreground);
     background: var(--white);
-    transition: all var(--transition-fast);
+    transition: all all 0.2s ease;
     box-shadow: var(--card-shadow);
 }
 
@@ -182,7 +182,7 @@
     justify-content: center;
     font-size: 1.5rem;
     opacity: 0;
-    transition: all var(--transition-fast);
+    transition: all all 0.2s ease;
     backdrop-filter: blur(5px);
 }
 
@@ -214,7 +214,7 @@
     justify-content: center;
     z-index: 1000;
     backdrop-filter: blur(5px);
-    animation: fadeIn var(--transition-fast);
+    animation: fadeIn all 0.2s ease;
 }
 
 @keyframes fadeIn {
@@ -280,7 +280,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition-fast);
+    transition: all all 0.2s ease;
     backdrop-filter: blur(5px);
 }
 
@@ -413,7 +413,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition-fast);
+    transition: all all 0.2s ease;
 }
 
 .clearButton:hover {
@@ -538,7 +538,7 @@
 }
 
 .cardInfo {
-    padding: 1rem
+    padding: 1rem;
 }
 
 /* Responsive Design */

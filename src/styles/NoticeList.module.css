@@ -1,0 +1,135 @@
+/* Main notices list container */
+.noticesList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Individual notice card - simplified */
+.noticeCard {
+    border-radius: var(--border-radius-sm);
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    border-left: 3px solid var(--tertiary);
+    transition: all 0.2s ease;
+}
+
+.noticeCard:hover {
+    background: var(--white);
+}
+
+/* Notice header container */
+.noticeHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Notice title - smaller for sidebar */
+.noticeTitle {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    color: var(--darkforeground);
+    margin: 0;
+    flex: 1;
+    line-height: 1.3;
+}
+
+/* Notice actions container */
+.noticeActions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Notice date - smaller text */
+.noticeDate {
+    font-size: 0.75rem;
+    color: var(--gray);
+    white-space: nowrap;
+}
+
+.noticeContainer{
+    position: relative;
+}
+
+/* Delete button - smaller and simpler */
+.deleteButton {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 0.5rem;
+    background-color: var(--lightRed);
+    color: var(--white);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    width: fit-content;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    height: fit-content;
+    opacity: 0;
+    padding: 0;
+}
+
+
+.noticeContainer:hover .deleteButton{
+    padding: 0.25rem 0.5rem;
+    opacity: 1;
+}
+.deleteButton:hover {
+    padding: 0.25rem 0.5rem;
+    opacity: 1;
+    background-color: var(--darkRed);
+}
+
+.deleteButton:focus {
+    outline: 2px solid var(--lightRed);
+    outline-offset: 2px;
+}
+
+/* Responsive design - simplified */
+@media (max-width: 768px) {
+    .noticeCard {
+        padding: 0.75rem;
+    }
+
+    .noticeTitle {
+        font-size: 0.9rem;
+    }
+
+    .deleteButton {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* Empty state when no notices */
+.noticesList:empty::after {
+    content: "No notices to display";
+    display: block;
+    text-align: center;
+    color: var(--gray);
+    font-style: italic;
+    padding: 2rem;
+}
+
+/* Simplified animations */
+.noticeCard {
+    animation: fadeInSimple 0.3s ease-out;
+}
+
+@keyframes fadeInSimple {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

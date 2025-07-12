@@ -318,7 +318,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer
+    cursor: pointer;
 }
 
 .modal-content h3 {
@@ -637,7 +637,7 @@ section {
 
 .items-grid {
     padding: 8px;
-    width: fit-content
+    width: fit-content;
 }
 
 .item {

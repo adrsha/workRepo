@@ -1,0 +1,162 @@
+/* Notification Badge */
+.notificationBadge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    border: 2px solid var(--tertiaryLighter);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Notification Header */
+.notificationHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--offWhite);
+}
+
+.notificationHeader h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.notificationHeader span {
+    font-size: 0.75rem;
+    color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+/* Notification List */
+.notificationsList {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+/* Notification Item */
+.notificationItem {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    border-left: 3px solid transparent;
+}
+
+.notificationItem::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.05), transparent);
+    transition: width 0.3s ease;
+}
+
+.notificationItem:hover {
+    background: rgba(0, 0, 0, 0.02);
+    padding-left: 1.25rem;
+}
+
+.notificationItem:hover::after {
+    width: 20px;
+}
+
+.notificationItem.unread {
+    border-left-color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.05);
+}
+
+.notificationItem.unread::before {
+    content: '';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    transform: translateY(-50%);
+}
+
+/* Notification Content */
+.notificationContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.notificationMessage {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--foreground);
+}
+
+.notificationTime {
+    font-size: 0.75rem;
+    color: var(--foreground);
+    opacity: 0.7;
+}
+
+/* No Notifications State */
+.noNotifications {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--foreground);
+    opacity: 0.7;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Notification Footer */
+.notificationFooter {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--offWhite);
+    text-align: center;
+}
+
+.notificationFooter button {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.notificationFooter button:hover {
+    background: rgba(var(--primary-rgb), 0.1);
+}

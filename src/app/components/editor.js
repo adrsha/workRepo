@@ -2,6 +2,7 @@ import { useState } from 'react';
 import FileUpload from './FileUpload';
 import Input from "./Input";
 import styles from "../../styles/ClassContent.module.css";
+import { parseMarkdown, MarkdownContent } from '../../utils/markdown';
 
 const UploadSuccess = ({ file, onSave, isUploading }) => (
     <div className={styles.uploadSuccess}>
@@ -16,7 +17,7 @@ const UploadSuccess = ({ file, onSave, isUploading }) => (
     </div>
 );
 
-export const FileUploadSection = ({ classId, onFileSave, isPublic }) => {
+export const FileUploadSection = ({ parentId, parentType, onFileSave, isPublic }) => {
     const [uploadedFile, setUploadedFile] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
 
@@ -49,7 +50,8 @@ export const FileUploadSection = ({ classId, onFileSave, isPublic }) => {
     return (
         <div className={styles.fileUploadSection}>
             <FileUpload
-                classId={classId}
+                parentId={parentId}
+                parentType={parentType}
                 onUploadComplete={handleUploadComplete}
                 isSignUpForm={false}
             />
@@ -66,37 +68,6 @@ export const FileUploadSection = ({ classId, onFileSave, isPublic }) => {
                 Upload a file and click save to add it as content.
             </p>
         </div>
-    );
-};
-
-// Markdown parsing utilities
-const markdownRules = [
-    [/^### (.*$)/gim, '<h3>$1</h3>'],
-    [/^## (.*$)/gim, '<h2>$1</h2>'],
-    [/^# (.*$)/gim, '<h1>$1</h1>'],
-    [/\*\*\*(.*)\*\*\*/gim, '<strong><em>$1</em></strong>'],
-    [/\*\*(.*)\*\*/gim, '<strong>$1</strong>'],
-    [/\*(.*)\*/gim, '<em>$1</em>'],
-    [/__(.*?)__/gim, '<strong>$1</strong>'],
-    [/_(.*?)_/gim, '<em>$1</em>'],
-    [/`([^`]+)`/gim, '<code>$1</code>'],
-    [/```([^```]+)```/gim, '<pre><code>$1</code></pre>'],
-    [/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank" rel="noopener">$1</a>'],
-    [/!\[([^\]]*)\]\(([^)]+)\)/gim, '<img src="$2" alt="$1" style="max-width: 100%; height: auto;" />'],
-    [/~~(.*)~~/gim, '<del>$1</del>'],
-    [/^---$/gim, '<hr>'],
-    [/^\* (.*)$/gim, '<li>$1</li>'],
-    [/^- (.*)$/gim, '<li>$1</li>'],
-    [/^\+ (.*)$/gim, '<li>$1</li>'],
-    [/^\d+\. (.*)$/gim, '<li>$1</li>'],
-    [/^> (.*)$/gim, '<blockquote>$1</blockquote>'],
-    [/\n/gim, '<br>']
-];
-
-const parseMarkdown = (text) => {
-    if (!text) return '';
-    return markdownRules.reduce((result, [regex, replacement]) =>
-        result.replace(regex, replacement), text
     );
 };
 
@@ -130,10 +101,12 @@ const MarkdownToolbar = ({ onInsert }) => (
 );
 
 const MarkdownPreview = ({ content }) => (
-    <div
-        className={styles.markdownPreview}
-        dangerouslySetInnerHTML={{ __html: parseMarkdown(content) }}
-    />
+    <div className={styles.markdownPreview}>
+        <MarkdownContent 
+            content={content} 
+            className={styles.markdownContent}
+        />
+    </div>
 );
 
 // Text insertion utility functions
@@ -254,7 +227,7 @@ const EnhancedTextEditor = ({ content, onChange, onSave }) => {
             <button
                 type="button"
                 className={`${styles.viewButton} ${splitView ? styles.active : ''}`}
-                onClick={() => setViewMode(false, !splitView, false)}
+                onClick={() => setViewMode(false, true, false)}
             >
                 Split
             </button>
@@ -272,7 +245,9 @@ const EnhancedTextEditor = ({ content, onChange, onSave }) => {
         <div className={styles.textEditor}>
             <div className={styles.editorControls}>
                 <MarkdownToolbar onInsert={insertMarkdown} />
-                <ViewModeButtons />
+                <div className={styles.controlsRight}>
+                    <ViewModeButtons />
+                </div>
             </div>
 
             <div className={`${styles.editorContainer} ${splitView ? styles.splitView : ''}`}>
@@ -283,13 +258,13 @@ const EnhancedTextEditor = ({ content, onChange, onSave }) => {
                         onChange={(e) => onChange(e.target.value)}
                         placeholder="Enter markdown content here...
 
-                        # Header 1
-                        ## Header 2
-                        **Bold text** *Italic text*
-                        `code` 
-                        - List item
-                        > Blockquote
-                        [Link](url)"
+# Header 1
+## Header 2
+**Bold text** *Italic text*
+`code` 
+- List item
+> Blockquote
+[Link](url)"
                         rows={splitView ? 15 : 12}
                     />
                 )}
@@ -359,7 +334,8 @@ const EditorHeader = ({ onCancel }) => (
 );
 
 export const ContentEditor = ({
-    classId,
+    parentId,
+    parentType,
     contentForm,
     onUpdateForm,
     onSaveText,
@@ -387,73 +363,11 @@ export const ContentEditor = ({
             />
         ) : (
             <FileUploadSection
-                classId={classId}
+                parentId={parentId}
+                parentType={parentType}
                 onFileSave={onFileSave}
                 isPublic={contentForm.is_public}
             />
         )}
     </div>
 );
-
-export const contentService = {
-    async addTextContent(classId, contentForm, accessToken) {
-        const payload = {
-            contentType: 'text',
-            contentData: { text: contentForm.content_data },
-            classId,
-            isPublic: contentForm.is_public
-        };
-
-        return this.makeRequest('/api/content/save', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload),
-        });
-    },
-
-    async saveFileContent(classId, fileData, isPublic, accessToken) {
-        const payload = {
-            contentType: 'file',
-            contentData: fileData,
-            classId,
-            isPublic
-        };
-
-        return this.makeRequest('/api/content/save', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload),
-        });
-    },
-
-    async deleteContent(contentId, accessToken) {
-        return this.makeRequest(`/api/classContent/${contentId}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${accessToken}` },
-        });
-    },
-
-    async fetchClassContent(classId, accessToken) {
-        return this.makeRequest(`/api/classContent/${classId}`, {
-            method: 'GET',
-            headers: { Authorization: `Bearer ${accessToken}` },
-        });
-    },
-
-    async makeRequest(url, options) {
-        const response = await fetch(url, options);
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || `Request failed with status ${response.status}`);
-        }
-
-        return response.json();
-    }
-};

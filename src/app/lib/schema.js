@@ -89,9 +89,9 @@ const fetchTableSchema = async (tableName) => {
     return schemaCache.getOrFetch(tableName, async () => {
         const authToken = localStorage.getItem('authToken');
         const data = await fetchData(tableName, authToken);
-        
         if (!data?.length) {
-            throw new Error(`No data found for table: ${tableName}`);
+            return [];
+            // throw new Error(`No data found for table: ${tableName}`);
         }
         
         const config = TABLE_CONFIG[tableName];
