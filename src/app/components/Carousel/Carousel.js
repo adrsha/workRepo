@@ -1,3 +1,4 @@
+'use client'
 import CarouselImage from './CarouselImage';
 import AdminPanel from './AdminPanel';
 import CarouselControls from './CarouselControls';
@@ -47,6 +48,21 @@ const Carousel = ({ isAdmin = false }) => {
         );
     }
 
+    if (images.length === 0) {
+        return (
+            <div className={styles.carouselContainer}>
+                <div className={styles.carouselEmpty}>
+                    <p>No images available</p>
+                    {isAdministrator && (
+                        <button onClick={() => setIsAdminMode(true)} className={styles.adminToggle}>
+                            Add Images
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={styles.carouselContainer}>
             {isAdministrator && (
@@ -60,7 +76,6 @@ const Carousel = ({ isAdmin = false }) => {
                 </div>
             )}
             
-            {/* Show AdminPanel when admin mode is active, regardless of image count */}
             {isAdministrator && isAdminMode && (
                 <AdminPanel
                     images={images}
@@ -73,52 +88,38 @@ const Carousel = ({ isAdmin = false }) => {
                 />
             )}
 
-            {/* Show carousel content only when not in admin mode */}
             {!isAdminMode && (
-                <>
-                    {images.length === 0 ? (
-                        <div className={styles.carouselEmpty}>
-                            <p>No images available</p>
-                            {isAdministrator && (
-                                <button onClick={() => setIsAdminMode(true)} className={styles.adminToggle}>
-                                    Add Images
-                                </button>
-                            )}
-                        </div>
-                    ) : (
-                        <div className={styles.carouselWrapper}>
-                            <div className={styles.carouselMain}>
-                                <div
-                                    className={styles.carouselTrack}
-                                    style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-                                >
-                                    {images.map((img, index) => (
-                                        <CarouselImage
-                                            key={img.id}
-                                            img={img}
-                                            isActive={index === currentIndex}
-                                            onClick={() => goToSlide(index)}
-                                        />
-                                    ))}
-                                </div>
-
-                                <CarouselControls
-                                    showControls={images.length > 1}
-                                    isPlaying={isPlaying}
-                                    onPrevSlide={prevSlide}
-                                    onNextSlide={nextSlide}
-                                    onTogglePlayPause={togglePlayPause}
+                <div className={styles.carouselWrapper}>
+                    <div className={styles.carouselMain}>
+                        <div
+                            className={styles.carouselTrack}
+                            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+                        >
+                            {images.map((img, index) => (
+                                <CarouselImage
+                                    key={img.id}
+                                    img={img}
+                                    isActive={index === currentIndex}
+                                    onClick={() => goToSlide(index)}
                                 />
-                            </div>
-
-                            <CarouselIndicators
-                                images={images}
-                                currentIndex={currentIndex}
-                                onGoToSlide={goToSlide}
-                            />
+                            ))}
                         </div>
-                    )}
-                </>
+
+                        <CarouselControls
+                            showControls={images.length > 1}
+                            isPlaying={isPlaying}
+                            onPrevSlide={prevSlide}
+                            onNextSlide={nextSlide}
+                            onTogglePlayPause={togglePlayPause}
+                        />
+                    </div>
+
+                    <CarouselIndicators
+                        images={images}
+                        currentIndex={currentIndex}
+                        onGoToSlide={goToSlide}
+                    />
+                </div>
             )}
         </div>
     );

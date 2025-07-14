@@ -1049,6 +1049,19 @@
     box-shadow: none;
 }
 
+.classDesc::before{
+    content: "⚛︎";
+    font-weight: 600;
+    background-color: var(--offWhite);
+    padding: 0.2rem 0.5rem;
+    border-radius: 1rem;
+    margin-right: 0.5rem;
+}
+.classDesc {
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--offWhite);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .fullScreenOverlay {

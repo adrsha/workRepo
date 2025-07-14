@@ -7,8 +7,8 @@ import { parseMarkdown, MarkdownContent } from '../../utils/markdown';
 const UploadSuccess = ({ file, onSave, isUploading }) => (
     <div className={styles.uploadSuccess}>
         <p>✓ File uploaded: {file.originalName || file.name}</p>
-        <button 
-            className={styles.saveButton} 
+        <button
+            className={styles.saveButton}
             onClick={onSave}
             disabled={isUploading}
         >
@@ -24,7 +24,7 @@ export const FileUploadSection = ({ parentId, parentType, onFileSave, isPublic }
     const handleSave = async () => {
         console.log('handleSave called, uploadedFile:', uploadedFile);
         console.log(isPublic);
-        
+
         if (!uploadedFile) {
             console.log('No uploaded file found');
             return;
@@ -102,8 +102,8 @@ const MarkdownToolbar = ({ onInsert }) => (
 
 const MarkdownPreview = ({ content }) => (
     <div className={styles.markdownPreview}>
-        <MarkdownContent 
-            content={content} 
+        <MarkdownContent
+            content={content}
             className={styles.markdownContent}
         />
     </div>
@@ -336,6 +336,7 @@ const EditorHeader = ({ onCancel }) => (
 export const ContentEditor = ({
     parentId,
     parentType,
+    isAdmin,
     contentForm,
     onUpdateForm,
     onSaveText,
@@ -350,10 +351,12 @@ export const ContentEditor = ({
             onSelectType={(type) => onUpdateForm('content_type', type)}
         />
 
-        <VisibilityToggle
-            is_public={contentForm.is_public}
-            onToggle={(is_public) => onUpdateForm('is_public', is_public)}
-        />
+        {isAdmin && (
+            <VisibilityToggle
+                is_public={contentForm.is_public}
+                onToggle={(is_public) => onUpdateForm('is_public', is_public)}
+            />
+        )}
 
         {contentForm.content_type === 'text' ? (
             <EnhancedTextEditor

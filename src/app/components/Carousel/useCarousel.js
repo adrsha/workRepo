@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect, useRef } from 'react';
 
 const useCarousel = (isAdmin = false) => {

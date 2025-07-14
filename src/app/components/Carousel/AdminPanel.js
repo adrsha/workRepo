@@ -1,3 +1,4 @@
+'use client';
 import FileUpload from '../FileUpload';
 import AdminImageEditor from './AdminImageEditor';
 import styles from '../../../styles/Carousel.module.css';

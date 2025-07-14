@@ -105,6 +105,11 @@ const formatDate = (dateString) =>
 const Logo = ({ onNavigate }) => (
     <div className={styles.logo} onClick={onNavigate('/')}>
         <img src="/logo.png" alt="MeroTuition Logo" />
+
+        <header className={styles.header}>
+            <h1>MeroTuition.com</h1>
+            <span>No Cost, Low Cost Tuition.</span>
+        </header>
     </div>
 );
 

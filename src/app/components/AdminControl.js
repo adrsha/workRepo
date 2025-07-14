@@ -122,7 +122,7 @@ export default function AdminControl({ pendingTeachersData = [] }) {
             handleSaveData: actionHandlers.handleSaveData,
             handleAddTeacher: actionHandlers.handleAddTeacher,
             handleDeleteTeacher: actionHandlers.handleDeleteTeacher,
-            handleBulkAddTeachers: actionHandlers.handleBulkAddTeachers,
+            handleBulkAddTeachers: actionHandlers.handleBulkAddTeacher,
             schemas,
         },
         classes: {
@@ -132,7 +132,7 @@ export default function AdminControl({ pendingTeachersData = [] }) {
             handleMultiSaveData: actionHandlers.handleMultiSaveData,
             handleAddClass: actionHandlers.handleAddClass,
             handleDeleteClass: actionHandlers.handleDeleteClass,
-            handleBulkAddClasses: actionHandlers.handleBulkAddClasses,
+            handleBulkAddClasses: actionHandlers.handleBulkAddClass, 
             schemas,
         },
         students: {
@@ -145,7 +145,7 @@ export default function AdminControl({ pendingTeachersData = [] }) {
             handleSaveData: actionHandlers.handleSaveData,
             handleAddStudent: actionHandlers.handleAddStudent,
             handleDeleteStudent: actionHandlers.handleDeleteStudent,
-            handleBulkAddStudents: actionHandlers.handleBulkAddStudents,
+            handleBulkAddStudents: actionHandlers.handleBulkAddStudent,
             schemas,
         }
     };

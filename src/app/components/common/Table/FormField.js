@@ -9,20 +9,29 @@ export const FormField = ({
     renderFormField,
     dropdownOptions
 }) => {
+    const fieldLabel = formatColName(field);
+    
     // If a custom form field renderer is provided, use it
     if (renderFormField) {
-        const customField = renderFormField(field, value, onChange, { error, required });
-        if (customField) {
-            return (
-                <div className="form-field">
-                    <label>
-                        {formatColName(field)}
-                        {required && <span className="required">*</span>}
-                    </label>
-                    {customField}
-                    {error && <span className="error-message">{error}</span>}
-                </div>
-            );
+        try {
+            const customField = renderFormField(field, value, onChange);
+            if (customField) {
+                return (
+                    <div className="form-field">
+                        <label>
+                            {fieldLabel}
+                            {required && <span className="required">*</span>}
+                        </label>
+                        <div className={`field-wrapper ${error ? 'error' : ''}`}>
+                            {customField}
+                        </div>
+                        {error && <span className="error-message">{error}</span>}
+                    </div>
+                );
+            }
+        } catch (err) {
+            console.error(`Error rendering custom field ${field}:`, err);
+            // Fall through to default rendering
         }
     }
 
@@ -30,7 +39,7 @@ export const FormField = ({
     return (
         <div className="form-field">
             <label>
-                {formatColName(field)}
+                {fieldLabel}
                 {required && <span className="required">*</span>}
             </label>
             <input
@@ -38,7 +47,7 @@ export const FormField = ({
                 value={value}
                 onChange={(e) => onChange(field, e.target.value)}
                 className={error ? 'error' : ''}
-                placeholder={`Enter ${formatColName(field).toLowerCase()}`}
+                placeholder={`Enter ${fieldLabel.toLowerCase()}`}
             />
             {error && <span className="error-message">{error}</span>}
         </div>

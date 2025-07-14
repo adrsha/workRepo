@@ -1,4 +1,4 @@
-import { noticeService } from "@/app/api/noticeService";
+import { noticeService } from "../app/api/noticeService";
 
 export const createNoticeHandlers = (
     session,

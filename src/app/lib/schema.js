@@ -1,5 +1,3 @@
-import { fetchData } from './helpers.js';
-
 const TABLE_CONFIG = {
     classes: { idField: 'class_id', stateKey: 'classesData' },
     users: { idField: 'user_id', stateKey: 'usersData' },
@@ -85,47 +83,51 @@ setInterval(() => schemaCache.cleanup(), 60000); // Every minute
 
 const getTableNames = () => Object.keys(TABLE_CONFIG);
 
+async function fetchSchemaFromAPI(tableName) {
+    const url = tableName ? `/api/schema?table=${tableName}` : '/api/schema';
+    
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || `Schema fetch failed: ${response.status}`);
+    }
+    
+    return response.json();
+}
+
 const fetchTableSchema = async (tableName) => {
     return schemaCache.getOrFetch(tableName, async () => {
-        const authToken = localStorage.getItem('authToken');
-        const data = await fetchData(tableName, authToken);
-        if (!data?.length) {
-            return [];
-            // throw new Error(`No data found for table: ${tableName}`);
+        const schema = await fetchSchemaFromAPI(tableName);
+        
+        if (!schema) {
+            throw new Error(`No schema found for table: ${tableName}`);
         }
         
-        const config = TABLE_CONFIG[tableName];
-        return {
-            tableName,
-            columns: Object.keys(data[0]),
-            idField: config?.idField || 'id',
-            stateKey: config?.stateKey,
-            fetchedAt: Date.now()
-        };
+        return schema;
     });
 };
 
 export const getSchema = async (tableName) => {
     if (tableName) {
+        console.log(tableName)
         return await fetchTableSchema(tableName);
     }
     
-    const schemas = {};
-    const results = await Promise.allSettled(
-        getTableNames().map(async (name) => ({
-            name,
-            schema: await fetchTableSchema(name)
-        }))
-    );
-    results.forEach(result => {
-        if (result.status === 'fulfilled') {
-            schemas[result.value.name] = result.value.schema;
-        } else {
-            console.error(`Schema fetch failed:`, result.reason);
+    return schemaCache.getOrFetch('all_schemas', async () => {
+        const schemas = await fetchSchemaFromAPI();
+        
+        if (!schemas) {
+            throw new Error('No schemas found');
         }
+        
+        return schemas;
     });
-    
-    return schemas;
 };
 
 export const getIdField = (tableName) => {

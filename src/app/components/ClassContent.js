@@ -41,6 +41,7 @@ const AddContentSection = ({ isTeacher, currentUser, formControls, contentHandle
                 <ContentEditor
                     parentId={classId}
                     parentType="classes"
+                    isAdmin={currentUser?.level === 2}
                     contentForm={formControls.contentForm}
                     onUpdateForm={formControls.updateForm}
                     onSaveText={() => contentHandlers.handleAddTextContent(formControls.contentForm)}

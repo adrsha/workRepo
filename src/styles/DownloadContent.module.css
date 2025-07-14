@@ -1,8 +1,5 @@
-/* Public Content List Styles */
 .publicContentContainer {
     flex: 1;
-    width: 100%;
-    max-width: 800px;
     background-color: var(--background);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--card-shadow);

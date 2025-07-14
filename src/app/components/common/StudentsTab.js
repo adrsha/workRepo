@@ -186,7 +186,9 @@ const ApprovedStudentsTable = ({
     onBulkAddStudents,
     schemas = {}
 }) => {
+    console.log("SH", schemas.students, students)
     const enrichedStudents = enrichStudentsWithClassData(students, classesUsersData, classesData, teachersData, courseData);
+    const newSchema = {columns : [...schemas.users.columns, ...schemas.students.columns]}
 
     const dependencies = { gradesData, rolesData, schemas };
     const handlers = { onSaveData, onMultiSaveData };
@@ -228,6 +230,7 @@ const ApprovedStudentsTable = ({
     return (
         <Table
             data={enrichedStudents}
+            schema={newSchema}
             renderCell={enhancedRenderCell}
             fieldMappings={studentsFieldMappings}
             dependencies={dependencies}

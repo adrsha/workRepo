@@ -1,11 +1,11 @@
 import styles from '../../styles/ContactUs.module.css';
 import '../global.css'
-import { SEO } from '../seoConfig';
+import { getMetadata } from '../seoConfig';
+export const metadata = getMetadata('contactus');
 
 export default function ContactUs() {
     return (
         <div className={styles.contactUsContainer}>
-            <SEO pageKey={"contactus"} />
             <h1 className={styles.heading}>Contact Us</h1>
             <p className={styles.text}>
                 Have questions, feedback, or need assistance? We're here to help!  

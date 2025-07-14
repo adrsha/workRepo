@@ -9,11 +9,10 @@ export async function fetchData(tableName, authToken = null) {
         // Create a proper absolute URL that works in both browser and server environments
         const baseUrl = typeof window !== 'undefined'
             ? window.location.origin
-            : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+            : process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
         const url = new URL(`/api/general`, baseUrl);
         url.searchParams.append('table', tableName);
-
         const response = await fetch(url.toString(), {
             headers: {
                 ...(publicDataTables.includes(tableName)
@@ -23,12 +22,12 @@ export async function fetchData(tableName, authToken = null) {
                     }),
             },
         });
-
         if (!response.ok) {
             throw new Error('Failed to fetch data');
         }
+        const answer = await response.json()
 
-        return await response.json();
+        return answer;
     } catch (error) {
         console.error('Error in fetchData:', error);
         throw new Error(error.message);
@@ -47,11 +46,20 @@ export async function fetchViewData(viewName, token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
+        // Create a proper absolute URL that works in both browser and server environments
+        const baseUrl = typeof window !== 'undefined'
+            ? window.location.origin
+            : process.env.NEXTAUTH_URL || 'http://localhost:3000';
+
+        const url = new URL(`/api/views`, baseUrl);
+        url.searchParams.append('view', viewName);
+
         // Make the fetch request with headers
-        const response = await fetch(`/api/views?view=${viewName}`, {
+        const response = await fetch(url.toString(), {
             method: 'GET',
             headers: headers
         });
+
         if (!response.ok) {
             throw new Error('Failed to fetch View data');
         }

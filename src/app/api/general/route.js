@@ -1,13 +1,8 @@
 const publicTables = ['grades', 'classes', 'courses', 'classes_users', 'notices'];
 
-const allowedTables = [
-    ...publicTables,
-    'users',
-    'pending_teachers',
-    'teachers',
-    'students',
-    'class_joining_pending'
-];
+const adminOnlyTables = ['users', 'pending_teachers', 'teachers', 'students', 'class_joining_pending'];
+
+const allTables = [...publicTables, ...adminOnlyTables];
 
 import { executeQueryWithRetry } from '../../lib/db';
 import { authOptions } from "../auth/[...nextauth]/authOptions";
@@ -17,12 +12,14 @@ export async function GET(req) {
     try {
         const tableName = getTableName(req);
         const session = await getServerSession(authOptions);
-
         validateTableName(tableName);
-        await validateAccess(tableName, session);
+        if (session) {
+            await validateAccess(tableName, session);
+            const results = await fetchData(tableName, session?.user);
+            return createResponse(results);
+        }
+        return createResponse({});
 
-        const results = await fetchData(tableName, session?.user);
-        return createResponse(results);
     } catch (error) {
         return handleError(error);
     }
@@ -38,21 +35,27 @@ function validateTableName(tableName) {
         throw new ValidationError('Invalid table name');
     }
 
-    if (!allowedTables.includes(tableName)) {
-        throw new AccessError('Table access not permitted');
+    if (!allTables.includes(tableName)) {
+        throw new AccessError('Table not found');
     }
 }
 
 async function validateAccess(tableName, session) {
     const isPublic = publicTables.includes(tableName);
-    const isAdmin = session?.user?.level === 0;
+    const isAdmin = session?.user?.level === 2;
 
-    if (!isPublic && !session) {
-        throw new AuthError('Unauthorized access');
+    // Public tables: anyone can access
+    if (isPublic) return;
+
+    // Admin-only tables: require authentication and admin level
+    if (adminOnlyTables.includes(tableName)) {
+        if (!session) {
+            throw new AuthError('Authentication required');
+        }
+        if (!isAdmin) {
+            throw new AccessError('Admin access required');
+        }
     }
-
-    // Admin can access everything, others follow normal rules
-    if (isAdmin) return;
 }
 
 async function fetchData(tableName, user) {
@@ -64,11 +67,12 @@ async function fetchData(tableName, user) {
         return executeQuery(`SELECT * FROM ${tableName}`);
     }
 
-    // Non-admin user restrictions
+    // For non-admin users accessing their own data
     if (tableName === 'users' && userId) {
         return executeQuery(`SELECT * FROM ${tableName} WHERE user_id = ?`, [userId]);
     }
 
+    // Default: full table access for public tables
     return executeQuery(`SELECT * FROM ${tableName}`);
 }
 

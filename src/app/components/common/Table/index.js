@@ -38,6 +38,7 @@ const getPlaceholder = (field) => {
 
 export const Table = ({
     data = [],
+    schema = {},
     className = '',
     renderCell,
     fieldMappings = {},
@@ -71,8 +72,9 @@ export const Table = ({
         DISALLOWED_COLUMNS.forEach(col => delete cleanRow[col]);
         return cleanRow;
     });
-
-    const allColumns = cleanedData?.length ? getCols(cleanedData) : [];
+    const cleanedCols = schema.columns.filter(col => !DISALLOWED_COLUMNS.includes(col))
+    // const allColumns = cleanedData?.length ? getCols(cleanedData) : [];
+    const allColumns = cleanedCols;
     const editableFields = getEditableFields(allColumns);
     const editableRequiredFields = requiredFields.filter(field => !isSystemField(field));
     const visibleEditableFields = editableFields.filter(field => !userHiddenColumns.has(field));
@@ -223,6 +225,7 @@ export const Table = ({
                     requiredFields={editableRequiredFields}
                     onSave={handleBulkAdd}
                     onCancel={() => setShowBulkForm(false)}
+                    createFieldRenderer={createFieldRenderer}
                     tableName={tableName}
                     renderFormField={enhancedRenderFormField}
                     dropdownOptions={dropdownOptions}

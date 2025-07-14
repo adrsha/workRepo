@@ -11,7 +11,7 @@ import FullScreenableImage from '../FullScreenableImage.js';
 // Modal component for displaying full text
 const TextModal = ({ isOpen, onClose, title, content }) => {
     if (!isOpen) return null;
-    
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -32,23 +32,23 @@ const TextModal = ({ isOpen, onClose, title, content }) => {
 // Component for truncated text with modal popup
 const TruncatedText = ({ text, maxLength = 50, title }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
+
     if (!text || text.length <= maxLength) {
         return <span>{text || 'Not provided'}</span>;
     }
-    
+
     const truncated = text.substring(0, maxLength) + '...';
-    
+
     return (
         <>
-            <span 
-                className="truncated-text clickable" 
+            <span
+                className="truncated-text clickable"
                 onClick={() => setIsModalOpen(true)}
                 title="Click to view full content"
             >
                 {truncated}
             </span>
-            <TextModal 
+            <TextModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 title={title}
@@ -61,13 +61,13 @@ const TruncatedText = ({ text, maxLength = 50, title }) => {
 // Profile link component
 const ProfileLink = ({ teacherId, isPending = false }) => {
     if (!teacherId) return <span>No ID</span>;
-    
+
     const handleClick = () => {
         window.open(`/profile/${teacherId}`, '_blank');
     };
-    
+
     return (
-        <button 
+        <button
             onClick={handleClick}
             className="profile-link-btn"
             title={`View ${isPending ? 'pending ' : ''}teacher profile`}
@@ -77,9 +77,9 @@ const ProfileLink = ({ teacherId, isPending = false }) => {
     );
 };
 
-const PendingTeachersTable = ({ 
-    pendingTeachers, 
-    actionInProgress, 
+const PendingTeachersTable = ({
+    pendingTeachers,
+    actionInProgress,
     onTeacherAction,
     onSaveData,
     schemas = {}
@@ -99,7 +99,7 @@ const PendingTeachersTable = ({
 
         // Only allow editing of user_name, user_email, and contact
         const editableFields = ['user_name', 'user_email', 'contact'];
-        
+
         if (editableFields.includes(col)) {
             return (
                 <EditableField
@@ -114,8 +114,8 @@ const PendingTeachersTable = ({
         // Special handling for qualification and experience - show truncated with modal
         if (col === 'qualification') {
             return (
-                <TruncatedText 
-                    text={teacher.qualification} 
+                <TruncatedText
+                    text={teacher.qualification}
                     title="Qualification Details"
                 />
             );
@@ -123,20 +123,20 @@ const PendingTeachersTable = ({
 
         if (col === 'experience') {
             return (
-                <TruncatedText 
-                    text={teacher.experience} 
+                <TruncatedText
+                    text={teacher.experience}
                     title="Experience Details"
                 />
             );
         }
-        
+
         // Certificate image
         if (col === 'certificate_path') {
             return (
-                <FullScreenableImage 
-                    src={teacher.certificate_path} 
-                    alt="certificate" 
-                    className="certificate-img" 
+                <FullScreenableImage
+                    src={teacher.certificate_path}
+                    alt="certificate"
+                    className="certificate-img"
                 />
             );
         }
@@ -159,8 +159,8 @@ const PendingTeachersTable = ({
             key: 'profile',
             title: 'Profile',
             render: (teacher) => (
-                <ProfileLink 
-                    teacherId={teacher.user_id || teacher.pending_id} 
+                <ProfileLink
+                    teacherId={teacher.user_id || teacher.pending_id}
                     isPending={true}
                 />
             )
@@ -171,10 +171,11 @@ const PendingTeachersTable = ({
             render: (teacher) => renderActionButtons(teacher, 'teacher')
         }
     ];
-    
+
     return (
         <Table
             data={pendingTeachers}
+            schema={schemas.pending_teachers}
             className="teachers-table"
             keyField="pending_id"
             renderCell={renderPendingCell}
@@ -185,13 +186,34 @@ const PendingTeachersTable = ({
     );
 };
 
-const getTableForColumn = (schemas, column) => {
-    for (const [tableName, schema] of Object.entries(schemas)) {
-        if (schema.columns.includes(column)) {
-            return tableName;
+const getTableForColumn = (data, column) => {
+    // Check in config object
+    if (data.config && data.config.hasOwnProperty(column)) {
+        return 'config';
+    }
+
+    // Check in sections array
+    if (data.sections && data.sections.length > 0) {
+        if (data.sections[0].hasOwnProperty(column)) {
+            return 'sections';
+        }
+        // Check in links within sections
+        if (data.sections[0].links && data.sections[0].links.length > 0) {
+            if (data.sections[0].links[0].hasOwnProperty(column)) {
+                return 'links';
+            }
         }
     }
-    return 'teachers'; 
+
+    // Check in socialLinks array
+    if (data.socialLinks && data.socialLinks.length > 0) {
+        if (data.socialLinks[0].hasOwnProperty(column)) {
+            return 'socialLinks';
+        }
+    }
+
+    // Default fallback
+    return 'teachers';
 };
 
 const createFieldRenderer = (schemas, onSaveData) => {
@@ -203,24 +225,24 @@ const createFieldRenderer = (schemas, onSaveData) => {
     return (teacher, col) => {
         const saveHandler = handleSave(col, teacher.user_id);
         const fieldMap = {
-            certificate_path: () =>(
+            certificate_path: () => (
                 teacher.certificate_path ?
-                <FullScreenableImage 
-                    src={teacher.certificate_path} 
-                    alt="certificate" 
-                    className="certificate-img" 
-                /> : 
-                <EditableField
-                    initialValue={teacher.certificate_path || ''}
-                    onSave={teacher.user_id ? saveHandler : ()=>{}}
-                    placeholder="Enter certificate path"
-                    label={formatColName(col)}
-                />
+                    <FullScreenableImage
+                        src={teacher.certificate_path}
+                        alt="certificate"
+                        className="certificate-img"
+                    /> :
+                    <EditableField
+                        initialValue={teacher.certificate_path || ''}
+                        onSave={teacher.user_id ? saveHandler : () => { }}
+                        placeholder="Enter certificate path"
+                        label={formatColName(col)}
+                    />
             ),
             experience: () => (
                 <EditableField
                     initialValue={teacher.experience || ''}
-                    onSave={teacher.user_id ? saveHandler : ()=>{}}
+                    onSave={teacher.user_id ? saveHandler : () => { }}
                     placeholder="Enter teaching experience"
                     label={formatColName(col)}
                 />
@@ -228,7 +250,7 @@ const createFieldRenderer = (schemas, onSaveData) => {
             qualification: () => (
                 <EditableField
                     initialValue={teacher.qualification || ''}
-                    onSave={teacher.user_id ? saveHandler : ()=>{}}
+                    onSave={teacher.user_id ? saveHandler : () => { }}
                     placeholder="Enter qualifications"
                     label={formatColName(col)}
                 />
@@ -236,7 +258,7 @@ const createFieldRenderer = (schemas, onSaveData) => {
             user_level: () => (
                 <EditableField
                     initialValue={teacher.user_level || ''}
-                    onSave={teacher.user_id ? saveHandler : ()=>{}}
+                    onSave={teacher.user_id ? saveHandler : () => { }}
                     placeholder="Enter user level"
                     label={formatColName(col)}
                 />
@@ -244,7 +266,7 @@ const createFieldRenderer = (schemas, onSaveData) => {
             created_at: () => (
                 <EditableDate
                     initialDate={teacher.created_at.split('T')[0] || ''}
-                    onSave={teacher.user_id ? saveHandler : ()=>{}}
+                    onSave={teacher.user_id ? saveHandler : () => { }}
                     label={formatColName(col)}
                 />
             )
@@ -256,7 +278,7 @@ const createFieldRenderer = (schemas, onSaveData) => {
         return (
             <EditableField
                 initialValue={teacher[col] || ''}
-                onSave={teacher.user_id ? saveHandler : ()=>{}}
+                onSave={teacher.user_id ? saveHandler : () => { }}
                 label={formatColName(col)}
                 placeholder={`Enter ${formatColName(col).toLowerCase()}`}
             />
@@ -279,16 +301,17 @@ const createConfirmHandler = (fn, message) => async (...args) => {
     }
 };
 
-const ApprovedTeachersTable = ({ 
-    teachers, 
-    onSaveData, 
-    onAddTeacher, 
-    onDeleteTeacher, 
+const ApprovedTeachersTable = ({
+    teachers,
+    onSaveData,
+    onAddTeacher,
+    onDeleteTeacher,
     onBulkAddTeachers,
     schemas = {}
 }) => {
     const renderCell = createFieldRenderer(schemas, onSaveData);
-    
+
+    const newSchema = {columns : [...schemas.users.columns, ...schemas.teachers.columns]}
     const handleDelete = createConfirmHandler(
         createAsyncHandler(onDeleteTeacher, 'Error deleting teacher'),
         'Are you sure you want to delete this teacher?'
@@ -301,8 +324,8 @@ const ApprovedTeachersTable = ({
         key: 'profile',
         title: 'Profile',
         render: (teacher) => (
-            <ProfileLink 
-                teacherId={teacher.user_id} 
+            <ProfileLink
+                teacherId={teacher.user_id}
                 isPending={false}
             />
         )
@@ -311,6 +334,7 @@ const ApprovedTeachersTable = ({
     return (
         <Table
             data={teachers}
+            schema={newSchema}
             className="teachers-table"
             keyField="user_id"
             renderCell={renderCell}
@@ -329,10 +353,10 @@ const ApprovedTeachersTable = ({
     );
 };
 
-export const TeachersTab = ({ 
-    state, 
-    actionInProgress, 
-    handleTeacherAction, 
+export const TeachersTab = ({
+    state,
+    actionInProgress,
+    handleTeacherAction,
     handleSaveData,
     handleAddTeacher,
     handleDeleteTeacher,

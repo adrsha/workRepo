@@ -8,8 +8,10 @@ export const BulkAddForm = ({
     onSave, 
     onCancel, 
     tableName,
-    renderFormField,
-    dropdownOptions
+    createFieldRenderer,
+    fieldMappings = {},
+    dependencies = {},
+    dropdownOptions // Keep for backward compatibility
 }) => {
     const [rows, setRows] = useState([createEmptyRow(fields)]);
     const [errors, setErrors] = useState({});
@@ -80,10 +82,8 @@ export const BulkAddForm = ({
                 throw new Error(result.error || 'Upload failed');
             }
 
-            // Update the row with the file path
             updateRowField(rowIndex, field, result.filePath || result.path);
             
-            // Store uploaded file info
             setUploadedFiles(prev => ({ 
                 ...prev, 
                 [uploadKey]: { 
@@ -102,69 +102,42 @@ export const BulkAddForm = ({
         }
     };
 
-    const renderFileField = (rowIndex, field, value) => {
-        const uploadKey = `${rowIndex}-${field}`;
-        const isUploading = uploading[uploadKey];
-        const uploadedFile = uploadedFiles[uploadKey];
-        const error = errors[uploadKey];
-
-        return (
-            <div className="file-upload-field">
+    const createRowFieldRenderer = (rowIndex) => {
+        if (!createFieldRenderer) {
+            // Fallback to simple rendering
+            return (field, value, onChange) => (
                 <input
-                    type="file"
-                    accept={field === 'video_path' ? 'video/*' : '.pdf,.jpg,.jpeg,.png'}
-                    onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            handleFileUpload(rowIndex, field, file);
-                        }
-                    }}
-                    disabled={isUploading}
-                    className="file-input"
+                    type="text"
+                    value={value || ''}
+                    onChange={(e) => onChange(field, e.target.value)}
+                    className="form-input"
                 />
-                
-                {isUploading && (
-                    <div className="upload-status uploading">
-                        <span>Uploading...</span>
-                    </div>
-                )}
-                
-                {uploadedFile && (
-                    <div className="upload-status success">
-                        <span>✓ {uploadedFile.name}</span>
-                    </div>
-                )}
-                
-                {error && (
-                    <div className="upload-status error">
-                        <span>✗ {error}</span>
-                    </div>
-                )}
-            </div>
-        );
-    };
+            );
+        }
 
-    const customRenderFormField = (rowIndex, field, value, onChange) => {
-        // Handle file upload fields for teachers
-        if (field === 'video_path' || field === 'certificate_path') {
-            return renderFileField(rowIndex, field, value);
-        }
+        // Create a mock item for this row with form mode enabled
+        const mockItem = { ...rows[rowIndex], isFormMode: true };
         
-        // Use the provided renderFormField function for other fields
-        if (renderFormField) {
-            return renderFormField(field, value, onChange, dropdownOptions[field]);
-        }
+        // Create handlers for this specific row
+        const mockHandlers = {
+            onSaveData: () => {},
+            onMultiSaveData: () => {},
+            onChange: (field, value) => updateRowField(rowIndex, field, value)
+        };
+
+        // Get the field renderer function
+        const fieldRenderer = createFieldRenderer(fieldMappings, dependencies, mockHandlers);
         
-        // Default input rendering
-        return (
-            <input
-                type={field.includes('email') ? 'email' : 
-                      field.includes('date') ? 'date' : 'text'}
-                value={value || ''}
-                onChange={(e) => onChange(e.target.value)}
-                className="form-input"
-            />
-        );
+        // Return a function that renders fields for this row
+        return (field, value, onChange) => {
+            const errorKey = `${rowIndex}-${field}`;
+            const options = { 
+                error: errors[errorKey],
+                className: errors[errorKey] ? 'error' : ''
+            };
+            
+            return fieldRenderer(mockItem, field, onChange, options);
+        };
     };
 
     const validateRows = () => {
@@ -188,7 +161,6 @@ export const BulkAddForm = ({
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Check if any uploads are in progress
         const hasUploading = Object.values(uploading).some(status => status);
         if (hasUploading) {
             alert('Please wait for all file uploads to complete');
@@ -200,6 +172,7 @@ export const BulkAddForm = ({
                 Object.values(row).some(value => value?.toString().trim())
             );
             if (validRows.length > 0) {
+                console.log("BULK", validRows);
                 onSave(validRows);
             }
         }
@@ -231,9 +204,7 @@ export const BulkAddForm = ({
                                     onRemoveRow={removeRow}
                                     canRemove={rows.length > 1}
                                     errors={errors}
-                                    renderFormField={(field, value, onChange) => 
-                                        customRenderFormField(rowIndex, field, value, onChange)
-                                    }
+                                    renderFormField={createRowFieldRenderer(rowIndex)}
                                     dropdownOptions={dropdownOptions}
                                 />
                             ))}

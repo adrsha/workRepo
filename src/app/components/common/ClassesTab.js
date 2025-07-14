@@ -57,7 +57,6 @@ const ApprovedClassesTable = ({
     schemas = {}
 }) => {
     const enrichedClasses = enrichClassesWithUserData(classes, classesUsersData, usersData);
-
     const dependencies = { teachersData, courseData, gradesData, schemas };
     const handlers = { onSaveData, onMultiSaveData };
     const renderCell = createFieldRenderer(classesFieldMappings, dependencies, handlers);
@@ -85,6 +84,7 @@ const ApprovedClassesTable = ({
     return (
         <Table
             data={enrichedClasses}
+            schema={schemas.classes}
             renderCell={renderCell}
             fieldMappings={classesFieldMappings}
             dependencies={dependencies}

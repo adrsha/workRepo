@@ -1,4 +1,13 @@
-/* ========= Features Section ========= */
+.container{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--foreground);
+}
+
+
 .features {
     display: flex;
     flex-wrap: wrap;
@@ -35,8 +44,12 @@
 }
 
 .featureSide {
+    display: flex;
+    flex-direction: column;
     background: var(--background);
     width: calc(100%/2 - 0.5rem) ;
+    align-items: center;
+    justify-content: center;
     padding: 1rem;
     text-align: center;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -429,6 +442,16 @@
 }
 
 /* ========= CTA Button ========= */
+.ctaSection{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ctaSection p{
+    font-family: var(--font-serif);
+}
+
 .ctaButton {
     margin-top: 1rem;
     padding: 0.8rem 1.6rem;

@@ -28,7 +28,6 @@ export default function Footer() {
                 if (response.ok) {
                     data = await response.json();
                 }
-                console.log("Data", data)
                 setFooterData(data);
             } catch (err) {
                 setError(err.message);

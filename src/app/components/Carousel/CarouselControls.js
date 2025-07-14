@@ -1,3 +1,4 @@
+'use carousel';
 import styles from '../../../styles/Carousel.module.css';
 
 const CarouselControls = ({ 

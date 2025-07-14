@@ -65,7 +65,7 @@ const NoticesSection = ({ notices, isAdmin, noticeHandlers }) => {
     
     return (
         <NoticeList
-            notices={notices}
+            notices={notices || []}
             isAdmin={isAdmin}
             onDelete={noticeHandlers.handleDeleteNotice}
         />
