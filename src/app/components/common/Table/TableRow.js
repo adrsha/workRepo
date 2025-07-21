@@ -30,7 +30,7 @@ const PreviewModal = ({ previewData, onClose }) => {
     if (fieldName === 'video_path') {
         const teacherId = item.user_id || item.teacher_id || item.id;
         previewContent = <TeacherVideoPlayer teacherId={teacherId} />;
-    } else if (fieldName === 'certificate_path') {
+    } else if (fieldName === 'certificate_path' || fieldName === 'cv_path') {
         previewContent = <FileViewer filePath={item[fieldName]} allowFileChange={isAdmin} />;
     } else {
         previewContent = <div>Preview not available for this file type</div>;
@@ -89,7 +89,7 @@ export const TableRow = ({
             const customContent = renderCell(item, col, index, allColumns);
 
             // If it's a preview field with value, show preview button
-            if ((col === 'video_path' || col === 'certificate_path') && value && value.toString().trim() !== '') {
+            if ((col === 'video_path' || col === 'certificate_path' || col === 'cv_path') && value && value.toString().trim() !== '') {
                 return <PreviewButton onClick={() => handlePreview(col)} />;
             }
 
@@ -97,7 +97,7 @@ export const TableRow = ({
         }
 
         // Default handling for preview fields
-        if ((col === 'video_path' || col === 'certificate_path') && value && value.toString().trim() !== '') {
+        if ((col === 'video_path' || col === 'certificate_path' || col === 'cv_path') && value && value.toString().trim() !== '') {
             return <PreviewButton onClick={() => handlePreview(col)} />;
         }
 

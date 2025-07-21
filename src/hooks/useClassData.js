@@ -41,7 +41,6 @@ export const useClassData = (classId, session) => {
             try {
                 const teacherData = await fetchViewData('teachers_view');
                 const matchedTeacher = teacherData?.find(t => t.user_id === teacherId);
-                console.log("MM", teacherId, teacherData);
                 if (matchedTeacher) setTeacher(matchedTeacher);
             } catch (err) {
                 console.error('Error fetching teacher data:', err);

@@ -56,12 +56,14 @@
     --tertiaryLighter: #c7edf0;
     --quaternaryLighter: #c3f3e2;
     /* Functional Colors */
+    --backgroundBlue: rgba(025, 125, 255, 0.1);
     --backgroundGreen: rgba(0, 184, 125, 0.1);
     --lightGreen: #00b87d;
     --lightRed: #ff5a73;
     --lightBlue: #3db0b7;
 
     --darkGreen: #00685d;
+    --darkBlue: #205d88;
     --darkRed: #a53844;
 
     --white: #ffffff;

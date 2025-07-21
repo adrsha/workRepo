@@ -18,7 +18,7 @@ export const MeetingButton = ({ onJoinMeeting, hasMeetingLink, classJoinable, re
 
     return (
         <button
-            className={`${styles.joinButton} ${styles.meetingButton}`}
+            className={`${styles.meetingButton}`}
             onClick={onJoinMeeting}
             disabled={isDisabled}
             title={tooltipText}

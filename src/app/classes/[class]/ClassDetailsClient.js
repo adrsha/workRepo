@@ -1,3 +1,4 @@
+// ClassDetailsClient.jsx
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,15 +13,116 @@ import { MeetingUrlEditor } from '../../components/MeetingUrlEditor';
 import { MeetingButton } from '../../components/MeetingButton';
 import { StudentsList } from '../../components/StudentsList';
 import { ClassInfo } from '../../components/ClassInfo';
-import { isClassJoinable, isClassInPast, isValidClassDay, canTeacherGenerateLink } from '../../../utils/dateTime';
 import { updateMeetingUrl, regenerateMeetingLink } from '../../../utils/classActions';
+import {
+    isClassCurrentlyJoinable,
+    isClassAvailableToday,
+    parseRepeatPattern
+} from '../../../utils/classStatus';
+
+/**
+ * Handle meeting join with validation
+ */
+const handleMeetingJoin = (classDetails, repeatPattern, showToast) => {
+    if (!classDetails?.meeting_url) {
+        showToast('No meeting link available');
+        return;
+    }
+
+    const isValidDay = isClassAvailableToday(classDetails.start_time, classDetails.end_time, repeatPattern);
+    const isJoinable = isClassCurrentlyJoinable(classDetails.start_time, classDetails.end_time, repeatPattern);
+
+    if (!isValidDay) {
+        const pattern = parseRepeatPattern(repeatPattern);
+        if (pattern) {
+            let message = 'Class is not available today. ';
+            switch (pattern.type) {
+                case 'weekdays':
+                    message += 'This class is only available on weekdays.';
+                    break;
+                case 'custom':
+                    message += 'This class has a custom schedule.';
+                    break;
+                default:
+                    message += 'Please check the class schedule.';
+            }
+            showToast(message);
+        } else {
+            showToast('Class is not available today');
+        }
+        return;
+    }
+
+    if (!isJoinable) {
+        showToast('Class is not currently active');
+        return;
+    }
+
+    window.open(classDetails.meeting_url, '_blank');
+};
+
+/**
+ * Handle meeting URL manual update (when teacher enters URL manually)
+ */
+const handleUrlUpdate = async (session, isClassOwner, classId, newUrl, setClassDetails, showToast, setIsUpdating) => {
+    setIsUpdating(true);
+    try {
+        await updateMeetingUrl(session, isClassOwner, true, classId, newUrl);
+        setClassDetails(prev => ({ ...prev, meeting_url: newUrl }));
+        showToast('Meeting URL updated successfully', 'success');
+    } catch (err) {
+        console.error('Error updating meeting URL:', err);
+        showToast(err.message || 'Failed to update meeting URL. Please try again.');
+    } finally {
+        setIsUpdating(false);
+    }
+};
+
+/**
+ * Generate new meeting link (returns promise with new URL)
+ */
+const generateNewMeetingLink = async (session, isClassOwner, classId, classDetails, showToast) => {
+    try {
+        const data = await regenerateMeetingLink(session, isClassOwner, true, classId, classDetails, false);
+        return data.meetingUrl;
+    } catch (err) {
+        console.error('Error generating meeting link:', err);
+        showToast(err.message || 'Failed to generate meeting link. Please try again.');
+        throw err;
+    }
+};
+
+/**
+ * Update database after meeting regeneration (this is already handled by the API)
+ */
+const updateDatabaseAfterRegeneration = async (newUrl, setClassDetails, showToast, session, classId) => {
+    try {
+        // Now we need to actually update the database
+        await updateMeetingUrl(session, true, true, classId, newUrl);
+
+        // Update local state
+        setClassDetails(prev => ({ ...prev, meeting_url: newUrl }));
+        showToast('Meeting link saved successfully!', 'success');
+    } catch (err) {
+        console.error('Error updating database:', err);
+        showToast('Failed to save meeting link. Please try again.');
+        throw err;
+    }
+};
+
+/**
+ * Show teacher reminder notification
+ */
+const showTeacherReminder = (showToast) => {
+    showToast('Remember: Make sure you really are the first to join the class!', 'info');
+};
 
 export default function ClassDetailsClient({ classId, session }) {
     const router = useRouter();
-
     const { classDetails, setClassDetails, teacher, loading, error } = useClassData(classId, session);
     const isClassOwner = session?.user?.id === classDetails?.teacher_id;
     const { students } = useStudents(classId, session, isClassOwner);
+    console.log(students);
 
     const [isUpdatingUrl, setIsUpdatingUrl] = useState(false);
     const [isRegenerating, setIsRegenerating] = useState(false);
@@ -30,7 +132,7 @@ export default function ClassDetailsClient({ classId, session }) {
     const showToast = (message, type = 'error') => {
         setToastMessage(message);
         setToastType(type);
-        setTimeout(() => setToastMessage(null), 3000);
+        setTimeout(() => setToastMessage(null), type === 'info' ? 5000 : 3000);
     };
 
     if (loading) return <Loading />;
@@ -49,58 +151,42 @@ export default function ClassDetailsClient({ classId, session }) {
         );
     }
 
-    const repeatNDays = classDetails?.repeat_every_n_day;
-    const classJoinable = classDetails ? isClassJoinable(classDetails.start_time, classDetails.end_time, repeatNDays) : false;
-    const isValidDay = classDetails ? isValidClassDay(classDetails.start_time, repeatNDays) : false;
+    const repeatPattern = classDetails?.repeat_every_n_day;
+    const classJoinable = classDetails ? isClassCurrentlyJoinable(classDetails.start_time, classDetails.end_time, repeatPattern) : false;
+    const isValidDay = classDetails ? isClassAvailableToday(classDetails.start_time, classDetails.end_time, repeatPattern) : false;
     const hasMeetingLink = classDetails?.meeting_url && classDetails.meeting_url !== '';
-    const canEditMeetingUrl = isClassOwner && canTeacherGenerateLink(classDetails?.start_time, classDetails?.end_time, repeatNDays);
-    const canGenerateLink = isClassOwner && canTeacherGenerateLink(classDetails?.start_time, classDetails?.end_time, repeatNDays);
 
-    const handleUpdateMeetingUrl = async (newUrl) => {
-        setIsUpdatingUrl(true);
-        try {
-            await updateMeetingUrl(session, isClassOwner, canEditMeetingUrl, classId, newUrl);
-            setClassDetails(prev => ({ ...prev, meeting_url: newUrl }));
-            showToast('Meeting URL updated successfully', 'success');
-        } catch (err) {
-            console.error('Error updating meeting URL:', err);
-            showToast(err.message || 'Failed to update meeting URL. Please try again.');
-        } finally {
-            setIsUpdatingUrl(false);
-        }
-    };
+    const joinMeeting = () => handleMeetingJoin(classDetails, repeatPattern, showToast);
 
+    const handleUpdateMeetingUrl = (newUrl) =>
+        handleUrlUpdate(session, isClassOwner, classId, newUrl, setClassDetails, showToast, setIsUpdatingUrl);
+
+    /**
+     * Enhanced regenerate function that works with the new MeetingUrlEditor
+     */
     const handleRegenerateMeetingLink = async () => {
         setIsRegenerating(true);
         try {
-            const data = await regenerateMeetingLink(session, isClassOwner, canGenerateLink, classId, classDetails);
-            setClassDetails(prev => ({ ...prev, meeting_url: data.meetingUrl }));
-            showToast('Meeting link regenerated successfully', 'success');
+            // This returns a promise with the new URL
+            const newUrl = await generateNewMeetingLink(session, isClassOwner, classId, classDetails, showToast);
+            return newUrl;
         } catch (err) {
-            console.error('Error regenerating meeting link:', err);
-            showToast(err.message || 'Failed to regenerate meeting link. Please try again.');
+            throw err; // Re-throw to let MeetingUrlEditor handle the error
         } finally {
             setIsRegenerating(false);
         }
     };
 
-    const joinMeeting = () => {
-        if (!classDetails?.meeting_url) {
-            showToast('No meeting link available');
-            return;
-        }
+    /**
+     * Database update handler (called after successful regeneration)
+     */
+    const handleDatabaseUpdate = async (newUrl) => {
+        await updateDatabaseAfterRegeneration(newUrl, setClassDetails, showToast, session, classId); 
 
-        if (repeatNDays && !isValidDay) {
-            showToast(`This class occurs every ${repeatNDays} days. Not available today.`);
-            return;
-        }
-
-        if (!classJoinable) {
-            showToast('Class is not currently active');
-            return;
-        }
-
-        window.open(classDetails.meeting_url, '_blank');
+        // Show reminder after a short delay
+        setTimeout(() => {
+            showTeacherReminder(showToast);
+        }, 1000);
     };
 
     return (
@@ -116,7 +202,7 @@ export default function ClassDetailsClient({ classId, session }) {
                             onJoinMeeting={joinMeeting}
                             hasMeetingLink={hasMeetingLink}
                             classJoinable={classJoinable}
-                            repeatNDays={repeatNDays}
+                            repeatPattern={repeatPattern}
                             isValidDay={isValidDay}
                         />
                     </div>
@@ -128,17 +214,21 @@ export default function ClassDetailsClient({ classId, session }) {
                     />
 
                     {isClassOwner && (
-                        <div className={styles.infoRow}>
-                            <span className={styles.infoLabel}>Meeting URL</span>
-                            <MeetingUrlEditor
-                                meetingUrl={classDetails.meeting_url}
-                                onUpdate={handleUpdateMeetingUrl}
-                                onRegenerate={handleRegenerateMeetingLink}
-                                isUpdating={isUpdatingUrl}
-                                isRegenerating={isRegenerating}
-                                canEdit={canEditMeetingUrl}
-                                canGenerate={canGenerateLink}
-                            />
+                        <div className={styles.infoSection}>
+                            <div className={styles.infoRow}>
+                                <span className={styles.infoLabel}>Meeting URL</span>
+                                <MeetingUrlEditor
+                                    meetingUrl={classDetails.meeting_url}
+                                    onUpdate={handleUpdateMeetingUrl}
+                                    onRegenerate={handleRegenerateMeetingLink}
+                                    onDatabaseUpdate={handleDatabaseUpdate}
+                                    isUpdating={isUpdatingUrl}
+                                    isRegenerating={isRegenerating}
+                                    classDetails={classDetails}
+                                    isTeacher={isClassOwner}
+                                    useCustomModal={true}
+                                />
+                            </div>
                         </div>
                     )}
 

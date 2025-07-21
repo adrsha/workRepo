@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../api/auth/[...nextauth]/authOptions'; // Adjust path as needed
-import ProfileClient from './ProfileClient';
+import { SettingsClient } from './SettingsClient';
 import { redirect } from 'next/navigation';
 
 export default async function Profile() {
@@ -10,5 +10,5 @@ export default async function Profile() {
         redirect('/registration/login');
     }
 
-    return <ProfileClient session={session} />;
+    return <SettingsClient session={session} />;
 }

@@ -346,7 +346,7 @@ const LoadingDisplay = () => {
 const EmptyState = ({ search }) => {
     return (
         <div className={styles.empty}>
-            📹 {search ? 'No matching teachers' : 'No teachers found'}
+            {search ? 'No matching teacher videos' : 'No teacher videos found'}
         </div>
     );
 };

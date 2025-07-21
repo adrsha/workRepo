@@ -1,339 +1,445 @@
-.container {
-  height: calc(100vh - var(--navheight));
-  background-color: var(--background);
-  display: flex;
-}
-
-.profile {
-  padding: 1rem;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: var(--foreground);
-}
-.profile h1 {
-  font-family: var(--font-serif);
-}
-
-.profile img {
-  border-radius: 50%;
-  border: 2px solid var(--foreground);
-}
-
-.editProfileMenu {
-  /* position: fixed; */
-  /* top: 50%; */
-  /* left: 50%; */
-  /* transform: translate(-50%, -50%); */
-  padding: 2rem;
-  background-color: var(--background);
-  box-shadow: 0px 0px 5rem 0px rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-  gap: 1rem;
-}
-
-.editProfileMenu button {
-  cursor: pointer;
-  background-color: var(--lightRed);
-  color: var(--foreground);
-}
-.container button {
-  cursor: pointer;
-}
-
-.profile *[contenteditable="true"] {
-  background-color: var(--primary);
-  border-radius: 0.5rem;
-}
-.profile *[contenteditable="true"]:focus {
-  outline: none;
-}
-
-.editProfileMenu .cancelButton {
-  cursor: pointer;
-  background-color: var(--background);
-}
-
-/* Profile.module.css */
 .profileContainer {
-  max-width: 800px;
-  margin: 2rem auto;
-  background-color: var(--background);
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: var(--background);
 }
 
 .profileHeader {
-  display: flex;
-  align-items: center;
-  padding: 2rem;
-  background: var(--secondaryBackground);
-  color: var(--white);
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    align-items: center;
+    gap: 2rem;
 }
 
 .profileAvatar {
-  width: 100px;
-  height: 100px;
-  background-color: var(--white);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 3rem;
-  font-weight: bold;
-  color: var(--primary);
-  margin-right: 2rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    width: 120px;
+    height: 120px;
+    background: var(--tertiary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
 }
 
 .profileTitle {
-  flex: 1;
+    flex: 1;
+    min-width: 0;
 }
 
 .profileName {
-  margin: 0;
-  font-size: 2.5rem;
-  font-family: var(--font-serif);
+    margin: 0 0 0.5rem 0;
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--darkforeground);
+    font-family: var(--font-sans);
 }
 
 .profileBadge {
-  display: inline-block;
-  background-color: rgba(255, 255, 255, 0.3);
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    background: var(--gray);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .profileContent {
-  padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
 }
 
 .profileSection {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--secondaryBackground);
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition-normal);
+    height: fit-content;
 }
 
-.profileSection:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
+.profileSection:hover {
+    box-shadow: var(--hover-shadow);
+    transform: translateY(-1px);
 }
 
 .profileSection h2 {
-  color: var(--foreground);
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  font-family: var(--font-serif);
+    color: var(--darkforeground);
+    font-size: 1.25rem;
+    margin: 0 0 1.5rem 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 2px solid var(--background);
+    padding-bottom: 0.75rem;
+}
+
+.profileSection h2::before {
+    content: '';
+    width: 4px;
+    height: 1.5rem;
+    background: var(--tertiary);
+    border-radius: 2px;
 }
 
 .profileInfoItem {
-  display: flex;
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  background-color: var(--white);
-  border-radius: 6px;
-  transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--background);
+    transition: var(--transition-fast);
+}
+
+.profileInfoItem:last-child {
+    border-bottom: none;
 }
 
 .profileInfoItem:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: var(--offWhite);
+    margin: 0 -1rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius-sm);
+    border-bottom: 1px solid transparent;
 }
 
 .infoLabel {
-  flex: 0 0 120px;
-  font-weight: bold;
-  color: var(--foreground);
+    flex: 0 0 140px;
+    font-weight: 600;
+    color: var(--foreground);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .infoValue {
-  flex: 1;
-  color: var(--darkforeground);
+    flex: 1;
+    color: var(--darkforeground);
+    font-weight: 500;
 }
 
-.profileLoading,
-.profileError {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 300px;
-  background-color: var(--background);
-  border-radius: 10px;
-  padding: 2rem;
-  margin: 2rem auto;
-  max-width: 800px;
-  text-align: center;
-}
-
-.loadingSpinner {
-  color: var(--primary);
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-
-.profileError h2 {
-  color: var(--darkRed);
-  margin-bottom: 1rem;
-}
-
-.profileError p {
-  color: var(--foreground);
-}
-
-/* Teacher Classes Styles */
-.teacherClassesList {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+/* Teacher Classes - Full Width Section */
+.teacherClassesSection {
+    grid-column: 1 / -1;
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
     margin-top: 1rem;
 }
 
-.classCard {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 1.5rem;
-    transition: box-shadow 0.2s ease;
+.teacherClassesSection h2 {
+    color: var(--darkforeground);
+    font-size: 1.5rem;
+    margin: 0 0 2rem 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
-.classCard:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.teacherClassesSection h2::before {
+    content: '';
+    width: 5px;
+    height: 2rem;
+    background: var(--tertiary);
+    border-radius: 2px;
+}
+
+.teacherClassesList {
+    display: grid;
+    padding: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+
+.classCard {
+    /* background: var(--offWhite); */
+    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem;
+    transition: var(--transition-normal);
+    position: relative;
+    overflow: hidden;
 }
 
 .classHeader {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 1rem;
+    gap: 1rem;
 }
 
 .courseName {
     margin: 0;
-    color: #333;
-    font-size: 1.2rem;
-    font-weight: 600;
+    color: var(--darkforeground);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.2;
 }
 
 .gradeBadge {
-    background: #007bff;
+    background: var(--darkGray);
     color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
 .classDescription {
-    color: #666;
-    margin-bottom: 1rem;
-    line-height: 1.5;
+    color: var(--foreground);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+    font-style: italic;
 }
 
 .classDetails {
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
-    align-items: start;
 }
 
 .classTime {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.1);
+    background: white;
+    padding: 1rem;
+    border-radius: var(--border-radius-sm);
+    border-left: 4px solid var(--tertiary);
 }
 
 .classTime strong {
-    color: #333;
+    color: var(--darkforeground);
+    display: block;
     margin-bottom: 0.5rem;
+    font-weight: 600;
 }
 
 .classTime div {
-    font-size: 0.9rem;
-    color: #666;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    margin-bottom: 0.25rem;
+}
+
+.classTime div:last-child {
+    margin-bottom: 0;
 }
 
 .classCost {
-    text-align: right;
-}
-
-.classCost strong {
-    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--lightBlue);
+    color: white;
+    padding: 1rem;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
 }
 
 .meetingUrl {
-    grid-column: 1 / -1;
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #e9ecef;
+    background: white;
+    padding: 1rem;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid var(--tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .meetingLink {
-    color: #007bff;
+    background: var(--quaternary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
     text-decoration: none;
-    font-weight: 500;
-    margin-left: 0.5rem;
+    font-weight: 600;
+    transition: var(--transition-fast);
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
 }
 
 .meetingLink:hover {
-    text-decoration: underline;
+    background: var(--darkGray);
+    transform: translateY(-1px);
+}
+
+.restrictedAccess {
+    background: var(--background);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-sm);
+    border: 2px dashed var(--gray);
+    text-align: center;
+}
+
+.restrictedMessage {
+    color: var(--foreground);
+    margin-bottom: 1rem;
+    font-style: italic;
 }
 
 .noClasses {
-    color: #666;
+    grid-column: 1 / -1;
+    color: var(--foreground);
     font-style: italic;
     text-align: center;
+    padding: 3rem;
+    background: var(--background);
+    border-radius: var(--border-radius-md);
+    border: 2px dashed var(--gray);
+}
+
+.profileLoading,
+.profileError {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    background: white;
+    border-radius: var(--border-radius-lg);
     padding: 2rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    margin-top: 1rem;
+    margin: 2rem auto;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: var(--card-shadow);
 }
 
 .loadingSpinner {
-    text-align: center;
-    padding: 2rem;
-    color: #666;
+    color: var(--tertiary);
+    font-weight: 600;
+    font-size: 1.125rem;
+    position: relative;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .classDetails {
+.loadingSpinner::after {
+    content: '';
+    position: absolute;
+    top: -2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid var(--background);
+    border-top: 3px solid var(--tertiary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: translateX(-50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translateX(-50%) rotate(360deg);
+    }
+}
+
+.profileError h2 {
+    color: var(--darkGray);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.profileError p {
+    color: var(--foreground);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .teacherClassesList {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .profileContainer {
+        padding: 1rem;
+    }
+
+    .profileContent {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .profileHeader {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .profileAvatar {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+    }
+
+    .profileName {
+        font-size: 2rem;
+    }
+
+    .infoLabel {
+        flex: 0 0 120px;
+        font-size: 0.8rem;
+    }
+
+    .classDetails {
         gap: 0.75rem;
     }
-    
-    .classCost {
-        text-align: left;
-    }
-    
+
     .classHeader {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
     }
+
+    .meetingUrl {
+        flex-direction: column;
+        gap: 0.75rem;
+        text-align: center;
+    }
 }
 
-/* Responsive adjustments */
-@media (max-width: 600px) {
-  .profileHeader {
-    flex-direction: column;
-    text-align: center;
-  }
+@media (max-width: 480px) {
+    .profileContainer {
+        padding: 0.5rem;
+    }
 
-  .profileAvatar {
-    margin-right: 0;
-    margin-bottom: 1rem;
-  }
+    .profileSection {
+        padding: 1.5rem;
+    }
 
-  .infoLabel {
-    flex: 0 0 100px;
-  }
+    .teacherClassesSection {
+        padding: 1.5rem;
+    }
+
+    .classCard {
+        padding: 1rem;
+    }
+
+    .profileInfoItem:hover {
+        margin: 0 -0.5rem;
+        padding: 0.75rem 0.5rem;
+    }
 }

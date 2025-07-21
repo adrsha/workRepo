@@ -2,536 +2,178 @@
 import { useEffect, useState } from 'react';
 import styles from '../../styles/Lmshome.module.css';
 import Loading from '../components/Loading.js';
-import Input from '../components/Input.js';
-import AdminControl from '../components/AdminControl.js';
-
 import '../global.css';
 
-import { fetchJoinableData, fetchViewData, fetchData, getDate } from '../lib/helpers.js';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
-async function removeClass(classId) {
-    try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/removeteachersCourses', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ classId: classId }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to remove class');
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error removing class:', error);
-        throw error;
-    }
-}
-
-async function addClass(courseId, startTime, endTime, repeatEveryNDay, classDescription, grade) {
-    try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/addteachersCourses', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-                courseId,
-                gradeId: grade,
-                startTime,
-                endTime,
-                repeatEveryNDay,
-                classDescription,
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to add class');
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error adding class:', error);
-        throw error;
-    }
-}
-
-async function updateTeacherProfile(teacherId, profileData) {
-    try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/updateTeacherProfile', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-                teacherId,
-                ...profileData
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to update teacher profile');
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error updating teacher profile:', error);
-        throw error;
-    }
-}
+import StudentDashboard from './StudentDashboard';
+import TeacherDashboard from './TeacherDashboard';
+import AdminDashboard from './AdminDashboard';
+import { fetchJoinableData, fetchViewData, fetchData } from '../lib/helpers.js';
 
 export default function LMSHomeClient({ initialData }) {
     const { data: session, status, update } = useSession();
     const router = useRouter();
+    const [userData, setUserData] = useState({
+        classesData: initialData.classesData,
+        courseData: initialData.courseData,
+        gradeData: initialData.gradeData,
+        pendingTeachersData: initialData.pendingTeachersData,
+        teacherProfile: initialData.teacherProfile,
+    });
     
-    const [classesData, setClassesData] = useState(initialData.classesData);
-    const [courseData, setCourseData] = useState(initialData.courseData);
-    const [gradeData, setGradeData] = useState(initialData.gradeData);
-    const [pendingTeachersData, setPendingTeachersData] = useState(initialData.pendingTeachersData);
-    const [teacherProfile, setTeacherProfile] = useState(initialData.teacherProfile);
-    
-    const [addClassOverLayState, setAddClassOverlayState] = useState(false);
-    const [editProfileOverlayState, setEditProfileOverlayState] = useState(false);
-    const [addClassError, setAddClassError] = useState('');
-    const [editProfileError, setEditProfileError] = useState('');
-    const [showClassDeleters, setShowClassDeleters] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Only fetch data if not already available from server
     useEffect(() => {
         if (!session || initialData.classesData) return;
         
-        const token = session?.accessToken || localStorage.getItem('authToken');
-
         const fetchUserData = async () => {
+            const token = session?.accessToken || localStorage.getItem('authToken');
+            setIsLoading(true);
+            
             try {
                 if (session.user.level === 0) {
-                    const viewData = await fetchViewData('classes_view');
-                    const classUsersData = await fetchData('classes_users', token);
-
-                    const courseArray = [];
-                    for (let i = 0; i < classUsersData.length; i++) {
-                        if (classUsersData[i].user_id === session.user.id) {
-                            for (let j = 0; j < viewData.length; j++) {
-                                if (viewData[j].class_id === classUsersData[i].class_id) {
-                                    courseArray.push(viewData[j]);
-                                }
-                            }
-                        }
-                    }
-                    setClassesData(courseArray);
+                    await initializeStudentData(token);
                 } else if (session.user.level === 1) {
-                    const data = await fetchJoinableData(
-                        ['classes', 'courses', 'grades'],
-                        ['classes.course_id = courses.course_id', 'classes.grade_id = grades.grade_id'],
-                        '*',
-                        { 'classes.teacher_id': session.user.id }
-                    );
-                    setClassesData(data);
-
-                    const coursesData = await fetchData('courses', token);
-                    setCourseData(coursesData);
-
-                    const gradesData = await fetchData('grades', token);
-                    setGradeData(gradesData);
-
-                    const response = await fetchViewData('teachers_view', token);
-                    if (response.ok) {
-                        const profileData = await response.json();
-                        setTeacherProfile(profileData);
-                    }
+                    await initializeTeacherData(token);
                 } else if (session.user.level === 2) {
-                    const response = await fetchData('pending_teachers', token);
-                    setPendingTeachersData(response);
+                    await initializeAdminData(token);
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
         fetchUserData();
     }, [session, initialData.classesData]);
 
-    const handleAddClass = async (e) => {
-        setAddClassError('');
-        e.preventDefault();
+    const initializeStudentData = async (token) => {
+        const viewData = await fetchViewData('classes_view');
+        const classUsersData = await fetchData('classes_users', token);
 
-        const formData = new FormData(e.currentTarget);
-        const startTime = formData.get('startTime');
-        const startDate = formData.get('startDate');
-        const endTime = formData.get('endTime');
-        const endDate = formData.get('endDate');
-        const classDescription = formData.get('classDescription');
-        const repeatEveryNDay = formData.get('repeatEveryNDay');
-        const grade = parseInt(formData.get('grade'));
-        const courseId = parseInt(formData.get('course'));
-
-        if (!startTime || !endTime || !startDate || !endDate || !courseId || !grade || !repeatEveryNDay) {
-            setAddClassError('Please fill in all required fields');
-            return;
-        }
-
-        const start = startDate + 'T' + startTime;
-        const end = endDate + 'T' + endTime;
-        
-        try {
-            await addClass(courseId, start, end, repeatEveryNDay, classDescription, grade);
-            setAddClassError('Successfully added class');
-            await update();
-            setTimeout(() => {
-                setAddClassOverlayState(false);
-            }, 1500);
-        } catch (error) {
-            setAddClassError(`Failed to add class: ${error.message}`);
-        }
-    };
-
-    const handleEditProfile = async (e) => {
-        setEditProfileError('');
-        e.preventDefault();
-
-        const formData = new FormData(e.currentTarget);
-        const name = formData.get('name');
-        const email = formData.get('email');
-        const bio = formData.get('bio');
-        const qualifications = formData.get('qualifications');
-        const contactHours = formData.get('contactHours');
-
-        if (!name || !email) {
-            setEditProfileError('Name and email are required');
-            return;
-        }
-
-        try {
-            await updateTeacherProfile(session.user.id, {
-                name,
-                email,
-                bio,
-                qualifications,
-                contactHours
-            });
-
-            setTeacherProfile({
-                ...teacherProfile,
-                name,
-                email,
-                bio,
-                qualifications,
-                contactHours
-            });
-
-            setEditProfileError('Profile updated successfully');
-
-            setTimeout(() => {
-                setEditProfileOverlayState(false);
-            }, 1500);
-        } catch (error) {
-            setEditProfileError(`Failed to update profile: ${error.message}`);
-        }
-    };
-
-    const handleRemoveClass = async (classId) => {
-        try {
-            await removeClass(classId);
-            await update();
-
-            if (session && session.user.level === 1) {
-                const data = await fetchJoinableData(
-                    ['classes', 'courses', 'grades'],
-                    ['classes.course_id = courses.course_id', 'classes.grade_id = grades.grade_id'],
-                    '*',
-                    { 'classes.teacher_id': session.user.id }
-                );
-                setClassesData(data);
+        const courseArray = [];
+        for (let i = 0; i < classUsersData.length; i++) {
+            if (classUsersData[i].user_id === session.user.id) {
+                for (let j = 0; j < viewData.length; j++) {
+                    if (viewData[j].class_id === classUsersData[i].class_id) {
+                        courseArray.push(viewData[j]);
+                    }
+                }
             }
-        } catch (error) {
-            console.error('Error removing class:', error);
         }
+        setUserData(prev => ({ ...prev, classesData: courseArray }));
+    };
+
+    const initializeTeacherData = async (token) => {
+        const data = await fetchJoinableData(
+            ['classes', 'courses', 'grades'],
+            ['classes.course_id = courses.course_id', 'classes.grade_id = grades.grade_id'],
+            '*',
+            { 'classes.teacher_id': session.user.id }
+        );
+
+        const coursesData = await fetchData('courses', token);
+        const gradesData = await fetchData('grades', token);
+
+        const response = await fetchViewData('teachers_view', token);
+        let profileData = null;
+        if (response.ok) {
+            profileData = await response.json();
+        }
+
+        setUserData(prev => ({
+            ...prev,
+            classesData: data,
+            courseData: coursesData,
+            gradeData: gradesData,
+            teacherProfile: profileData
+        }));
+    };
+
+    const initializeAdminData = async (token) => {
+        const response = await fetchData('pending_teachers', token);
+        setUserData(prev => ({ ...prev, pendingTeachersData: response }));
     };
 
     const renderContent = () => {
-        if (status === 'loading') {
+        if (status === 'loading' || isLoading) {
             return <Loading />;
         }
 
         if (status !== 'authenticated') {
-            return (
-                <>
-                    <h3>You must be logged in to see this!</h3>
-                    <button
-                        onClick={() => router.push('/registration/login')}
-                        style={{
-                            width: 'fit-content',
-                            cursor: 'pointer',
-                        }}>
-                        Login
-                    </button>
-                </>
-            );
+            return renderAuthPrompt();
         }
 
         return (
             <>
-                <h1 className={styles.title}>Home</h1>
-                {session && (
-                    <p>
-                        {session.user.level === 0
-                            ? 'Welcome to Enrolled courses!'
-                            : session.user.level === 1
-                                ? 'Welcome to your classes.'
-                                : 'Welcome to your control panel.'}
-                    </p>
-                )}
+                {renderHeader()}
                 {renderUserContent()}
             </>
         );
     };
 
+    const renderAuthPrompt = () => (
+        <div className={styles.authPrompt}>
+            <h2>Please log in to access your dashboard</h2>
+            <button
+                className={styles.loginButton}
+                onClick={() => router.push('/registration/login')}>
+                Login
+            </button>
+        </div>
+    );
+
+    const renderHeader = () => (
+        <div className={styles.header}>
+            <h1 className={styles.title}>Dashboard</h1>
+            {session && (
+                <p className={styles.welcome}>
+                    {getWelcomeMessage(session.user.level)}
+                </p>
+            )}
+        </div>
+    );
+
+    const getWelcomeMessage = (userLevel) => {
+        const messages = {
+            0: 'Welcome to your enrolled classes!',
+            1: 'Welcome to your classes.',
+            2: 'Welcome to your control panel.'
+        };
+        return messages[userLevel] || 'Welcome!';
+    };
+
     const renderUserContent = () => {
         if (!session) return null;
-        if (session.user.level === 0) {
-            return renderStudentContent();
-        } else if (session.user.level === 1) {
-            return renderTeacherContent();
-        } else if (session.user.level === 2) {
-            return <AdminControl pendingTeachersData={pendingTeachersData} />;
+        
+        const dashboardProps = {
+            userData,
+            setUserData,
+            session,
+            update,
+            router,
+            setIsLoading,
+            isLoading
+        };
+
+        switch (session.user.level) {
+            case 0:
+                return <StudentDashboard {...dashboardProps} />;
+            case 1:
+                return <TeacherDashboard {...dashboardProps} />;
+            case 2:
+                return <AdminDashboard {...dashboardProps} />;
+            default:
+                return null;
         }
-        return null;
-    };
-
-    const renderStudentContent = () => {
-        if (!classesData) return <Loading />;
-
-        return (
-            <div className={styles.classCards}>
-                {classesData.map((classData) => (
-                    <div className={styles.classCard} key={classData.class_id}>
-                        <h2>
-                            {classData.course_name[0].toUpperCase() + classData.course_name.slice(1)}
-                            <span> - {classData.user_name}</span>
-                        </h2>
-                        <p>{classData.course_details}</p>
-                        <span className={styles.classDetails}>
-                            <button
-                                className={styles.classDetailsButton}
-                                onClick={() => router.push(`/classes/${classData.class_id}`)}>
-                                Study
-                            </button>
-                        </span>
-                    </div>
-                ))}
-            </div>
-        );
-    };
-
-    const renderTeacherProfile = () => {
-        if (!teacherProfile) return null;
-
-        return (
-            <div className={styles.profileCard}>
-                <h2>Teacher Profile</h2>
-                <div className={styles.profileDetails}>
-                    <p><strong>Name:</strong> {teacherProfile.name}</p>
-                    <p><strong>Email:</strong> {teacherProfile.email}</p>
-                    {teacherProfile.bio && (
-                        <p><strong>Bio:</strong> {teacherProfile.bio}</p>
-                    )}
-                    {teacherProfile.qualifications && (
-                        <p><strong>Qualifications:</strong> {teacherProfile.qualifications}</p>
-                    )}
-                    {teacherProfile.contactHours && (
-                        <p><strong>Contact Hours:</strong> {teacherProfile.contactHours}</p>
-                    )}
-                </div>
-                <button
-                    className={styles.editProfileButton}
-                    onClick={() => setEditProfileOverlayState(true)}>
-                    Edit Profile
-                </button>
-            </div>
-        );
-    };
-
-    const renderTeacherContent = () => {
-        return (
-            <>
-                {renderTeacherProfile()}
-                <h2 className={styles.sectionTitle}>Your Classes</h2>
-                {classesData ? (
-                    classesData.length > 0 && (
-                        <div className={styles.classCards}>
-                            {classesData.map((classData) => (
-                                <div className={styles.classCard} key={classData.class_id}>
-                                    <h2>
-                                        {classData.course_name[0].toUpperCase() +
-                                            classData.course_name.slice(1)}
-                                        <span className={styles.time}>
-                                            {' '}
-                                            {getDate(classData.start_time).hhmmss} to {getDate(classData.end_time).hhmmss}
-                                            {' '} and {' '}
-                                            {getDate(classData.start_time).yyyymmdd} to {getDate(classData.end_time).yyyymmdd}
-                                        </span>
-                                    </h2>
-                                    <span className={styles.gradeName}> for {classData.grade_name}</span>
-                                    <span className={styles.repeatDay}>repeats every {classData.repeat_every_n_day} days</span>
-                                    <p>{classData.class_description}</p>
-                                    <span className={styles.classDetails}>
-                                        <button
-                                            className={styles.classDetailsButton}
-                                            onClick={() => router.push(`/classes/${classData.class_id}`)}>
-                                            View Class
-                                        </button>
-                                    </span>
-                                    {showClassDeleters && (
-                                        <div className={styles.classDeleter}>
-                                            <button
-                                                className={styles.classDeleterButton}
-                                                onClick={() => handleRemoveClass(classData.class_id)}>
-                                                X
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )
-                ) : (
-                    <Loading />
-                )}
-                <span className={styles.flexyspan}>
-                    <button
-                        className={styles.addClass}
-                        onClick={() => setAddClassOverlayState(true)}>
-                        Add Class
-                    </button>
-                    <button
-                        className={styles.deleteClassBtnToggle}
-                        onClick={() => setShowClassDeleters(!showClassDeleters)}>
-                        {showClassDeleters ? 'Return' : 'Delete Class'}
-                    </button>
-                </span>
-            </>
-        );
     };
 
     return (
         <div className={styles.container}>
             {renderContent()}
-
-            {addClassOverLayState && (
-                <div className={styles.addClassOverlay}>
-                    <div className={styles.addClassOverlayContent}>
-                        <h1>Add Class</h1>
-                        <form
-                            className={styles.addClassOverlayForm}
-                            onSubmit={handleAddClass}>
-                            <Input
-                                label="Course"
-                                type="select"
-                                name="course"
-                                id="course"
-                                required
-                                data={courseData.map((course) => ({ id: course.course_id, name: course.course_name }))}
-                            />
-                            <Input
-                                label="Grade"
-                                type="select"
-                                name="grade"
-                                id="grade"
-                                required
-                                data={gradeData.map((grade) => ({ id: grade.grade_id, name: grade.grade_name }))}
-                            />
-                            <Input label="Start Time" type="time" name="startTime" id="startTime" defaultValue="09:00" required />
-                            <Input label="End Time" type="time" name="endTime" id="endTime" defaultValue="10:00" required />
-                            <Input label="Start Date" type="date" name="startDate" id="startDate" required />
-                            <Input label="End Date" type="date" name="endDate" id="endDate" required />
-                            <Input label="Every ? Days" type="number" name="repeatEveryNDay" id="repeatEveryNDay" required />
-                            <Input
-                                label="Class Description"
-                                type="textarea"
-                                name="classDescription"
-                                id="classDescription"
-                            />
-                            {addClassError && <p className={styles.errorDisplay}>{addClassError}</p>}
-                            <button type="submit" className={styles.addClassOverlaySubmitButton}>
-                                Add Class
-                            </button>
-                        </form>
-                        <button
-                            className={styles.addClassOverlayCancelButton}
-                            onClick={() => setAddClassOverlayState(false)}>
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {editProfileOverlayState && (
-                <div className={styles.editProfileOverlay}>
-                    <div className={styles.editProfileOverlayContent}>
-                        <h1>Edit Teacher Profile</h1>
-                        <form
-                            className={styles.editProfileOverlayForm}
-                            onSubmit={handleEditProfile}>
-                            <Input
-                                label="Name"
-                                type="text"
-                                name="name"
-                                id="name"
-                                required
-                                defaultValue={teacherProfile?.name || ''}
-                            />
-                            <Input
-                                label="Email"
-                                type="email"
-                                name="email"
-                                id="email"
-                                required
-                                defaultValue={teacherProfile?.email || ''}
-                            />
-                            <Input
-                                label="Bio"
-                                type="textarea"
-                                name="bio"
-                                id="bio"
-                                defaultValue={teacherProfile?.bio || ''}
-                            />
-                            <Input
-                                label="Qualifications"
-                                type="textarea"
-                                name="qualifications"
-                                id="qualifications"
-                                defaultValue={teacherProfile?.qualifications || ''}
-                            />
-                            <Input
-                                label="Contact Hours"
-                                type="text"
-                                name="contactHours"
-                                id="contactHours"
-                                placeholder="e.g. Mon-Fri 2-4 PM"
-                                defaultValue={teacherProfile?.contactHours || ''}
-                            />
-                            {editProfileError && <p className={styles.errorDisplay}>{editProfileError}</p>}
-                            <button type="submit" className={styles.editProfileOverlaySubmitButton}>
-                                Update Profile
-                            </button>
-                        </form>
-                        <button
-                            onClick={() => setEditProfileOverlayState(false)}>
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

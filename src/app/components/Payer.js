@@ -181,7 +181,7 @@ export default function Payer(props) {
                             onClick={() => toggleVisibility("qr_img_payment")}
                             disabled={isSubmitting}
                         >
-                            Cancel
+                            Return
                         </button>
                     </div>
                 </form>
@@ -290,7 +290,7 @@ export default function Payer(props) {
                     className={styles.closeButton}
                     onClick={handleClose}
                 >
-                    Cancel
+                    Add other Classes
                 </button>
             </div>
         </div>

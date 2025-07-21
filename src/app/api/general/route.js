@@ -1,7 +1,5 @@
 const publicTables = ['grades', 'classes', 'courses', 'classes_users', 'notices'];
-
 const adminOnlyTables = ['users', 'pending_teachers', 'teachers', 'students', 'class_joining_pending'];
-
 const allTables = [...publicTables, ...adminOnlyTables];
 
 import { executeQueryWithRetry } from '../../lib/db';
@@ -11,14 +9,14 @@ import { getServerSession } from 'next-auth/next';
 export async function GET(req) {
     try {
         const tableName = getTableName(req);
+        const filters = getFilters(req);
         const session = await getServerSession(authOptions);
+        
         validateTableName(tableName);
-        if (session) {
-            await validateAccess(tableName, session);
-            const results = await fetchData(tableName, session?.user);
-            return createResponse(results);
-        }
-        return createResponse({});
+        await validateAccess(tableName, session);
+        
+        const results = await fetchData(tableName, session?.user, filters);
+        return createResponse(results);
 
     } catch (error) {
         return handleError(error);
@@ -28,6 +26,19 @@ export async function GET(req) {
 function getTableName(req) {
     const { searchParams } = new URL(req.url);
     return searchParams.get('table');
+}
+
+function getFilters(req) {
+    const { searchParams } = new URL(req.url);
+    const filters = {};
+    
+    for (const [key, value] of searchParams.entries()) {
+        if (key !== 'table') {
+            filters[key] = value;
+        }
+    }
+    
+    return filters;
 }
 
 function validateTableName(tableName) {
@@ -43,11 +54,8 @@ function validateTableName(tableName) {
 async function validateAccess(tableName, session) {
     const isPublic = publicTables.includes(tableName);
     const isAdmin = session?.user?.level === 2;
-
-    // Public tables: anyone can access
     if (isPublic) return;
 
-    // Admin-only tables: require authentication and admin level
     if (adminOnlyTables.includes(tableName)) {
         if (!session) {
             throw new AuthError('Authentication required');
@@ -58,22 +66,36 @@ async function validateAccess(tableName, session) {
     }
 }
 
-async function fetchData(tableName, user) {
+async function fetchData(tableName, user, filters = {}) {
     const isAdmin = user?.level === 2;
     const userId = user?.id;
 
-    // Admin gets full table access
-    if (isAdmin) {
-        return executeQuery(`SELECT * FROM ${tableName}`);
+    const whereConditions = [];
+    const queryValues = [];
+    // Add user-specific filters for restricted tables
+    if (tableName === 'users' && !isAdmin && userId) {
+        whereConditions.push('id = ?');
+        queryValues.push(userId);
     }
 
-    // For non-admin users accessing their own data
-    if (tableName === 'users' && userId) {
-        return executeQuery(`SELECT * FROM ${tableName} WHERE user_id = ?`, [userId]);
+    // Add query parameter filters
+    for (const [key, value] of Object.entries(filters)) {
+        // Sanitize column names
+        if (!/^[a-zA-Z0-9_]+$/.test(key)) {
+            throw new ValidationError('Invalid column name');
+        }
+        whereConditions.push(`${key} = ?`);
+        queryValues.push(value);
     }
 
-    // Default: full table access for public tables
-    return executeQuery(`SELECT * FROM ${tableName}`);
+    let query = `SELECT * FROM ${tableName}`;
+    if (whereConditions.length > 0) {
+        query += ` WHERE ${whereConditions.join(' AND ')}`;
+    }
+    
+    console.log(query, queryValues)
+
+    return executeQuery(query, queryValues);
 }
 
 async function executeQuery(query, values = []) {
@@ -86,7 +108,12 @@ async function executeQuery(query, values = []) {
 }
 
 function createResponse(data, status = 200) {
-    return new Response(JSON.stringify(data), { status });
+    return new Response(JSON.stringify(data), { 
+        status,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
 }
 
 function handleError(error) {
@@ -103,8 +130,31 @@ function handleError(error) {
     return createResponse({ error: error.message }, status);
 }
 
-// Custom error classes
-class ValidationError extends Error { }
-class AccessError extends Error { }
-class AuthError extends Error { }
-class DatabaseError extends Error { }
+// Error classes
+class ValidationError extends Error { 
+    constructor(message) {
+        super(message);
+        this.name = 'ValidationError';
+    }
+}
+
+class AccessError extends Error { 
+    constructor(message) {
+        super(message);
+        this.name = 'AccessError';
+    }
+}
+
+class AuthError extends Error { 
+    constructor(message) {
+        super(message);
+        this.name = 'AuthError';
+    }
+}
+
+class DatabaseError extends Error { 
+    constructor(message) {
+        super(message);
+        this.name = 'DatabaseError';
+    }
+}

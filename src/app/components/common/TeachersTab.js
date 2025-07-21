@@ -140,7 +140,17 @@ const PendingTeachersTable = ({
                 />
             );
         }
-
+        
+        if (col === 'cv_path') {
+            return (
+                <FullScreenableImage
+                    src={teacher.cv_path}
+                    alt="cv"
+                    className="cv-img"
+                />
+            );
+        }
+        
         // Special handling for secret_key - highlight it
         if (col === 'secret_key') {
             return (
@@ -225,6 +235,20 @@ const createFieldRenderer = (schemas, onSaveData) => {
     return (teacher, col) => {
         const saveHandler = handleSave(col, teacher.user_id);
         const fieldMap = {
+            cv_path: () => (
+                teacher.certificate_path ?
+                    <FullScreenableImage
+                        src={teacher.cv_path}
+                        alt="cv"
+                        className="cv-img"
+                    /> :
+                    <EditableField
+                        initialValue={teacher.cv_path || ''}
+                        onSave={teacher.user_id ? saveHandler : () => { }}
+                        placeholder="Enter cv path"
+                        label={formatColName(col)}
+                    />
+            ),
             certificate_path: () => (
                 teacher.certificate_path ?
                     <FullScreenableImage

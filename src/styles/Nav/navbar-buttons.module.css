@@ -42,6 +42,7 @@
 .specialNavButton {
     composes: buttonBase;
     background: var(--tertiary);
+    color: white;
     border-radius: 1rem;
     overflow: hidden;
 }
@@ -55,6 +56,7 @@
 }
 
 .specialNavButton:hover {
+    color: white;
     background: var(--quaternary);
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
@@ -144,7 +146,7 @@
     transform: translateY(-10.5px) rotate(-45deg);
 }
 
-@media (max-width: 1500px) {
+@media (max-width: 768px) {
     .hamburgerButton {
         display: flex;
     }

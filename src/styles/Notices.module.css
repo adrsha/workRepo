@@ -1,6 +1,7 @@
 .noticesTitle{
     font-size: 2rem;
     font-weight: bold;
+    font-family: var(--font-serif);
 }
 
 /* Main container */

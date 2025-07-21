@@ -72,9 +72,15 @@ export const Table = ({
         DISALLOWED_COLUMNS.forEach(col => delete cleanRow[col]);
         return cleanRow;
     });
-    const cleanedCols = schema.columns.filter(col => !DISALLOWED_COLUMNS.includes(col))
-    // const allColumns = cleanedData?.length ? getCols(cleanedData) : [];
-    const allColumns = cleanedCols;
+    let allColumns = [];
+    
+    if (schema.columns) {
+        const cleanedCols = schema.columns.filter(col => !DISALLOWED_COLUMNS.includes(col))
+        allColumns = cleanedCols;
+    } else {
+        allColumns = cleanedData?.length ? getCols(cleanedData) : [];
+    }
+    
     const editableFields = getEditableFields(allColumns);
     const editableRequiredFields = requiredFields.filter(field => !isSystemField(field));
     const visibleEditableFields = editableFields.filter(field => !userHiddenColumns.has(field));
@@ -95,7 +101,7 @@ export const Table = ({
         if (renderCell && fieldMappings[field]) {
             const mockItem = { [field]: value, isFormMode: true };
             try {
-                return renderCell(mockItem, field, { 
+                return renderCell(mockItem, field, {
                     onChange,
                     options,
                     dependencies,

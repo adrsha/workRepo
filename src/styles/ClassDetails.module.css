@@ -41,40 +41,6 @@
     min-width: 250px;
 }
 
-.joinButton {
-    background-color: #ff6b81;
-    color: var(--white);
-    font-weight: 500;
-    border: none;
-    border-radius: 6px;
-    padding: 0.7rem 1.5rem;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 130px;
-}
-
-.joinButton:hover:not([disabled]) {
-    background-color: #ff5268;
-}
-
-.joinButton:active:not([disabled]) {
-    transform: translateY(1px);
-}
-
-.joinButton.enrolled {
-    background-color: var(--lightGreen);
-    cursor: default;
-}
-
-.joinButton:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
 .infoSection {
     margin-bottom: 2rem;
     display: flex;
@@ -88,6 +54,11 @@
     flex-wrap: wrap;
     gap: 0.5rem;
 }
+
+/* .infoRow:has(.meetingUrlEditor){ */
+/*     justify-content: center; */
+/*     padding: 1rem; */
+/* } */
 
 .infoLabel {
     font-weight: 500;
@@ -106,13 +77,15 @@
 }
 
 .teacherBadge {
+    border: 2px dashed var(--primary);
     cursor: pointer;
     transition: background-color 0.2s ease;
     color: var(--foreground);
 }
 
 .teacherBadge:hover {
-    background-color: var(--white);
+    background-color: var(--primaryLight);
+    color: white;
 }
 
 .scheduleBadge {
@@ -279,7 +252,23 @@
 }
 
 .meetingButton {
-    background-color: var(--secondary);
+    background-color: var(--tertiary);
+    color: white;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    padding: 0.7rem 1.5rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 130px;
+}
+
+.meetingButton:hover {
+    opacity: 0.8;
 }
 
 .meetingButton:disabled {
@@ -305,6 +294,15 @@
     align-items: center;
 }
 
+.statusMessage {
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+}
+
 .active {
     background-color: #c8e6c9;
     color: var(--tertiary);
@@ -319,6 +317,11 @@
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.infoToast {
+    background-color: var(--background);
+    font-weight: bold;
 }
 
 .successToast {
@@ -390,7 +393,7 @@
     border: 2px solid var(--offWhite);
     border-radius: var(--border-radius-sm);
     font-size: 0.9rem;
-    background-color: var(--white);
+    background-color: white;
     color: var(--foreground);
     transition: all 0.2s ease;
     font-family: var(--font-sans);
@@ -415,7 +418,7 @@
 
 .saveButton {
     background-color: var(--quaternary);
-    color: var(--white);
+    color: white;
     border: none;
     border-radius: var(--border-radius-sm);
     padding: 0.625rem 1.25rem;
@@ -435,24 +438,6 @@
     background-color: var(--quaternaryLight);
     cursor: not-allowed;
     opacity: 0.7;
-}
-
-.cancelButton {
-    background-color: var(--gray);
-    color: var(--white);
-    border: none;
-    border-radius: var(--border-radius-sm);
-    padding: 0.625rem 1.25rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: var(--font-sans);
-}
-
-.cancelButton:hover {
-    background-color: var(--foreground);
-    transform: translateY(-1px);
 }
 
 .urlDisplay {
@@ -477,8 +462,8 @@
 }
 
 .editButton {
-    background-color: var(--secondary);
-    color: var(--white);
+    background-color: var(--tertiaryLight);
+    color: var(--foreground);
     border: none;
     border-radius: var(--border-radius-sm);
     padding: 0.625rem 1.25rem;
@@ -490,13 +475,13 @@
 }
 
 .editButton:hover {
-    background-color: var(--primary);
-    transform: translateY(-1px);
+    opacity: 0.8
 }
 
 .regenerateButton {
     background-color: var(--tertiary);
-    color: var(--white);
+    color: white;
+    font-weight: bold;
     border: none;
     border-radius: var(--border-radius-sm);
     padding: 0.625rem 1.25rem;
@@ -508,8 +493,7 @@
 }
 
 .regenerateButton:hover:not([disabled]) {
-    background-color: var(--lightBlue);
-    transform: translateY(-1px);
+    opacity: 0.8
 }
 
 .regenerateButton:disabled {
@@ -533,10 +517,11 @@
     border-left-color: var(--quaternary);
 }
 
-.disabledMessage {
-    color: var(--quaternary);
-    border: 2px solid var(--offWhite);
-    padding: 1rem;
+.infoToast .toastContent {
+    background-color: var(--backgroundBlue);
+    color: var(--darkBlue);
+    font-weight: bold;
+    border-left-color: var(--darkBlue);
 }
 
 /* Responsive adjustments for new elements */
@@ -545,18 +530,148 @@
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .urlActions {
         justify-content: center;
         margin-top: 0.5rem;
     }
-    
+
     .urlText {
         min-width: unset;
     }
-    
+
     .meetingUrlEditor {
         max-width: 100%;
+    }
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modalContent {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+.modalTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.modalMessage {
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    text-align: center;
+}
+.modalMessage strong{
+    color: var(--lightGreen);
+    line-height: 1.6;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.modalActions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.confirmButton {
+    background-color: var(--tertiary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.confirmButton:hover {
+    background-color: var(--darkGreen);
+}
+
+.confirmButton:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.cancelButton {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cancelButton:hover {
+    background-color: #e5e7eb;
+}
+
+.errorMessage {
+    background-color: #fef2f2;
+    color: #dc2626;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-top: 8px;
+    border: 1px solid #fecaca;
+}
+
+.urlGeneratedContent {
+    margin: 1rem 0;
+}
+
+.generatedUrlContainer {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    align-items: center;
+}
+
+.generatedUrlInput {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background-color: #f9f9f9;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }
 

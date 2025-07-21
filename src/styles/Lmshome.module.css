@@ -1,214 +1,115 @@
-.container {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 6rem;
-    color: var(--foreground);
-}
-
-.container>span button {
-    width: fit-content;
-    cursor: pointer;
-    transition: all ease 0.2s;
-    height: fit-content;
-}
-
-.time {
-    font-size: 0.8rem;
-    display: inline-block;
-    padding: 0.5rem;
-    position: absolute;
-    color: var(--foreground);
-    top: 0;
-    left: 0;
-    background-color: var(--offWhite);
-    font-weight: bold;
+/* Header component */
+.header {
+    margin-bottom: 2rem;
 }
 
 .title {
-    font-size: 2.5em;
+    font-size: 2.5rem;
     font-family: var(--font-serif);
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
 }
 
-.classCards {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    gap: 1rem;
-    padding: 1rem;
-    border-radius: 5px;
-}
-
-.classCard {
-    min-height: 100px;
-    min-width: 300px;
-    max-width: 30%;
-    background-color: var(--background);
-    box-shadow: 0 0 10rem 0 rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    align-items: center;
-    padding: 2rem;
-    border-radius: 10px;
-    margin-bottom: 1rem;
-    transition: 0.2s ease-in-out;
-}
-
-.classCard:hover {
-    transform: translateY(-5px);
-}
-
-.classCard span.repeatDay,
-.classCard span.gradeName {
+.welcome {
+    font-size: 1.1rem;
     color: var(--gray);
-    font-weight: bold;
+    margin: 0;
 }
 
-.classDetailsButton {
-    background: var(--offWhite);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.5s ease;
+.sectionTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
     color: var(--foreground);
 }
 
-.classDetailsButton:hover {
-    filter: brightness(0.9);
-}
-
-.addClass {
-    padding: 1rem;
-    border-radius: 5px;
-    background-color: var(--lightGreen);
-    width: fit-content;
-    height: fit-content;
-    display: inline;
-    color: var(--white);
-}
-
-.addClass:hover {
-    filter: brightness(0.9);
-}
-
-.addClassOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 101;
+.sectionHeader {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-}
-
-.addClassOverlayContent {
-    background-color: var(--background);
-    border-radius: 5px;
-    padding: 2rem;
-    height: 80%;
-    min-width: 50vw;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.addClassOverlayForm {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    gap: 1rem;
-    overflow: auto;
-    max-height: 80vh;
-}
-
-.addClassOverlaySubmitButton {
-    padding: 1rem;
-    border-radius: 5px;
-    background-color: var(--lightGreen);
-    margin: auto;
-    color: var(--white);
-    cursor: pointer;
-}
-
-.addClassOverlaySubmitButton:hover {
-    filter: brightness(0.9);
-}
-
-.addClassOverlayCancelButton {
-    padding: 1rem;
-    border-radius: 5px;
-    background-color: var(--lightRed);
-    margin: auto;
-    color: var(--white);
-    cursor: pointer;
-}
-
-.addClassOverlayCancelButton:hover {
-    filter: brightness(0.9);
-}
-
-.deleteClassBtnToggle {
-    background-color: var(--lightRed);
-    color: var(--white);
-    border-radius: 5px;
-}
-
-.classDeleterButton {
-    background-color: var(--lightRed);
-    color: var(--white);
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 50%;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all ease 0.2s;
-    position: absolute;
-    top: 0;
-    right: 0;
-    animation: wobble 3.5s ease-in-out infinite;
-}
-
-.classDeleterButton:hover {
-    filter: brightness(0.9);
-}
-
-.flexyspan {
-    display: flex;
+    margin-bottom: 1.5rem;
     flex-wrap: wrap;
     gap: 1rem;
 }
 
-@keyframes wobble {
-    0% {
-        transform: rotate(0deg);
+/* Responsive design */
+@media (max-width: 768px) {
+    .title {
+        font-size: 2rem;
     }
-
-    5% {
-        transform: rotate(10deg) translateY(-1.5rem);
-    }
-
-    10% {
-        transform: rotate(-20deg);
-    }
-
-    15% {
-        transform: rotate(20deg);
-    }
-
-    20% {
-        transform: rotate(-10deg);
-    }
-
-    25% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(0deg);
+    
+    .sectionHeader {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
+
+@media (max-width: 480px) {
+    .title {
+        font-size: 1.8rem;
+    }
+}
+/* Main container layout */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: var(--foreground);
+    min-height: 100vh;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Authentication prompt */
+.authPrompt {
+    text-align: center;
+    padding: 3rem;
+    background: var(--background);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.authPrompt h2 {
+    margin-bottom: 1.5rem;
+    color: var(--foreground);
+}
+
+.loginButton {
+    background: var(--tertiary);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.loginButton:hover {
+    background: var(--tertiary);
+    filter: brightness(0.9);
+    transform: translateY(-2px);
+}
+
+
+
+
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0.5rem;
+    }
+}
+

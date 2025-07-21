@@ -9,13 +9,56 @@
 .noticeCard {
     border-radius: var(--border-radius-sm);
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    margin-left: 1rem;
+    margin-right: 1rem;
     padding: 1rem;
-    border-left: 3px solid var(--tertiary);
+    border-bottom: 2px solid var(--lightBlue);
     transition: all 0.2s ease;
 }
 
 .noticeCard:hover {
-    background: var(--white);
+    border-bottom: 1rem solid var(--lightBlue);
+}
+
+/* New notice styling */
+.newNotice {
+    border-left: 4px solid var(--lightBlue);
+    background-color: rgba(var(--lightBlue-rgb), 0.05);
+    box-shadow: 0 0 15px 0 rgba(var(--lightBlue-rgb), 0.2);
+}
+
+.newNotice:hover {
+    box-shadow: 0 0 20px 0 rgba(var(--lightBlue-rgb), 0.3);
+}
+
+/* FIXED: Make first notice more noticeable */
+.noticeContainer:first-child .noticeCard {
+    border: 2px solid var(--lightBlue);
+    border-left: 4px solid var(--lightBlue);
+}
+
+/* Alternative option - if you want a more prominent effect */
+.noticeContainer:first-child .noticeCard {
+    border: 2px solid var(--lightBlue);
+    border-left: 6px solid var(--lightBlue);
+    transform: scale(1.02);
+}
+
+/* Make first notice title more prominent */
+.noticeContainer:first-child .noticeTitle {
+    font-weight: 600;
+    color: var(--lightBlue);
+}
+
+.noticeContainer:first-child .noticeHeader::before {
+    content: "LATEST";
+    background: var(--lightBlue);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    margin-right: 0.5rem;
 }
 
 /* Notice header container */
@@ -34,6 +77,29 @@
     margin: 0;
     flex: 1;
     line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* New badge styling */
+.newBadge {
+    background: var(--lightBlue);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: bold;
+    padding: 0.15rem 0.4rem;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
 }
 
 /* Notice actions container */
@@ -49,6 +115,7 @@
 .noticeDate {
     font-size: 0.75rem;
     color: var(--gray);
+    font-weight: bold;
     white-space: nowrap;
 }
 
@@ -61,7 +128,7 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    right: 0.5rem;
+    right: 1.5rem;
     background-color: var(--lightRed);
     color: var(--white);
     border: none;
@@ -76,7 +143,6 @@
     opacity: 0;
     padding: 0;
 }
-
 
 .noticeContainer:hover .deleteButton{
     padding: 0.25rem 0.5rem;
@@ -106,6 +172,16 @@
     .deleteButton {
         padding: 0.3rem 0.6rem;
         font-size: 0.7rem;
+    }
+    
+    /* Adjust first notice scaling on mobile */
+    .noticeContainer:first-child .noticeCard {
+        transform: scale(1.01);
+    }
+
+    .newBadge {
+        font-size: 0.55rem;
+        padding: 0.1rem 0.3rem;
     }
 }
 

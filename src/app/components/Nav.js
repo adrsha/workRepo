@@ -10,7 +10,7 @@ import { styles } from '../../styles/NavCss.js';
 
 // Constants
 const USER_NAV_ITEMS = [
-    { name: 'Edit profile', path: '/settings' }
+    { name: 'Settings', path: '/settings' }
 ];
 
 const UNAUTHENTICATED_NAV_ITEMS = [
@@ -105,13 +105,13 @@ const formatDate = (dateString) =>
 const Logo = ({ onNavigate }) => (
     <div className={styles.logo} onClick={onNavigate('/')}>
         <img src="/logo.png" alt="MeroTuition Logo" />
-
-        <header className={styles.header}>
-            <h1>MeroTuition.com</h1>
-            <span>No Cost, Low Cost Tuition.</span>
-        </header>
     </div>
 );
+
+        // <header className={styles.header}>
+        //     <h1>MeroTuition.com</h1>
+        //     <span>No Cost, Low Cost Tuition.</span>
+        // </header>
 
 const HamburgerButton = ({ isOpen, onToggle }) => (
     <button
@@ -353,6 +353,7 @@ export default function Nav() {
                     notificationProps={notificationProps}
                     notificationRef={notificationRef}
                 />
+                <div>
                 {isAuthenticated &&
                     <div className={`${styles.notificationContainer} ${styles.fixedNavItem}`} ref={notificationRef}>
                         <NotificationBell
@@ -374,6 +375,7 @@ export default function Nav() {
                 {isAuthenticated &&
                     <UserDropdown session={session} onNavigate={navigateTo} onSignOut={handleSignOut} classname={styles.fixedNavItem} />
                 }
+                </div>
 
                 <HamburgerButton
                     isOpen={menuOpen}

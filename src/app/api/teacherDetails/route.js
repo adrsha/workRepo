@@ -44,6 +44,7 @@ const transformTeacherDetails = (teacher) => ({
     qualification: teacher.qualification,
     video_path: teacher.video_path,
     certificate_path: teacher.certificate_path,
+    cv_path: teacher.cv_path,
     classes_count: teacher.classes_count || 0,
     students_count: teacher.students_count || 0,
     courses: teacher.courses ? teacher.courses.split(',').filter(Boolean) : [],
@@ -60,6 +61,7 @@ const fetchTeacherDetails = async (userId, limit, offset) => {
             t.qualification, 
             t.video_path, 
             t.certificate_path,
+            t.cv_path,
             COUNT(DISTINCT c.class_id) as classes_count,
             COUNT(DISTINCT cu.user_id) as students_count,
             GROUP_CONCAT(DISTINCT co.course_name) as courses
@@ -69,7 +71,7 @@ const fetchTeacherDetails = async (userId, limit, offset) => {
         LEFT JOIN classes_users cu ON c.class_id = cu.class_id
         LEFT JOIN courses co ON c.course_id = co.course_id
         ${userId ? 'WHERE t.user_id = ?' : ''}
-        GROUP BY t.user_id, u.user_name, t.experience, t.qualification, t.video_path, t.certificate_path
+        GROUP BY t.user_id, u.user_name, t.experience, t.qualification, t.video_path, t.certificate_path, t.cv_path
         ORDER BY t.user_id 
         LIMIT ? OFFSET ?
     `;
@@ -87,6 +89,7 @@ const fetchTeacherDetailsWithVideo = async (userId, limit, offset) => {
             t.qualification, 
             t.video_path, 
             t.certificate_path,
+            t.cv_path,
             COUNT(DISTINCT c.class_id) as classes_count,
             COUNT(DISTINCT cu.user_id) as students_count,
             GROUP_CONCAT(DISTINCT co.course_name) as courses
@@ -97,7 +100,7 @@ const fetchTeacherDetailsWithVideo = async (userId, limit, offset) => {
         LEFT JOIN courses co ON c.course_id = co.course_id
         WHERE t.video_path IS NOT NULL
         ${userId ? 'AND t.user_id = ?' : ''}
-        GROUP BY t.user_id, u.user_name, t.experience, t.qualification, t.video_path, t.certificate_path
+        GROUP BY t.user_id, u.user_name, t.experience, t.qualification, t.video_path, t.certificate_path, t.cv_path
         ORDER BY t.user_id 
         LIMIT ? OFFSET ?
     `;

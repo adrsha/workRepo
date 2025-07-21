@@ -3,8 +3,9 @@ import styles from '../../../styles/Carousel.module.css';
 
 const CarouselImage = ({ img, isActive, onClick }) => (
     <div
-        className={`${styles.carouselSlide} ${isActive ? styles.active : ''}`}
+        className={`${styles.carouselSlide}`}
         onClick={onClick}
+        style={{ backgroundImage: `url(${img.src})` }}
     >
         <img src={img.src} alt={img.alt} />
         <div className={styles.carouselCaption}>

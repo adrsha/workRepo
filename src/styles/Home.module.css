@@ -444,6 +444,7 @@
 /* ========= CTA Button ========= */
 .ctaSection{
     display: flex;
+    margin: auto;
     flex-direction: column;
     align-items: center;
 }

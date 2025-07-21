@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Block internal Next.js static files
+Disallow: /_next/
+
+Sitemap: https://merotuition.com/sitemap.xml

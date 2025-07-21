@@ -22,7 +22,6 @@ export default function ProfileClient({ params }) {
             setIsLoading(true);
 
             try {
-                // Fetch user profile data - API handles all permission checks
                 const response = await fetch(`/api/users/${userId}`);
 
                 if (!response.ok) {
@@ -45,15 +44,13 @@ export default function ProfileClient({ params }) {
         }
     }, [userId, status]);
 
-    // Fetch current user's enrolled classes
     useEffect(() => {
         async function fetchUserEnrolledClasses() {
             if (!session?.user?.id) return;
 
             try {
                 const authToken = localStorage.getItem('authToken');
-                
-                // Fetch classes the current user is enrolled in
+
                 const enrolledClasses = await fetchDataWhereAttrIs(
                     'classes_users',
                     { user_id: session.user.id },
@@ -71,7 +68,6 @@ export default function ProfileClient({ params }) {
         }
     }, [session?.user?.id]);
 
-    // Fetch teacher's classes when userData is loaded and user is a teacher
     useEffect(() => {
         async function fetchTeacherClasses() {
             if (!userData || userData.user_level !== 1) return;
@@ -79,8 +75,7 @@ export default function ProfileClient({ params }) {
             setLoadingClasses(true);
             try {
                 const authToken = localStorage.getItem('authToken');
-                
-                // Fetch classes with course and grade information
+
                 const classesData = await fetchJoinableData(
                     ['classes', 'courses', 'grades'],
                     ['classes.course_id = courses.course_id', 'classes.grade_id = grades.grade_id'],
@@ -100,33 +95,26 @@ export default function ProfileClient({ params }) {
         fetchTeacherClasses();
     }, [userData, userId]);
 
-    // Check if current user can view class details (enrolled or is the teacher)
     const canViewClassDetails = (classId) => {
-        // If viewing own profile (teacher), can see all details
         if (session?.user?.id === userId) {
             return true;
         }
-        
-        // If enrolled in the class, can see details
+
         if (userEnrolledClasses.includes(classId)) {
             return true;
         }
-        
-        // Admin can see all details
+
         if (session?.user?.level === 2) {
             return true;
         }
-        
+
         return false;
     };
 
-    // Check if current user can see meeting URL
     const canViewMeetingUrl = (classId) => {
-        // Only enrolled students, the teacher, or admins can see meeting URLs
         return canViewClassDetails(classId);
     };
 
-    // Map user levels to readable names
     const getUserLevelName = (level) => {
         const levels = {
             0: 'Student',
@@ -136,22 +124,17 @@ export default function ProfileClient({ params }) {
         return levels[level] || `Level ${level}`;
     };
 
-    // Helper to format field names for display
     const formatFieldName = (fieldName) => {
-        // Remove common prefixes like user_, student_, etc.
-        const withoutPrefix = fieldName.replace(/^(user_|teacher_|student_|guardian_)/, '');
-        // Convert snake_case to Title Case
+        const withoutPrefix = fieldName.replace(/^(user_|teacher_|student_)/, '');
         return withoutPrefix
             .split('_')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
     };
 
-    // Helper to format field values for display
     const formatFieldValue = (fieldName, value) => {
         if (value === null || value === undefined) return 'Not specified';
 
-        // Format dates
         if (fieldName.includes('_at') || fieldName.includes('date')) {
             try {
                 return new Date(value).toLocaleDateString();
@@ -160,12 +143,10 @@ export default function ProfileClient({ params }) {
             }
         }
 
-        // Format boolean values
         if (typeof value === 'boolean') {
             return value ? 'Yes' : 'No';
         }
 
-        // Format level values
         if (fieldName === 'user_level') {
             return getUserLevelName(value);
         }
@@ -173,22 +154,18 @@ export default function ProfileClient({ params }) {
         return value;
     };
 
-    // Determine which fields to exclude from display
     const excludedFields = [
         'password', 'user_password', 'hash', 'salt', 'token',
         'reset_token', 'updated_at', 'user_id', 'student_data', 'teacher_data'
     ];
 
-    // Helper to check if field contains 'path' in its name
     const hasPathInName = (fieldName) => {
         return fieldName.toLowerCase().includes('path');
     };
 
-    // Render a section with dynamic fields
     const renderDynamicSection = (title, data, excludeList = []) => {
         if (!data) return null;
 
-        // Filter out sensitive fields, unwanted fields, and fields with 'path' in name
         const fields = Object.keys(data).filter(field =>
             !excludedFields.includes(field) &&
             !excludeList.includes(field) &&
@@ -203,7 +180,7 @@ export default function ProfileClient({ params }) {
                 <h2>{title}</h2>
                 {fields.map(field => (
                     <div key={field} className={styles.profileInfoItem}>
-                        <span className={styles.infoLabel}>{formatFieldName(field)}:</span>
+                        <span className={styles.infoLabel}>{formatFieldName(field)}</span>
                         <span className={styles.infoValue}>{formatFieldValue(field, data[field])}</span>
                     </div>
                 ))}
@@ -211,12 +188,11 @@ export default function ProfileClient({ params }) {
         );
     };
 
-    // Render teacher's classes section with access restrictions
     const renderTeacherClasses = () => {
         if (userData?.user_level !== 1) return null;
 
         return (
-            <div className={styles.profileSection}>
+            <div className={styles.teacherClassesSection}>
                 <h2>Classes Teaching</h2>
                 {loadingClasses ? (
                     <div className={styles.loadingSpinner}>Loading classes...</div>
@@ -225,22 +201,22 @@ export default function ProfileClient({ params }) {
                         {teacherClasses.map(classItem => {
                             const canViewDetails = canViewClassDetails(classItem.class_id);
                             const canViewMeeting = canViewMeetingUrl(classItem.class_id);
-                            
+
                             return (
                                 <div key={classItem.class_id} className={styles.classCard}>
                                     <div className={styles.classHeader}>
                                         <h3 className={styles.courseName}>{classItem.course_name}</h3>
                                         <span className={styles.gradeBadge}>{classItem.grade_name}</span>
                                     </div>
-                                    
+
                                     {classItem.class_description && (
                                         <p className={styles.classDescription}>{classItem.class_description}</p>
                                     )}
-                                    
+
                                     {canViewDetails ? (
                                         <div className={styles.classDetails}>
                                             <div className={styles.classTime}>
-                                                <strong>Schedule:</strong>
+                                                <strong>Schedule</strong>
                                                 <div>
                                                     {getDate(classItem.start_time).yyyymmdd} to {getDate(classItem.end_time).yyyymmdd}
                                                 </div>
@@ -251,17 +227,18 @@ export default function ProfileClient({ params }) {
                                                     Repeats every {classItem.repeat_every_n_day} day{classItem.repeat_every_n_day !== 1 ? 's' : ''}
                                                 </div>
                                             </div>
-                                            
+
                                             <div className={styles.classCost}>
-                                                <strong>Cost:</strong> ${classItem.cost}
+                                                <strong>Course Fee</strong>
+                                                <span>${classItem.cost}</span>
                                             </div>
-                                            
+
                                             {canViewMeeting && classItem.meeting_url && (
                                                 <div className={styles.meetingUrl}>
-                                                    <strong>Meeting:</strong>
-                                                    <a 
-                                                        href={classItem.meeting_url} 
-                                                        target="_blank" 
+                                                    <strong>Meeting Link</strong>
+                                                    <a
+                                                        href={classItem.meeting_url}
+                                                        target="_blank"
                                                         rel="noopener noreferrer"
                                                         className={styles.meetingLink}
                                                     >
@@ -273,10 +250,12 @@ export default function ProfileClient({ params }) {
                                     ) : (
                                         <div className={styles.restrictedAccess}>
                                             <p className={styles.restrictedMessage}>
-                                                <strong>Enrollment Required:</strong> Join this class to view schedule and meeting details.
+                                                <strong>Enrollment Required</strong><br />
+                                                Join this class to view schedule and meeting details.
                                             </p>
                                             <div className={styles.classCost}>
-                                                <strong>Cost:</strong> ${classItem.cost}
+                                                <strong>Course Fee</strong>
+                                                <span>${classItem.cost}</span>
                                             </div>
                                         </div>
                                     )}
@@ -339,27 +318,27 @@ export default function ProfileClient({ params }) {
             </div>
 
             <div className={styles.profileContent}>
-                {/* Core user information */}
                 {renderDynamicSection('Contact Information', userData, ['user_name', 'user_level'])}
 
-                {/* Role-specific information */}
                 {userData.user_level === 1 && userData.teacher_data &&
                     renderDynamicSection('Teacher Information', userData.teacher_data)}
 
                 {userData.user_level === 0 && userData.student_data &&
                     renderDynamicSection('Student Information', userData.student_data)}
 
-                {/* Teacher's classes section */}
                 {renderTeacherClasses()}
             </div>
 
-            {userData.user_level === 1 && userData.teacher_data && <TeacherVideoPlayer teacherId={userData.user_id} />}
+            <center>
 
-            {
-                session.user.level === 1 ?
+                {userData.user_level === 1 && userData.teacher_data &&
+                    <TeacherVideoPlayer teacherId={userData.user_id} />
+                }
+
+                {session.user.level === 1 && session.user.id === userData.user_id &&
                     <TeacherVideoUpload />
-                    : null
-            }
+                }
+            </center>
         </div>
     );
 }

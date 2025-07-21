@@ -21,6 +21,7 @@ const MAX_LENGTHS = {
     dateOfBirth: 10,
     experience: 255,
     qualification: 255,
+    subject: 50,
 };
 
 export default function SignupForm() {
@@ -28,6 +29,7 @@ export default function SignupForm() {
     const [loading, setLoading] = useState(false);
     const [userLevel, setUserLevel] = useState('student');
     const [certificateUploaded, setCertificateUploaded] = useState(false);
+    const [cvUploaded, setCvUploaded] = useState(false);
     const [showTeacherPopup, setShowTeacherPopup] = useState(false);
     const [isPreviewMode, setIsPreviewMode] = useState(false);
     const router = useRouter();
@@ -37,14 +39,19 @@ export default function SignupForm() {
         setError('');
     };
 
+    const handleCvUpload = (fileData) => {
+        setCvUploaded(true);
+        setError('');
+    };
+
     const handlePopupClose = () => {
         setShowTeacherPopup(false);
-        
+
         // Only redirect if it's not preview mode
         if (!isPreviewMode) {
             router.push('/registration/login');
         }
-        
+
         setIsPreviewMode(false);
     };
 
@@ -84,6 +91,20 @@ export default function SignupForm() {
             return;
         }
 
+        // Check CV upload for teachers
+        if (userLevel === 'teacher' && !formData.get('cv_path')) {
+            setError('Please upload your CV');
+            setLoading(false);
+            return;
+        }
+        
+        // Check subjects of teachers
+        if (userLevel === 'teacher' && !formData.get('subject')) {
+            setError('Please tell us your main subject.');
+            setLoading(false);
+            return;
+        }
+
         // Check password match
         if (formData.get('password') !== formData.get('repeat-password')) {
             setError('Passwords do not match');
@@ -112,6 +133,7 @@ export default function SignupForm() {
                 school: formData.get('school') || '',
                 class: formData.get('class') || '',
                 dateOfBirth: formData.get('dateOfBirth') || '',
+                subject: formData.get('subject') || '',
             };
         } else if (userLevel === 'teacher') {
             payload = {
@@ -119,6 +141,8 @@ export default function SignupForm() {
                 experience: formData.get('experience') || '',
                 qualification: formData.get('qualification') || '',
                 certificatePath: formData.get('certificate_path') || '',
+                cvPath: formData.get('cv_path') || '',
+                subject: formData.get('subject') || '',
             };
         }
 
@@ -180,19 +204,19 @@ export default function SignupForm() {
                             checked={userLevel === 'student'}
                             onChange={() => setUserLevel('student')}
                         />
-                        
+
                     </div>
-                        {/* Info button for teachers */}
-                        {userLevel === 'teacher' && (
-                            <button
-                                type="button"
-                                onClick={handleInfoClick}
-                                className={styles.infoButton}
-                                title="Preview what happens after teacher registration"
-                            >
-                                <span id="info-icon">i</span> What happens next?
-                            </button>
-                        )}
+                    {/* Info button for teachers */}
+                    {userLevel === 'teacher' && (
+                        <button
+                            type="button"
+                            onClick={handleInfoClick}
+                            className={styles.infoButton}
+                            title="Preview what happens after teacher registration"
+                        >
+                            <span id="info-icon">i</span> What happens next?
+                        </button>
+                    )}
 
                     <Input
                         label="Name"
@@ -324,18 +348,41 @@ export default function SignupForm() {
                                 id="qualification"
                                 maxLength={MAX_LENGTHS.qualification}
                             />
+                            <Input
+                                label="Subject"
+                                type="text"
+                                name="subject"
+                                id="subject"
+                                maxLength={MAX_LENGTHS.subject}
+                            />
 
                             {/* Certificate Upload Section */}
                             <div className={styles.formGroup}>
                                 <label className={styles.inputLabel}>Certificate Upload *</label>
                                 <FileUpload
                                     onFileUpload={handleCertificateUpload}
-                                    classId="teacher-certificates"
+                                    parentId="teacher-certificates"
+                                    parentTypes="signup"
                                     isSignUpForm={true}
                                     hiddenInputName="certificate_path"
                                 />
                                 <p className={styles.helpText}>
                                     Please upload your teaching certificate or relevant qualification document (PDF, JPG, PNG)
+                                </p>
+                            </div>
+
+                            {/* CV Upload Section */}
+                            <div className={styles.formGroup}>
+                                <label className={styles.inputLabel}>CV Upload *</label>
+                                <FileUpload
+                                    onFileUpload={handleCvUpload}
+                                    parentId="teacher-certificates"
+                                    parentTypes="signup"
+                                    isSignUpForm={true}
+                                    hiddenInputName="cv_path"
+                                />
+                                <p className={styles.helpText}>
+                                    Please upload your curriculum vitae (CV) document (PDF, JPG, PNG)
                                 </p>
                             </div>
                         </>

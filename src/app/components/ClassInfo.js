@@ -1,10 +1,24 @@
+// components/ClassInfo.jsx
 import styles from '../../styles/ClassDetails.module.css';
-import { formatDateTime, isClassJoinable, isClassInPast, isValidClassDay } from '../../utils/dateTime';
+import { formatDateTime } from '../../utils/dateTime';
+import { 
+    getMeetingStatus, 
+    getStatusText, 
+    formatRecurrence 
+} from '../../utils/classStatus';
+
+const getStatusClass = (status) => {
+    switch (status) {
+        case 'active': return styles.active;
+        case 'inactive': return styles.inactive;
+        default: return styles.scheduled;
+    }
+};
 
 export const ClassInfo = ({ classDetails, teacher, router }) => {
-    const repeatNDays = classDetails.repeat_every_n_day || classDetails['repeat-n-days'];
-    const isValidDay = isValidClassDay(classDetails.start_time, repeatNDays);
-    
+    const repeatPattern = classDetails?.repeat_every_n_day || classDetails?.['repeat-n-days'];
+    const status = getMeetingStatus(classDetails.start_time, classDetails.end_time, repeatPattern);
+
     return (
         <div className={styles.infoSection}>
             <div className={styles.infoRow}>
@@ -31,32 +45,19 @@ export const ClassInfo = ({ classDetails, teacher, router }) => {
                 </div>
             </div>
 
-            {repeatNDays && (
+            {repeatPattern && (
                 <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Recurrence</span>
                     <div className={styles.scheduleBadge}>
-                        Every {repeatNDays} day{repeatNDays !== 1 ? 's' : ''}
+                        {formatRecurrence(repeatPattern)}
                     </div>
                 </div>
             )}
 
             <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>Meeting Status</span>
-                <div className={`${styles.statusBadge} ${
-                    isClassJoinable(classDetails.start_time, classDetails.end_time, repeatNDays)
-                        ? styles.active 
-                        : isClassInPast(classDetails.end_time) && (!repeatNDays || (repeatNDays && !isValidDay))
-                            ? styles.inactive 
-                            : styles.scheduled
-                }`}>
-                    {isClassJoinable(classDetails.start_time, classDetails.end_time, repeatNDays)
-                        ? 'Active' 
-                        : isClassInPast(classDetails.end_time) && (!repeatNDays || (repeatNDays && !isValidDay))
-                            ? 'Ended' 
-                            : repeatNDays && !isValidDay
-                                ? 'Not Today'
-                                : 'Scheduled'
-                    }
+                <div className={`${styles.statusBadge} ${getStatusClass(status)}`}>
+                    {getStatusText(status)}
                 </div>
             </div>
         </div>

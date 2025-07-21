@@ -35,7 +35,6 @@ const pathService = {
         if (isSignupForm && isCertificate) {
             return join(CONFIG.SERVER_UPLOADS_DIR, 'signup-certificates', 'teacher-certificates');
         }
-        
         // Use parentType as main directory, parentId as subdirectory
         return join(CONFIG.SERVER_UPLOADS_DIR, parentType, parentId);
     },
@@ -93,6 +92,7 @@ const fileService = {
         const serverPath = join(serverDir, fileName);
         const publicPath = pathService.getPublicPath(serverPath);
 
+        console.log(serverDir, serverPath, publicPath);
         await this.createDirectory(serverDir);
         await this.save(file, serverPath);
 

@@ -77,7 +77,7 @@ export default function Notices() {
     const { notices, setNotices, loading, refetch } = useNoticesData(session);
     const notifications = useNotifications();
     const formControls = useNoticeForm();
-    const isAdmin = session?.user?.level >= 1;
+    const isAdmin = session?.user?.level > 1;
     
     const noticeHandlers = createNoticeHandlers(
         session,

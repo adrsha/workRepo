@@ -97,6 +97,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
     padding: 20px 24px 16px;
     background: linear-gradient(135deg, var(--background), var(--offWhite));
     border-bottom: 1px solid var(--secondaryBackground);
@@ -119,6 +120,7 @@
     padding: 4px 12px;
     border-radius: var(--border-radius-lg);
     border: 1px solid var(--tertiaryLight);
+    white-space: nowrap;
 }
 
 /* Improved List */

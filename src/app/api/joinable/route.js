@@ -34,7 +34,7 @@ export async function GET(req) {
             return new Response(JSON.stringify({ error: 'Unauthorized access' }), { status: 401 });
         }
 
-        let joinQuery = tables[0]; 
+        let joinQuery = tables[0];
         let whereClause = '';
         const values = [];
 
@@ -59,10 +59,9 @@ export async function GET(req) {
             FROM ${joinQuery} 
             ${whereClause ? 'WHERE ' + whereClause.substring(5) : ''}
         `;
-
         // Execute the query
         const results = await executeQueryWithRetry({ query, values });
-
+        console.log("Final", results)
         return new Response(JSON.stringify(results), { status: 200 });
     } catch (error) {
         console.error('Database query failed:', error);

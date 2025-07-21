@@ -148,8 +148,6 @@ export const createActionHandlers = (
             const { targetTable, targetId } = await getTargetTableAndId(table, id, column);
             const schema = await getSchema(table);
             
-            console.log(`Updating ${targetTable} with ID ${targetId}, field ${column} = ${value}`);
-            
             await updateData(targetTable, targetId, { [column]: value });
             
             if (schema.stateKey) {
@@ -265,7 +263,6 @@ export const createActionHandlers = (
     const teacherHandlers = createCRUDHandlers('Teacher', 'teachers_view', 'teachersData', 'user_id');
     const studentHandlers = createCRUDHandlers('Student', 'students_view', 'studentsData', 'user_id');
     const classHandlers = createCRUDHandlers('Class', 'classes_view', 'classesData', 'class_id');
-    console.log("Class", classHandlers);
 
     // Specific handlers that don't follow the generic pattern
     const handleTeacherAction = async (pendingId, approved) => {

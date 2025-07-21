@@ -26,7 +26,7 @@ export const updateMeetingUrl = async (session, isTeacher, canEditMeetingUrl, cl
     return response.json();
 };
 
-export const regenerateMeetingLink = async (session, isTeacher, canGenerateLink, classId, classDetails) => {
+export const regenerateMeetingLink = async (session, isTeacher, canGenerateLink, classId, classDetails, updateDatabase = true) => {
     if (!session || !isTeacher) {
         throw new Error('Only teachers can regenerate meeting links');
     }
@@ -39,6 +39,7 @@ export const regenerateMeetingLink = async (session, isTeacher, canGenerateLink,
         classId,
         startDate: classDetails.start_time,
         endDate: classDetails.end_time,
-        className: classDetails.course_name
+        className: classDetails.course_name,
+        updateDatabase 
     }, session.accessToken);
 };

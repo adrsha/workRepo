@@ -16,7 +16,8 @@ function createPool() {
             queueLimit: 0,
             connectTimeout: 60000,
             idleTimeout: 300000, // Close idle connections after 5 minutes
-            maxIdle: 3 // Keep fewer idle connections in dev
+            maxIdle: 3,
+            timezone: 'local' // This should fix both calls
         });
 
         // Log pool creation (helpful for debugging HMR issues)
