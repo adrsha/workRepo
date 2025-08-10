@@ -1,4 +1,3 @@
-// ClassDetailsClient.jsx
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -6,8 +5,6 @@ import '../../global.css';
 import styles from '../../../styles/ClassDetails.module.css';
 import Loading from '../../components/Loading';
 import ClassContent from '../../components/ClassContent';
-import { useClassData } from '../../../hooks/useClassData';
-import { useStudents } from '../../../hooks/useStudents';
 import { Toast } from '../../components/Toast';
 import { MeetingUrlEditor } from '../../components/MeetingUrlEditor';
 import { MeetingButton } from '../../components/MeetingButton';
@@ -20,10 +17,7 @@ import {
     parseRepeatPattern
 } from '../../../utils/classStatus';
 
-/**
- * Handle meeting join with validation
- */
-const handleMeetingJoin = (classDetails, repeatPattern, showToast) => {
+function handleMeetingJoin(classDetails, repeatPattern, showToast) {
     if (!classDetails?.meeting_url) {
         showToast('No meeting link available');
         return;
@@ -59,70 +53,16 @@ const handleMeetingJoin = (classDetails, repeatPattern, showToast) => {
     }
 
     window.open(classDetails.meeting_url, '_blank');
-};
+}
 
-/**
- * Handle meeting URL manual update (when teacher enters URL manually)
- */
-const handleUrlUpdate = async (session, isClassOwner, classId, newUrl, setClassDetails, showToast, setIsUpdating) => {
-    setIsUpdating(true);
-    try {
-        await updateMeetingUrl(session, isClassOwner, true, classId, newUrl);
-        setClassDetails(prev => ({ ...prev, meeting_url: newUrl }));
-        showToast('Meeting URL updated successfully', 'success');
-    } catch (err) {
-        console.error('Error updating meeting URL:', err);
-        showToast(err.message || 'Failed to update meeting URL. Please try again.');
-    } finally {
-        setIsUpdating(false);
-    }
-};
-
-/**
- * Generate new meeting link (returns promise with new URL)
- */
-const generateNewMeetingLink = async (session, isClassOwner, classId, classDetails, showToast) => {
-    try {
-        const data = await regenerateMeetingLink(session, isClassOwner, true, classId, classDetails, false);
-        return data.meetingUrl;
-    } catch (err) {
-        console.error('Error generating meeting link:', err);
-        showToast(err.message || 'Failed to generate meeting link. Please try again.');
-        throw err;
-    }
-};
-
-/**
- * Update database after meeting regeneration (this is already handled by the API)
- */
-const updateDatabaseAfterRegeneration = async (newUrl, setClassDetails, showToast, session, classId) => {
-    try {
-        // Now we need to actually update the database
-        await updateMeetingUrl(session, true, true, classId, newUrl);
-
-        // Update local state
-        setClassDetails(prev => ({ ...prev, meeting_url: newUrl }));
-        showToast('Meeting link saved successfully!', 'success');
-    } catch (err) {
-        console.error('Error updating database:', err);
-        showToast('Failed to save meeting link. Please try again.');
-        throw err;
-    }
-};
-
-/**
- * Show teacher reminder notification
- */
-const showTeacherReminder = (showToast) => {
-    showToast('Remember: Make sure you really are the first to join the class!', 'info');
-};
-
-export default function ClassDetailsClient({ classId, session }) {
+export default function ClassDetailsClient({ initialData, classId, session }) {
     const router = useRouter();
-    const { classDetails, setClassDetails, teacher, loading, error } = useClassData(classId, session);
-    const isClassOwner = session?.user?.id === classDetails?.teacher_id;
-    const { students } = useStudents(classId, session, isClassOwner);
-    console.log(students);
+
+    // State initialized with server data
+    const [classDetails, setClassDetails] = useState(initialData.classDetails);
+    const [teacher] = useState(initialData.teacher);
+    const [students] = useState(initialData.students);
+    const isClassOwner = initialData.isClassOwner;
 
     const [isUpdatingUrl, setIsUpdatingUrl] = useState(false);
     const [isRegenerating, setIsRegenerating] = useState(false);
@@ -135,20 +75,23 @@ export default function ClassDetailsClient({ classId, session }) {
         setTimeout(() => setToastMessage(null), type === 'info' ? 5000 : 3000);
     };
 
-    if (loading) return <Loading />;
-
-    if (error && !classDetails) {
+    // Handle error state
+    if (initialData.error) {
         return (
             <div className={styles.errorContainer}>
                 <div className={styles.errorCard}>
                     <h2>Error</h2>
-                    <p>{error}</p>
+                    <p>{initialData.error}</p>
                     <button onClick={() => router.back()} className={styles.backButton}>
                         Go Back
                     </button>
                 </div>
             </div>
         );
+    }
+
+    if (!classDetails) {
+        return <Loading />;
     }
 
     const repeatPattern = classDetails?.repeat_every_n_day;
@@ -158,35 +101,49 @@ export default function ClassDetailsClient({ classId, session }) {
 
     const joinMeeting = () => handleMeetingJoin(classDetails, repeatPattern, showToast);
 
-    const handleUpdateMeetingUrl = (newUrl) =>
-        handleUrlUpdate(session, isClassOwner, classId, newUrl, setClassDetails, showToast, setIsUpdatingUrl);
+    const handleUpdateMeetingUrl = async (newUrl) => {
+        setIsUpdatingUrl(true);
+        try {
+            await updateMeetingUrl(session, isClassOwner, true, classId, newUrl);
+            setClassDetails(prev => ({ ...prev, meeting_url: newUrl }));
+            showToast('Meeting URL updated successfully', 'success');
+        } catch (err) {
+            console.error('Error updating meeting URL:', err);
+            showToast(err.message || 'Failed to update meeting URL. Please try again.');
+        } finally {
+            setIsUpdatingUrl(false);
+        }
+    };
 
-    /**
-     * Enhanced regenerate function that works with the new MeetingUrlEditor
-     */
     const handleRegenerateMeetingLink = async () => {
         setIsRegenerating(true);
         try {
-            // This returns a promise with the new URL
-            const newUrl = await generateNewMeetingLink(session, isClassOwner, classId, classDetails, showToast);
-            return newUrl;
+            const data = await regenerateMeetingLink(session, isClassOwner, true, classId, classDetails, false);
+            return data.meetingUrl;
         } catch (err) {
-            throw err; // Re-throw to let MeetingUrlEditor handle the error
+            console.error('Error generating meeting link:', err);
+            showToast(err.message || 'Failed to generate meeting link. Please try again.');
+            throw err;
         } finally {
             setIsRegenerating(false);
         }
     };
 
-    /**
-     * Database update handler (called after successful regeneration)
-     */
     const handleDatabaseUpdate = async (newUrl) => {
-        await updateDatabaseAfterRegeneration(newUrl, setClassDetails, showToast, session, classId); 
+        try {
+            await updateMeetingUrl(session, true, true, classId, newUrl);
+            setClassDetails(prev => ({ ...prev, meeting_url: newUrl }));
+            showToast('Meeting link saved successfully!', 'success');
 
-        // Show reminder after a short delay
-        setTimeout(() => {
-            showTeacherReminder(showToast);
-        }, 1000);
+            // Show reminder after a short delay
+            setTimeout(() => {
+                showToast('Remember: Make sure you really are the first to join the class!', 'info');
+            }, 1000);
+        } catch (err) {
+            console.error('Error updating database:', err);
+            showToast('Failed to save meeting link. Please try again.');
+            throw err;
+        }
     };
 
     return (

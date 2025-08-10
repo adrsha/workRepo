@@ -1,6 +1,5 @@
-// components/ClassInfo.jsx
 import styles from '../../styles/ClassDetails.module.css';
-import { formatDateTime } from '../../utils/dateTime';
+import { formatDateTime, getDate } from '../../utils/dateTime';
 import { 
     getMeetingStatus, 
     getStatusText, 
@@ -17,7 +16,9 @@ const getStatusClass = (status) => {
 
 export const ClassInfo = ({ classDetails, teacher, router }) => {
     const repeatPattern = classDetails?.repeat_every_n_day || classDetails?.['repeat-n-days'];
-    const status = getMeetingStatus(classDetails.start_time, classDetails.end_time, repeatPattern);
+    const correctedStartTime = `${getDate(classDetails.start_time).yyyymmdd}T${getDate(classDetails.start_time).hhmmss}`;
+    const correctedEndTime = `${getDate(classDetails.end_time).yyyymmdd}T${getDate(classDetails.end_time).hhmmss}`;
+    const status = getMeetingStatus(correctedStartTime, correctedEndTime, repeatPattern);
 
     return (
         <div className={styles.infoSection}>

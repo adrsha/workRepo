@@ -105,7 +105,6 @@ export async function fetchDataWhereAttrIs(tableName, conditions, authToken = nu
 
 // Simplified joinable data fetching
 export async function fetchJoinableData(tables, joinConditions, selectionAttrs = '*', additionalFilters = {}, authToken = null, isServerSide = false) {
-    console.log("filter", additionalFilters, authToken)
     try {
         // Validate input
         if (!Array.isArray(tables) || tables.length < 2) {
@@ -131,14 +130,12 @@ export async function fetchJoinableData(tables, joinConditions, selectionAttrs =
                 ...(authToken && { 'Authorization': `Bearer ${authToken}` })
             }
         });
-        console.log("request", tables, joinConditions, selectionAttrs, searchParams.toString())
 
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to fetch joinable data');
         }
 
-        console.log("Passed")
         return await response.json();
     } catch (error) {
         console.error('Error in fetchJoinableData:', error);
@@ -294,21 +291,6 @@ export async function updateTableData(tableName, data, conditions, authToken = n
         console.error('Error in updateTableData:', error);
         throw error;
     }
-}
-
-export function getDateLocalFromUTC(string) {
-    const date = new Date(string); // This automatically converts UTC input to local time
-    const yyyymmdd = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    const hhmmss = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
-    return { yyyymmdd, hhmmss };
-}
-
-export function getDate(string) {
-    const date = new Date(string);
-    // Use UTC methods to get the date components as they appear in the UTC time
-    const yyyymmdd = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
-    const hhmmss = `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}:${String(date.getUTCSeconds()).padStart(2, '0')}`;
-    return { yyyymmdd, hhmmss };
 }
 
 

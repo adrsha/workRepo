@@ -11,10 +11,11 @@ import Loading from '../components/Loading';
 import Payer from '../components/Payer';
 import ClassroomOverlay from '../components/ChooseClassOverlay';
 
+import { getDate } from '@/utils/dateTime';
+
 import {
     fetchData,
     fetchViewData,
-    getDate,
     getUserLevel,
     groupClassesByCourse,
     getClassStatus,

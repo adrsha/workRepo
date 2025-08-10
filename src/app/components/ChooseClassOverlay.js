@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import styles from '../../styles/GradesChoice.module.css';
 import { formatRepeatPattern } from '../lib/utils';
-import { getDateLocalFromUTC } from '../lib/helpers';
+import { getDate } from '@/utils/dateTime';
 
 export default function ClassroomOverlay({
     selectedCourse,
@@ -35,8 +35,8 @@ export default function ClassroomOverlay({
                     <div className={styles.classroomGrid}>
                         {selectedCourse.classes.map(classItem => {
                             const teacher = getTeacher(classItem.teacher_id);
-                            const startDate = getDateLocalFromUTC(classItem.start_time);
-                            const endDate = getDateLocalFromUTC(classItem.end_time);
+                            const startDate = getDate(classItem.start_time);
+                            const endDate = getDate(classItem.end_time);
 
                             return (
                                 <div key={classItem.class_id} className={styles.classroomCard}>

@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import Loading from '../components/Loading.js';
 import Input from '../components/Input.js';
-import { getDate } from '../lib/helpers.js';
-import { addClass, removeClass} from '../lib/teacherActions';
+import { formatDateTime } from '../../utils/dateTime.js';
+import { addClass, removeClass } from '../lib/teacherActions';
 import { fetchJoinableData } from '../lib/helpers.js';
 import { formatRepeatPattern } from '../lib/utils.js';
 import { RepeatScheduleInput } from '../components/RepeatTime.js';
 import styles from '../../styles/Teacherlms.module.css';
 
 const TeacherDashboard = ({ userData, setUserData, session, update, router, setIsLoading, isLoading }) => {
-    const { classesData, courseData, gradeData} = userData;
+    const { classesData, courseData, gradeData } = userData;
 
     const [addClassOverLayState, setAddClassOverlayState] = useState(false);
     const [addClassError, setAddClassError] = useState('');
@@ -22,7 +22,7 @@ const TeacherDashboard = ({ userData, setUserData, session, update, router, setI
 
         try {
             const formData = extractClassFormData(e.currentTarget);
-            
+
             validateClassForm(formData);
 
             const { start, end } = formatDateTimes(formData);
@@ -66,10 +66,15 @@ const TeacherDashboard = ({ userData, setUserData, session, update, router, setI
         }
     };
 
-    const formatDateTimes = ({ startDate, startTime, endDate, endTime }) => ({
-        start: `${startDate}T${startTime}`,
-        end: `${endDate}T${endTime}`
-    });
+    const formatDateTimes = ({ startDate, startTime, endDate, endTime }) => {
+        const startLocal = new Date(`${startDate}T${startTime}`);
+        const endLocal = new Date(`${endDate}T${endTime}`);
+
+        return {
+            start: startLocal.toISOString(), 
+            end: endLocal.toISOString()
+        };
+    };
 
     const handleSuccessfulClassAdd = async () => {
         setAddClassError('');
@@ -116,10 +121,7 @@ const TeacherDashboard = ({ userData, setUserData, session, update, router, setI
                 </h3>
                 <div className={styles.classInfo}>
                     <p className={styles.timeInfo}>
-                        {getDate(classData.start_time).hhmmss} - {getDate(classData.end_time).hhmmss}
-                    </p>
-                    <p className={styles.dateInfo}>
-                        {getDate(classData.start_time).yyyymmdd} to {getDate(classData.end_time).yyyymmdd}
+                        {formatDateTime(classData.start_time, "short")} - {formatDateTime(classData.end_time, "short")}
                     </p>
                     <p className={styles.gradeInfo}>Grade: {classData.grade_name}</p>
                     <p className={styles.repeatInfo}>

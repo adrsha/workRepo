@@ -11,10 +11,10 @@ export async function GET(req) {
 
         // Check if requested view requires authorization
         if (lockedViews.includes(viewName)) {
-            // Get session from NextAuth
+            
             const session = await getServerSession(authOptions);
-            // Check if user is authenticated and has required level
-            if (!session || !session.user || session.user.level !== 2) {
+            
+            if (!session || !session.user || (session.user.level == 0)) {
                 return new Response(JSON.stringify({ error: 'Unauthorized access' }), { status: 403 });
             }
         }
