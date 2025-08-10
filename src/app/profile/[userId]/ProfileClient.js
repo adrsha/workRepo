@@ -5,7 +5,8 @@ import styles from '../../../styles/Profile.module.css';
 
 import TeacherVideoUpload from "../../components/teacherUpload";
 import { TeacherVideoPlayer } from '../../components/teacherFetch';
-import { fetchDataWhereAttrIs, fetchJoinableData, getDate } from '../../lib/helpers';
+import { fetchDataWhereAttrIs, fetchJoinableData} from '../../lib/helpers';
+import { getDate } from '@/utils/dateTime';
 
 export default function ProfileClient({ params }) {
     const { data: session, status } = useSession();

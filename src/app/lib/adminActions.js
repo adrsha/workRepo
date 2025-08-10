@@ -4,7 +4,7 @@ import { getSchema, getIdField, getStateKey } from './schema.js';
 // Generic API request function
 const makeAuthenticatedRequest = async (endpoint, options = {}) => {
     const authToken = localStorage.getItem('authToken');
-    
+
     const response = await fetch(endpoint, {
         ...options,
         headers: {
@@ -116,7 +116,7 @@ const createGenericActionHandler = (actionName, operation) => {
     return async (...args) => {
         const actionKey = `${actionName}-${args[0] || 'action'}`;
         const { startAction, endAction } = args[args.length - 1].actionHelpers;
-        
+
         startAction(actionKey);
         try {
             return await operation(...args.slice(0, -1));
@@ -140,16 +140,16 @@ export const createActionHandlers = (
     // Generic save handler
     const handleSaveData = async (table, id, column, value) => {
         if (!session) return;
-        
+        console.log(table, id, column, value);
         const actionKey = `${table}-${id}-${column}`;
         startAction(actionKey);
 
         try {
             const { targetTable, targetId } = await getTargetTableAndId(table, id, column);
             const schema = await getSchema(table);
-            
+
             await updateData(targetTable, targetId, { [column]: value });
-            
+
             if (schema.stateKey) {
                 updateArrayState(schema.stateKey, data =>
                     data.map(item =>
@@ -182,15 +182,15 @@ export const createActionHandlers = (
 
     const handleMultiSaveData = async (table, id, updates) => {
         if (!session) return;
-        
+
         const actionKey = `${table}-${id}-multi`;
         startAction(actionKey);
 
         try {
             const schema = await getSchema(table);
-            
+
             await updateData(table, id, updates);
-            
+
             if (schema.stateKey) {
                 updateArrayState(schema.stateKey, data =>
                     data.map(item =>
@@ -321,12 +321,71 @@ export const createActionHandlers = (
         }
     };
 
+
+    const handleAddCourse = async (courseData) => {
+        await startAction();
+        try {
+            const authToken = localStorage.getItem('authToken');
+            const newCourse = await postData('courses', courseData, authToken);
+
+            updateArrayState('courseData', courses => [...courses, newCourse]);
+
+            console.log('Course added successfully');
+        } catch (error) {
+            console.error('Error adding course:', error);
+            throw error;
+        } finally {
+            await endAction();
+        }
+    };
+
+    const handleDeleteCourse = async (courseId) => {
+        await startAction();
+        try {
+            const authToken = localStorage.getItem('authToken');
+            await deleteData('courses', courseId, authToken);
+
+            updateArrayState('courseData', courses =>
+                courses.filter(course => course.course_id !== courseId)
+            );
+
+            console.log('Course deleted successfully');
+        } catch (error) {
+            console.error('Error deleting course:', error);
+            throw error;
+        } finally {
+            await endAction();
+        }
+    };
+
+    const handleBulkAddCourse = async (coursesData) => {
+        await startAction();
+        try {
+            const authToken = localStorage.getItem('authToken');
+            const results = await Promise.all(
+                coursesData.map(courseData => postData('courses', courseData, authToken))
+            );
+
+            updateArrayState('courseData', courses => [...courses, ...results]);
+
+            console.log(`${results.length} courses added successfully`);
+        } catch (error) {
+            console.error('Error bulk adding courses:', error);
+            throw error;
+        } finally {
+            await endAction();
+        }
+    };
+
     return {
         handleSaveData,
         handleMultiSaveData,
         handleTeacherAction,
         handleStudentQueueApproval,
         handleStudentQueueRejection,
+        handleAddCourse,
+        handleDeleteCourse,
+        handleBulkAddCourse,
         ...teacherHandlers,
         ...studentHandlers,
         ...classHandlers

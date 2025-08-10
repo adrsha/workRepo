@@ -26,8 +26,6 @@ rm -rf deploy/node_modules
 
 # Zip it up
 echo "📦 Zipping..."
-cd deploy
-zip -r ../nextjs-deploy.zip . > /dev/null
-cd ..
+ouch compress deploy nextjs-deploy.zip > /dev/null
 
 echo "✅ Done. You can now upload 'nextjs-deploy.zip' to cPanel and extract it."

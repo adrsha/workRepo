@@ -9,10 +9,11 @@ import { createActionHandlers } from '../lib/adminActions';
 import { TeachersTab } from './common/TeachersTab';
 import { ClassesTab } from './common/ClassesTab';
 import { StudentsTab } from './common/StudentsTab';
+import { CoursesTab } from './common/CoursesTab';
 import { TABS } from '../lib/utils';
 import { getSchema } from '../lib/schema';
 
-const TAB_NAMES = ['teachers', 'classes', 'students'];
+const TAB_NAMES = ['teachers', 'classes', 'students', 'courses'];
 const TAB_ENTRIES = Object.entries(TABS);
 
 const LoadingSpinner = ({ tabIndex }) => (
@@ -44,18 +45,19 @@ const TabContent = ({ activeTab, props }) => {
     const tabs = {
         [TABS.TEACHERS]: <TeachersTab {...props.teachers} />,
         [TABS.CLASSES]: <ClassesTab {...props.classes} />,
-        [TABS.STUDENTS]: <StudentsTab {...props.students} />
+        [TABS.STUDENTS]: <StudentsTab {...props.students} />,
+        [TABS.COURSES]: <CoursesTab {...props.courses} />
     };
 
     return <div className="table-content">{tabs[activeTab]}</div>;
 };
 
 export default function AdminControl({ pendingTeachersData = [] }) {
-    const [ activeTab, setActiveTab ] = usePersistedTab();
+    const [activeTab, setActiveTab] = usePersistedTab();
     const { actionInProgress, startAction, endAction } = useAsyncAction();
     const { data: session, update } = useSession();
-    const [ schemas, setSchemas ] = useState({});
-    const [ schemasLoading, setSchemasLoading ] = useState(true);
+    const [schemas, setSchemas] = useState({});
+    const [schemasLoading, setSchemasLoading] = useState(true);
     const {
         state,
         updateState,
@@ -78,7 +80,7 @@ export default function AdminControl({ pendingTeachersData = [] }) {
                 setSchemasLoading(false);
             }
         }
-        
+
         if (session) {
             loadSchemas();
         }
@@ -132,7 +134,7 @@ export default function AdminControl({ pendingTeachersData = [] }) {
             handleMultiSaveData: actionHandlers.handleMultiSaveData,
             handleAddClass: actionHandlers.handleAddClass,
             handleDeleteClass: actionHandlers.handleDeleteClass,
-            handleBulkAddClasses: actionHandlers.handleBulkAddClass, 
+            handleBulkAddClasses: actionHandlers.handleBulkAddClass,
             schemas,
         },
         students: {
@@ -146,6 +148,15 @@ export default function AdminControl({ pendingTeachersData = [] }) {
             handleAddStudent: actionHandlers.handleAddStudent,
             handleDeleteStudent: actionHandlers.handleDeleteStudent,
             handleBulkAddStudents: actionHandlers.handleBulkAddStudent,
+            schemas,
+        },
+        courses: {
+            state,
+            actionInProgress,
+            handleSaveData: actionHandlers.handleSaveData,
+            handleAddCourse: actionHandlers.handleAddCourse,
+            handleDeleteCourse: actionHandlers.handleDeleteCourse,
+            handleBulkAddCourses: actionHandlers.handleBulkAddCourse,
             schemas,
         }
     };

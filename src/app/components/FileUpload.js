@@ -1,202 +1,133 @@
 'use client';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import styles from "../../styles/ClassContent.module.css";
 
-// Configuration presets for different use cases
-const FILE_UPLOAD_PRESETS = {
+// Configuration presets
+const UPLOAD_PRESETS = {
     carousel: {
         accept: 'image/*',
         allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-        uploadLabel: 'Drop image here or click to upload',
-        uploadButtonText: 'Upload Image',
-        successMessage: 'Image uploaded successfully',
+        labels: {
+            upload: 'Drop image here or click to upload',
+            button: 'Upload Image',
+            success: 'Image uploaded successfully'
+        },
         resetAfterUpload: true,
         validateFileType: true
     },
     classes: {
         accept: undefined,
         allowedTypes: null,
-        uploadLabel: 'Drop file here or click to upload',
-        uploadButtonText: 'Upload File',
-        successMessage: 'File uploaded successfully',
+        labels: {
+            upload: 'Drop file here or click to upload',
+            button: 'Upload File',
+            success: 'File uploaded successfully'
+        },
         resetAfterUpload: false,
         validateFileType: false
     },
     signup: {
         accept: '.pdf,.jpg,.jpeg,.png',
         allowedTypes: ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'],
-        uploadLabel: 'Drop certificate here or click to upload',
-        uploadButtonText: 'Upload Certificate',
-        successMessage: 'Certificate uploaded successfully',
+        labels: {
+            upload: 'Drop certificate here or click to upload',
+            button: 'Upload Certificate',
+            success: 'Certificate uploaded successfully'
+        },
         resetAfterUpload: false,
         validateFileType: true
     }
 };
 
-const DragHandlers = {
-    handleDrag: (e, setDragActive) => {
+// Utility functions
+const formatFileSize = (bytes) => Math.round(bytes / 1024);
+
+const validateFileType = (file, allowedTypes) => {
+    if (!allowedTypes) return { isValid: true };
+
+    const isValid = allowedTypes.includes(file.type);
+    if (!isValid) {
+        const typeNames = allowedTypes
+            .map(type => type.split('/')[1]?.toUpperCase() || type)
+            .join(', ');
+        return {
+            isValid: false,
+            error: `Only ${typeNames} files are allowed`
+        };
+    }
+
+    return { isValid: true };
+};
+
+// Custom hooks
+const useDragAndDrop = () => {
+    const [dragActive, setDragActive] = useState(false);
+
+    const handleDragEvent = useCallback((e, isDragOver = false) => {
         e.preventDefault();
         e.stopPropagation();
+        setDragActive(isDragOver);
+    }, []);
 
-        const isDragEnter = e.type === "dragenter" || e.type === "dragover";
-        setDragActive(isDragEnter);
-    },
-
-    handleDrop: (e, setDragActive, setFile, setUploadError) => {
+    const handleDrop = useCallback((e, onFileDrop) => {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
-        setUploadError(null);
 
-        if (e.dataTransfer.files?.[0]) {
-            setFile(e.dataTransfer.files[0]);
+        const droppedFile = e.dataTransfer.files?.[0];
+        if (droppedFile) {
+            onFileDrop(droppedFile);
         }
-    }
+    }, []);
+
+    return {
+        dragActive,
+        onDragEnter: (e) => handleDragEvent(e, true),
+        onDragLeave: (e) => handleDragEvent(e, false),
+        onDragOver: (e) => handleDragEvent(e, true),
+        onDrop: handleDrop
+    };
 };
 
-const FileInfo = ({ file }) => (
-    <div className={styles.fileInfo}>
-        <span className={styles.fileName}>{file.name}</span>
-        <span className={styles.fileSize}>({Math.round(file.size / 1024)} KB)</span>
-    </div>
-);
-
-const UploadLabel = ({ label }) => (
-    <label htmlFor="file-upload" className={styles.uploadLabel}>
-        <span>{label}</span>
-    </label>
-);
-
-const UploadActions = ({ onUpload, onCancel, isUploading, uploadButtonText, showCancel = true }) => (
-    <div className={styles.uploadActions}>
-        <button
-            type="button"
-            className={styles.uploadButton}
-            onClick={onUpload}
-            disabled={isUploading}
-        >
-            {isUploading ? 'Uploading...' : uploadButtonText}
-        </button>
-        {showCancel && (
-            <button
-                type="button"
-                className={styles.cancelButton}
-                onClick={onCancel}
-                disabled={isUploading}
-            >
-                {uploadButtonText.includes('Certificate') ? 'Remove' : 'Cancel'}
-            </button>
-        )}
-    </div>
-);
-
-export default function FileUpload({ 
-    // Core props
-    parentId,
-    parentType = 'classes', 
-    onUploadComplete, 
-    onFileUpload,
-    hiddenInputName,
-    
-    // Backward compatibility props
-    isSignUpForm = false,
-    
-    // Custom configuration props (override presets)
-    accept,
-    allowedTypes,
-    uploadLabel,
-    uploadButtonText,
-    successMessage,
-    resetAfterUpload,
-    validateFileType,
-    showUploadActions = true,
-    showCancelButton = true
-}) {
-    const [dragActive, setDragActive] = useState(false);
+const useFileUpload = (config, callbacks) => {
     const [file, setFile] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState(null);
     const [uploadedFilePath, setUploadedFilePath] = useState('');
 
-    // Determine configuration based on props
-    const getConfig = () => {
-        // Handle backward compatibility
-        if (isSignUpForm) {
-            return FILE_UPLOAD_PRESETS.signup;
-        }
-        
-        // Use preset if available, otherwise use default
-        const preset = FILE_UPLOAD_PRESETS[parentType] || FILE_UPLOAD_PRESETS.classes;
-        
-        // Allow custom props to override preset values
-        return {
-            accept: accept ?? preset.accept,
-            allowedTypes: allowedTypes ?? preset.allowedTypes,
-            uploadLabel: uploadLabel ?? preset.uploadLabel,
-            uploadButtonText: uploadButtonText ?? preset.uploadButtonText,
-            successMessage: successMessage ?? preset.successMessage,
-            resetAfterUpload: resetAfterUpload ?? preset.resetAfterUpload,
-            validateFileType: validateFileType ?? preset.validateFileType
-        };
-    };
-
-    const config = getConfig();
-
-    const resetFile = () => {
+    const resetFile = useCallback(() => {
         setFile(null);
         setUploadError(null);
         setUploadedFilePath('');
         const fileInput = document.getElementById('file-upload');
         if (fileInput) fileInput.value = '';
-    };
+    }, []);
 
-    const validateFile = (selectedFile) => {
-        if (!config.validateFileType || !config.allowedTypes) {
-            return { isValid: true, error: null };
-        }
-
-        const isValidType = config.allowedTypes.includes(selectedFile.type);
-        if (!isValidType) {
-            const fileTypeNames = config.allowedTypes
-                .map(type => type.split('/')[1]?.toUpperCase() || type)
-                .join(', ');
-            return {
-                isValid: false,
-                error: `Only ${fileTypeNames} files are allowed`
-            };
-        }
-
-        return { isValid: true, error: null };
-    };
-
-    const handleFileChange = (e) => {
+    const handleFileSelection = useCallback((selectedFile) => {
         setUploadError(null);
-        if (e.target.files?.[0]) {
-            const selectedFile = e.target.files[0];
-            
-            // Validate file type if required
-            const validation = validateFile(selectedFile);
+
+        if (config.validateFileType) {
+            const validation = validateFileType(selectedFile, config.allowedTypes);
             if (!validation.isValid) {
                 setUploadError(validation.error);
                 return;
             }
-            
-            setFile(selectedFile);
-            
-            // For signup form or when onFileUpload is provided, notify parent
-            if (onFileUpload) {
-                onFileUpload({ file: selectedFile, name: selectedFile.name });
-            }
         }
-    };
 
-    const handleUpload = async () => {
+        setFile(selectedFile);
+
+        if (callbacks.onFileUpload) {
+            callbacks.onFileUpload({ file: selectedFile, name: selectedFile.name });
+        }
+    }, [config.validateFileType, config.allowedTypes, callbacks.onFileUpload]);
+
+    const uploadFile = useCallback(async (uploadParams) => {
         if (!file) {
             setUploadError('File is required');
             return;
         }
-        
-        if (!isSignUpForm && !parentId) {
+
+        if (!uploadParams.isSignUpForm && !uploadParams.parentId) {
             setUploadError('Parent ID is required');
             return;
         }
@@ -207,10 +138,10 @@ export default function FileUpload({
         try {
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('parentId', parentId);
-            formData.append('parentType', parentType);
-            formData.append('isSignupForm', isSignUpForm.toString());
-            
+            formData.append('parentId', uploadParams.parentId);
+            formData.append('parentType', uploadParams.parentType);
+            formData.append('isSignupForm', uploadParams.isSignUpForm.toString());
+
             const response = await fetch('/api/upload', {
                 method: 'POST',
                 body: formData,
@@ -223,19 +154,16 @@ export default function FileUpload({
 
             const result = await response.json();
             setUploadedFilePath(result.filePath || result.path);
-            
-            // Add original name metadata
-            result.originalName = file.name;
-            
-            // Call the appropriate callback
-            if (onUploadComplete) {
-                onUploadComplete(result);
+
+            const enrichedResult = { ...result, originalName: file.name };
+
+            if (callbacks.onUploadComplete) {
+                callbacks.onUploadComplete(enrichedResult);
             }
-            if (onFileUpload) {
-                onFileUpload({...result, file});
+            if (callbacks.onFileUpload) {
+                callbacks.onFileUpload({ ...enrichedResult, file });
             }
 
-            // Reset file after successful upload if configured
             if (config.resetAfterUpload) {
                 resetFile();
             }
@@ -246,18 +174,165 @@ export default function FileUpload({
         } finally {
             setIsUploading(false);
         }
+    }, [file, config.resetAfterUpload, callbacks, resetFile]);
+
+    return {
+        file,
+        isUploading,
+        uploadError,
+        uploadedFilePath,
+        resetFile,
+        handleFileSelection,
+        uploadFile
+    };
+};
+
+// Components
+const FileInfo = ({ file }) => (
+    <div className={styles.fileInfo}>
+        <span className={styles.fileName}>{file.name}</span>
+        <span className={styles.fileSize}>({formatFileSize(file.size)} KB)</span>
+    </div>
+);
+
+const UploadLabel = ({ label }) => (
+    <label htmlFor="file-upload" className={styles.uploadLabel}>
+        <span>{label}</span>
+    </label>
+);
+
+const UploadActions = ({
+    onUpload,
+    onCancel,
+    isUploading,
+    buttonText,
+    showCancel = true
+}) => (
+    <div className={styles.uploadActions}>
+        <button
+            type="button"
+            className={styles.uploadButton}
+            onClick={onUpload}
+            disabled={isUploading}
+        >
+            {isUploading ? 'Uploading...' : buttonText}
+        </button>
+        {showCancel && (
+            <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={onCancel}
+                disabled={isUploading}
+            >
+                {buttonText.includes('Certificate') ? 'Remove' : 'Cancel'}
+            </button>
+        )}
+    </div>
+);
+
+const ErrorMessage = ({ error }) => (
+    <div className={styles.errorMessage}>
+        {error}
+    </div>
+);
+
+const SuccessMessage = ({ message }) => (
+    <div className={styles.successMessage}>
+        ✓ {message}
+    </div>
+);
+
+const HiddenInput = ({ name, value }) => (
+    <input type="hidden" name={name} value={value} />
+);
+
+// Main component
+export default function FileUpload({
+    // Core props
+    parentId,
+    parentType = 'classes',
+    onUploadComplete,
+    onFileUpload,
+    hiddenInputName,
+
+    // Backward compatibility
+    isSignUpForm = false,
+
+    // Custom configuration (overrides presets)
+    accept,
+    allowedTypes,
+    uploadLabel,
+    uploadButtonText,
+    successMessage,
+    resetAfterUpload,
+    validateFileType,
+    showUploadActions = true,
+    showCancelButton = true
+}) {
+    // Get configuration
+    const getConfig = () => {
+        // Handle backward compatibility
+        if (isSignUpForm) {
+            return UPLOAD_PRESETS.signup;
+        }
+
+        const preset = UPLOAD_PRESETS[parentType] || UPLOAD_PRESETS.classes;
+
+        // Allow custom props to override preset values
+        return {
+            accept: accept ?? preset.accept,
+            allowedTypes: allowedTypes ?? preset.allowedTypes,
+            uploadLabel: uploadLabel ?? preset.labels.upload,
+            uploadButtonText: uploadButtonText ?? preset.labels.button,
+            successMessage: successMessage ?? preset.labels.success,
+            resetAfterUpload: resetAfterUpload ?? preset.resetAfterUpload,
+            validateFileType: validateFileType ?? preset.validateFileType
+        };
     };
 
-    const shouldShowUploadActions = showUploadActions && file && (!isSignUpForm || isSignUpForm);
+    const config = getConfig();
+    const callbacks = { onUploadComplete, onFileUpload };
+
+    const dragProps = useDragAndDrop();
+    const {
+        file,
+        isUploading,
+        uploadError,
+        uploadedFilePath,
+        resetFile,
+        handleFileSelection,
+        uploadFile
+    } = useFileUpload(config, callbacks);
+
+    const handleFileChange = (e) => {
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile) {
+            handleFileSelection(selectedFile);
+        }
+    };
+
+    const handleFileDrop = (droppedFile) => {
+        handleFileSelection(droppedFile);
+    };
+
+    const handleUpload = () => {
+        uploadFile({
+            parentId,
+            parentType,
+            isSignUpForm
+        });
+    };
+
+    const shouldShowUploadActions = showUploadActions && file;
 
     return (
         <div className={styles.fileUploadContainer}>
             <div
-                className={`${styles.dropzone} ${dragActive ? styles.active : ''} ${file ? styles.hasFile : ''}`}
-                onDragEnter={(e) => DragHandlers.handleDrag(e, setDragActive)}
-                onDragLeave={(e) => DragHandlers.handleDrag(e, setDragActive)}
-                onDragOver={(e) => DragHandlers.handleDrag(e, setDragActive)}
-                onDrop={(e) => DragHandlers.handleDrop(e, setDragActive, setFile, setUploadError)}
+                className={`${styles.dropzone} ${dragProps.dragActive ? styles.active : ''} ${file ? styles.hasFile : ''}`}
+                onDragEnter={dragProps.onDragEnter}
+                onDragLeave={dragProps.onDragLeave}
+                onDragOver={dragProps.onDragOver}
+                onDrop={(e) => dragProps.onDrop(e, handleFileDrop)}
             >
                 <input
                     type="file"
@@ -268,38 +343,31 @@ export default function FileUpload({
                     accept={config.accept}
                 />
 
-                {file ? <FileInfo file={file} /> : <UploadLabel label={config.uploadLabel} />}
+                {file ? (
+                    <FileInfo file={file} />
+                ) : (
+                    <UploadLabel label={config.uploadLabel} />
+                )}
             </div>
 
-            {uploadError && (
-                <div className={styles.errorMessage}>
-                    {uploadError}
-                </div>
-            )}
+            {uploadError && <ErrorMessage error={uploadError} />}
 
             {shouldShowUploadActions && (
                 <UploadActions
                     onUpload={handleUpload}
                     onCancel={resetFile}
                     isUploading={isUploading}
-                    uploadButtonText={config.uploadButtonText}
+                    buttonText={config.uploadButtonText}
                     showCancel={showCancelButton}
                 />
             )}
 
-            {/* Hidden input for form submission */}
             {hiddenInputName && uploadedFilePath && (
-                <input 
-                    type="hidden" 
-                    name={hiddenInputName} 
-                    value={uploadedFilePath} 
-                />
+                <HiddenInput name={hiddenInputName} value={uploadedFilePath} />
             )}
 
             {uploadedFilePath && (
-                <div className={styles.successMessage}>
-                    ✓ {config.successMessage}
-                </div>
+                <SuccessMessage message={config.successMessage} />
             )}
         </div>
     );

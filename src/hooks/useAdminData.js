@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchData, fetchViewData } from '../app/lib/helpers.js';
 
-const TABS = { TEACHERS: 0, CLASSES: 1, STUDENTS: 2 };
+const TABS = { TEACHERS: 0, CLASSES: 1, STUDENTS: 2, COURSES: 3};
 
 export const useAdminData = (initialPendingTeachers = []) => {
     const [state, setState] = useState({
@@ -53,7 +53,6 @@ export const useAdminData = (initialPendingTeachers = []) => {
         }
 
         updateState({ isLoading: true, error: null });
-
         try {
             switch (tabIndex) {
                 case TABS.TEACHERS: {
@@ -82,8 +81,8 @@ export const useAdminData = (initialPendingTeachers = []) => {
                         courseData: courses,
                         gradesData: grades,
                         teachersData: teachers,
-                        classesUsersData: classesUsers, // Store junction table data
-                        usersData: users // Store all users data
+                        classesUsersData: classesUsers, 
+                        usersData: users 
                     });
                     break;
                 }
@@ -107,6 +106,11 @@ export const useAdminData = (initialPendingTeachers = []) => {
                     });
                     break;
                 }
+                case TABS.COURSES: {
+                    const courses = await fetchData('courses', authToken);
+                    updateState({ courseData: courses });
+                    break;
+                }
             }
             markTabLoaded(tabIndex);
         } catch (err) {
@@ -117,7 +121,7 @@ export const useAdminData = (initialPendingTeachers = []) => {
             updateState({ isLoading: false });
         }
     }, [state.loadedTabs]);
-    
+
     const resetData = () => {
         setState(prev => ({
             ...prev,

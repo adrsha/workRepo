@@ -1,9 +1,6 @@
-// TableRow.js - Enhanced with hidden column support
+// TableRow.js - Updated with extracted PreviewModal
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { createPortal } from 'react-dom';
-import { TeacherVideoPlayer } from '../../teacherFetch';
-import FileViewer from '../../FileViewer';
+import { PreviewModal } from './PreviewModal';
 
 const PreviewButton = ({ onClick }) => (
     <>
@@ -18,46 +15,6 @@ const PreviewButton = ({ onClick }) => (
         </button>
     </>
 );
-
-const PreviewModal = ({ previewData, onClose }) => {
-    if (!previewData) return null;
-    const {data: session} = useSession();
-    const isAdmin = session?.user?.level === 2;
-
-    const { fieldName, item } = previewData;
-    
-    let previewContent;
-    if (fieldName === 'video_path') {
-        const teacherId = item.user_id || item.teacher_id || item.id;
-        previewContent = <TeacherVideoPlayer teacherId={teacherId} />;
-    } else if (fieldName === 'certificate_path' || fieldName === 'cv_path') {
-        previewContent = <FileViewer filePath={item[fieldName]} allowFileChange={isAdmin} />;
-    } else {
-        previewContent = <div>Preview not available for this file type</div>;
-    }
-
-    const modalElement = (
-        <div className="modal-overlay">
-            <div className="modal-content preview-modal">
-                <div className="modal-header">
-                    <h3>File Preview</h3>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="close-btn"
-                    >
-                        ×
-                    </button>
-                </div>
-                <div className="preview-content">
-                    {previewContent}
-                </div>
-            </div>
-        </div>
-    );
-
-    return createPortal(modalElement, document.body);
-};
 
 export const TableRow = ({
     item,
@@ -74,13 +31,13 @@ export const TableRow = ({
     onDelete
 }) => {
     const [previewData, setPreviewData] = useState(null);
+    
     const handlePreview = (fieldName) => {
         setPreviewData({ fieldName, item });
     };
 
     const closePreview = () => setPreviewData(null);
 
-    // Enhanced renderCell that can access all columns including hidden ones
     const renderCellContent = (col) => {
         const value = item[col];
 
@@ -89,7 +46,7 @@ export const TableRow = ({
             const customContent = renderCell(item, col, index, allColumns);
 
             // If it's a preview field with value, show preview button
-            if ((col === 'video_path' || col === 'certificate_path' || col === 'cv_path') && value && value.toString().trim() !== '') {
+            if (isPreviewableField(col) && hasValue(value)) {
                 return <PreviewButton onClick={() => handlePreview(col)} />;
             }
 
@@ -97,12 +54,20 @@ export const TableRow = ({
         }
 
         // Default handling for preview fields
-        if ((col === 'video_path' || col === 'certificate_path' || col === 'cv_path') && value && value.toString().trim() !== '') {
+        if (isPreviewableField(col) && hasValue(value)) {
             return <PreviewButton onClick={() => handlePreview(col)} />;
         }
 
         // Default cell content
         return value;
+    };
+
+    const isPreviewableField = (col) => {
+        return ['video_path', 'certificate_path', 'cv_path'].includes(col);
+    };
+
+    const hasValue = (value) => {
+        return value && value.toString().trim() !== '';
     };
 
     // Helper function to get data from hidden columns
@@ -176,4 +141,3 @@ export const TableRow = ({
         </>
     );
 };
-

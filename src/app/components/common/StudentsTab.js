@@ -247,7 +247,7 @@ const ApprovedStudentsTable = ({
             onAdd={handleAdd}
             onDelete={handleDelete}
             onBulkAdd={handleBulkAdd}
-            requiredFields={['user_name', 'user_email', 'grade_id', 'role_id']}
+            requiredFields={['user_name', 'user_email', 'contact', 'date_of_birth']}
             tableName="Student"
         />
     );
@@ -282,8 +282,8 @@ export const StudentsTab = ({
             </Section>
         )}
 
-        {/* All Students Section */}
         <Section title="Approved Students">
+                
             <ApprovedStudentsTable
                 students={state.studentsData || state.usersData?.filter(user => user.role_name === 'student') || []}
                 gradesData={state.gradesData}

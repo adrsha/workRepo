@@ -2,10 +2,10 @@
     margin: 0;
     padding: 0;
     font-family: var(--font-sans);
-    
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 20vw;
+    overflow: auto;
 }
 
 .editable-field__label {
@@ -17,17 +17,8 @@
     margin-bottom: 0.25rem;
 }
 
-.editable-field__edit-container {
-    max-width: 20vw;
-    min-width: 19vw;
-}
-.editable-field__button-container {
-    display: flex;
-    align-items: stretch;
-    justify-content: stretch;
-}
-
 .editable-field__input {
+    min-width: fit-content;
     width: 100%;
     padding: var(--inputThickness);
     font-size: 1rem;
@@ -40,13 +31,12 @@
         box-shadow 0.2s ease-in-out;
 }
 
-td>.editable-field .editable-field__display,
-td>.editable-field .editable-field__input {
+/* Special styling for inputs inside table cells */
+td > .editable-field .editable-field__input {
     white-space: nowrap;
     padding: var(--inputThickness);
     margin-bottom: 0.2rem;
 }
-
 
 .editable-field__input:focus {
     outline: none;
@@ -54,148 +44,101 @@ td>.editable-field .editable-field__input {
     box-shadow: 0 0 0 2px var(--secondaryLight);
 }
 
-.editable-field__display {
-    padding: var(--inputThickness);
-    font-size: 1rem;
-    border: 1px solid var(--offWhite);
-    border-radius: 4px;
-    cursor: pointer;
-    background-color: var(--background);
-    color: var(--darkforeground);
-    transition: background-color 0.2s ease-in-out;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
-.editable-field__display:hover {
-    background-color: var(--secondaryBackground);
-}
-
-/* New shared styles */
-.editable-field__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.25rem;
-}
-
-.editable-field__current-value {
-    font-size: 0.75rem;
-    color: var(--muted, #6b7280);
-    font-style: italic;
-}
-
-.editable-field__text {
-    flex: 1;
-}
-
-.editable-field__icon {
-    margin-left: 0.5rem;
-    opacity: 0.7;
-}
-
-.editable-field__controls {
-    width: 100%;
-}
-
-.editable-field__error {
-    color: var(--error, #ef4444);
-    font-size: 0.75rem;
-    margin: 0.5rem 0;
-}
-
-.editable-field__buttons {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-}
-
-.editable-field__button {
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-}
-
-.editable-field__button--save {
-    background-color: var(--primary, #3b82f6);
-    color: white;
-    border: none;
-}
-
-.editable-field__button--save:hover {
-    background-color: var(--primaryDark, #2563eb);
-}
-
-.editable-field__button--cancel {
-    background-color: var(--background, white);
-    color: var(--foreground, #4b5563);
-    border: 1px solid var(--offWhite);
-}
-
-.editable-field__button--cancel:hover {
-    background-color: var(--secondaryBackground, #f3f4f6);
-}
-
-/* Disabled state */
-.editable-field.disabled .editable-field__display {
-    opacity: 0.7;
+/* Disabled state for inputs */
+.editable-field__input:disabled {
+    opacity: 0.6;
     cursor: not-allowed;
     background-color: var(--disabledBackground, #f3f4f6);
 }
 
-/* Styles for dropdown */
-.editable-field__controls select {
-    width: 100%;
-    padding: var(--inputThickness);
-    font-size: 1rem;
-    border: 1px solid var(--offWhite);
-    border-radius: 4px;
-    background-color: var(--background);
-    color: var(--darkforeground);
-    transition:
-        border-color 0.2s ease-in-out,
-        box-shadow 0.2s ease-in-out;
-    margin-bottom: 0.5rem;
+/* Disabled state for the entire field */
+.editable-field.disabled {
+    opacity: 0.7;
+    pointer-events: none;
 }
 
-.editable-field__controls select:focus {
-    outline: none;
-    border-color: var(--secondary);
-    box-shadow: 0 0 0 2px var(--secondaryLight);
-}
-
-.editable-field__controls select.has-error {
-    border-color: var(--error, #ef4444);
-    background-color: var(--errorLight, #fef2f2);
-}
-
-/* Styles for time schedule component */
-.editable-field__time-inputs {
+/* DateTime specific styles */
+.editable-field__date-time-inputs {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
 }
 
 @media (min-width: 640px) {
-    .editable-field__time-inputs {
+    .editable-field__date-time-inputs {
         flex-direction: row;
         gap: 1rem;
     }
 }
 
-.editable-field__time-input-group {
+.editable-field__input-group {
     flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-.editable-field__time-label {
+.editable-field__input-label {
     display: block;
     font-size: 0.75rem;
     font-weight: 500;
     margin-bottom: 0.25rem;
     color: var(--foreground);
+}
+
+/* Select dropdown styles */
+.editable-field select.editable-field__input {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3e%3cpath fill='%23666' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.65rem;
+    padding-right: 2.5rem;
+}
+
+.editable-field select.editable-field__input:disabled {
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3e%3cpath fill='%23999' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e");
+}
+
+/* Loading state indicator */
+.editable-field__input:disabled::after {
+    content: '';
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--secondary, #3b82f6);
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Error states */
+.editable-field__input.has-error {
+    border-color: var(--error, #ef4444);
+    background-color: var(--errorLight, #fef2f2);
+}
+
+.editable-field__error {
+    color: var(--error, #ef4444);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .editable-field {
+        max-width: none;
+    }
+    
+    .editable-field__date-time-inputs {
+        gap: 0.5rem;
+    }
 }

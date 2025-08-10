@@ -4,7 +4,7 @@ import { authOptions } from "../auth/[...nextauth]/authOptions";
 
 const ALLOWED_TABLES = [
     'users', 'teachers', 'students', 'classes', 'pending_teachers',
-    'classes_view', 'students_view', 'teachers_view',
+    'classes_view', 'students_view', 'teachers_view', 'courses'
 ];
 
 const DISALLOWED_FIELDS = {
@@ -13,6 +13,7 @@ const DISALLOWED_FIELDS = {
 };
 
 const TABLE_PRIMARY_KEYS = {
+    'courses': 'course_id', 
     'classes_view': 'class_id', 
     'students_view': 'user_id', 
     'teachers_view': 'user_id',
@@ -24,6 +25,7 @@ const TABLE_PRIMARY_KEYS = {
 };
 
 const REQUIRED_FIELDS = {
+    'courses': ['course_name'],
     'classes': ['course_id', 'teacher_id', 'grade_id', 'start_time', 'end_time'],
     'users': ['user_name', 'user_email'],
     'pending_teachers': ['user_name', 'user_email'],
@@ -109,7 +111,7 @@ function separateViewData(viewName, data) {
             return acc;
         }, {});
 
-        // FIXED: If user_id is provided in the original data, preserve it
+        // If user_id is provided in the original data, preserve it
         // This allows admins to create records for specific users
         if (data.user_id !== undefined) {
             result.userData.user_id = data.user_id;

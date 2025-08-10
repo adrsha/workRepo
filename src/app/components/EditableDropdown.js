@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { revFormatColName } from '../lib/utils';
 import "./innerStyles/EditableField.css"
 
+// Dropdown component
 export const EditableDropdown = ({
     initialValue,
     onSave,
@@ -11,95 +12,53 @@ export const EditableDropdown = ({
     options,
     placeholder,
     disabled = false,
-    className = "",
-    showSelectedValue = false // New prop to display current value 
+    className = ""
 }) => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [value, setValue] = useState(initialValue);
-    const [error, setError] = useState(""); // Added for validation feedback
+    const [value, setValue] = useState(initialValue || '')
+    const [isUpdating, setIsUpdating] = useState(false)
 
-    // Synchronize with updated props
     useEffect(() => {
-        setValue(initialValue);
-    }, [initialValue]);
+        setValue(initialValue || '')
+    }, [initialValue])
 
-    const handleSave = () => {
-        // Only save if value is not empty or null
-        if (value) {
-            onSave(value);
-            setIsEditing(false);
-            setError("");
-        } else {
-            setError("Please select a value");
+    const handleSave = useCallback(async (newValue) => {
+        if (newValue === initialValue || isUpdating) return
+        
+        setIsUpdating(true)
+        try {
+            await onSave(newValue)
+        } catch (error) {
+            console.error("Failed to save:", error)
+            setValue(initialValue || '') // Reset on error
+        } finally {
+            setIsUpdating(false)
         }
-    };
+    }, [initialValue, onSave, isUpdating])
 
-    // Find the matching option to display the label
-    const selectedOption = options.find((opt) => String(opt.value) === String(value));
-    const displayText = selectedOption
-        ? selectedOption.label
-        : placeholder || 'Click to edit';
-
-    const handleCancel = () => {
-        setIsEditing(false);
-        setValue(initialValue); // Reset to initial value on cancel
-        setError("");
+    const handleChange = (e) => {
+        const newValue = e.target.value
+        setValue(newValue)
+        handleSave(newValue) // Save immediately on selection
     }
 
     return (
         <div className={`editable-field ${className} ${disabled ? 'disabled' : ''}`}>
-            {isEditing ? (
-                <div className="editable-field__controls">
-                    <select
-                        id={`dropdown-${label}`}
-                        value={value || ''}
-                        onChange={(e) => {
-                            setValue(e.target.value);
-                            setError("");
-                        }}
-                        className={error ? "has-error" : ""}
-                    >
-                        <option value="" disabled>
-                            {placeholder || 'Select an option'}
-                        </option>
-                        {options.map((option) => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-
-                    {error && (
-                        <div className="editable-field__error">{error}</div>
-                    )}
-
-                    <div className="editable-field__buttons">
-                        <button
-                            className="editable-field__button editable-field__button--save"
-                            onClick={handleSave}
-                        >
-                            Save
-                        </button>
-                        <button
-                            className="editable-field__button editable-field__button--cancel"
-                            onClick={handleCancel}
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            ) : (
-                    <div
-                        className="editable-field__display"
-                        onClick={() => !disabled && setIsEditing(true)}
-                    >
-                        <span className="editable-field__text">{displayText}</span>
-                        {!disabled && (
-                            <span className="editable-field__icon">✏️</span>
-                        )}
-                        {value && <input type="hidden" name={revFormatColName(label)} value={value} />}
-                    </div>
-                )}
+            <select
+                value={value}
+                onChange={handleChange}
+                className="editable-field__input"
+                disabled={disabled || isUpdating}
+            >
+                <option value="" disabled>
+                    {placeholder || 'Select an option'}
+                </option>
+                {options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                        {option.label}
+                    </option>
+                ))}
+            </select>
+            {value && <input type="hidden" name={revFormatColName(label)} value={value} />}
         </div>
-    );
-};
+    )
+}

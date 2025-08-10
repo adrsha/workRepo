@@ -182,7 +182,7 @@ export const studentsFieldMappings = {
         }),
         
     date_of_birth: (item, onSave, config, deps, renderers) => 
-        renderers.datetime(item.date_of_birth, onSave, config),
+        renderers.date(item.date_of_birth, onSave, config),
 
     enrolled_classes: (item, onSave, config, deps, renderers) => {
         // In form mode, show a simple message

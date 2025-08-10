@@ -1,49 +1,56 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { revFormatColName } from '../lib/utils';
 import "./innerStyles/EditableField.css"
 
-export const EditableDate = ({ initialDate, onSave, label }) => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [date, setDate] = useState(initialDate || '');
-    // Sync with parent component when props change
+export function EditableDate ({ initialValue, onSave, label, placeholder, disabled = false }) {
+    const [value, setValue] = useState(initialValue || '')
+    const [isUpdating, setIsUpdating] = useState(false)
+
     useEffect(() => {
-        setDate(initialDate || '');
-    }, [initialDate]);
+        setValue(initialValue || '')
+    }, [initialValue])
 
-    const handleSave = useCallback(() => {
-        onSave(date);
-        setIsEditing(false);
-    }, [date, onSave]);
+    const handleSave = useCallback(async (newValue) => {
+        if (newValue === initialValue || isUpdating) return
+        
+        setIsUpdating(true)
+        try {
+            await onSave(newValue)
+        } catch (error) {
+            console.error("Failed to save date:", error)
+            setValue(initialValue || '') // Reset on error
+        } finally {
+            setIsUpdating(false)
+        }
+    }, [initialValue, onSave, isUpdating])
 
-    const formatDateDisplay = (d) => {
-        return d ? d : 'No date set';
-    };
+    const handleBlur = () => {
+        handleSave(value)
+    }
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.target.blur() // Trigger save on Enter
+        } else if (e.key === 'Escape') {
+            setValue(initialValue || '') // Reset on Escape
+        }
+    }
 
     return (
         <div className="editable-field">
-            {isEditing ? (
-                <div className="edit-controls date-controls">
-                    <div className="date-input-group">
-                        <label>Date:</label>
-                        <input
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                        />
-                    </div>
-                    <div className="button-group">
-                        <button onClick={handleSave}>Save</button>
-                        <button onClick={() => setIsEditing(false)}>Cancel</button>
-                    </div>
-                </div>
-            ) : (
-                <div className="display-value" onClick={() => setIsEditing(true)}>
-                    {formatDateDisplay(date)}
-                    {data && <input type="hidden" value={date} name={revFormatColName(label)}/>}
-                </div>
-            )}
+            <input
+                type="date"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+                className="editable-field__input"
+                placeholder={placeholder}
+                disabled={disabled || isUpdating}
+            />
+            {value && <input type="hidden" name={revFormatColName(label)} value={value} />}
         </div>
-    );
-};
+    )
+}

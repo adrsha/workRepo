@@ -34,6 +34,7 @@ export const AddRecordForm = ({
     const handleSubmit = (e) => {
         e.preventDefault();
         if (validateForm()) {
+            console.log(formData, onSave.toString());
             onSave(formData);
         }
     };

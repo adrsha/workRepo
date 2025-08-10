@@ -1,4 +1,4 @@
-// Table/index.js - Fixed AddRecordForm call with fieldMappings
+// Table/index.js
 import { useState } from 'react';
 import "../../innerStyles/Table.css"
 import { getCols, formatColName } from '../../../lib/utils';

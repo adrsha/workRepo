@@ -35,6 +35,17 @@ const createBaseRenderers = () => ({
         />
     ),
 
+    textarea: (value, onSave, config) => (
+        <EditableField
+            initialValue={value || ''}
+            onSave={onSave}
+            placeholder={config.placeholder}
+            label={config.label}
+            isFormMode={config.isFormMode}
+            isTextarea={true}
+        />
+    ),
+
     dropdown: (value, onSave, config) => (
         <EditableDropdown
             initialValue={value || ''}
@@ -98,16 +109,15 @@ const createFieldConfig = (item, col, options = {}) => ({
 const createSaveHandler = (item, col, handlers, schemas = {}) => {
     const { onSaveData, onMultiSaveData, onChange } = handlers;
 
-    // In form mode, always use onChange if provided
     if (item.isFormMode && onChange) {
         return (value) => {
-            console.log(`Form mode: Setting ${col} to`, value);
             onChange(col, value);
         };
     }
 
     // For non-form mode (editing existing records)
     const keyField = getKeyField(item);
+    
     if (!keyField || !item[keyField]) {
         console.warn(`No key field found for item:`, item);
         return () => {};
@@ -131,17 +141,24 @@ export const createFieldRenderer = (fieldMappings, dependencies, handlers) => {
         const extendedHandlers = { ...handlers, onChange };
         const onSave = createSaveHandler(item, col, extendedHandlers, dependencies.schemas);
         
-        
         const config = createFieldConfig(item, col, {
             ...options,
             error: options.error // Make sure error gets passed through
         });
 
-        // Check for custom field mapping
+        // Check for custom field mapping first
         const customMapping = fieldMappings[col];
-        // console.log("customMapping", fieldMappings);
-        if (customMapping) {
+        
+        if (customMapping && typeof customMapping === 'function') {
             return customMapping(item, onSave, config, dependencies, baseRenderers);
+        }
+
+        // Check if it's a simple string mapping (like 'textarea')
+        if (customMapping && typeof customMapping === 'string') {
+            const renderer = baseRenderers[customMapping];
+            if (renderer) {
+                return renderer(item[col], onSave, config);
+            }
         }
 
         // Default to text field
@@ -154,6 +171,7 @@ const getKeyField = (item) => {
     if (item.class_id !== undefined) return 'class_id';
     if (item.user_id !== undefined) return 'user_id';
     if (item.pending_id !== undefined) return 'pending_id';
+    if (item.course_id !== undefined) return 'course_id'; // add this at the last as this also exists in non course tabs
     return null;
 };
 
@@ -164,7 +182,7 @@ const getTableName = (schemas, col, item) => {
         }
     }
 
-    // Fallback logic
+    if (item.course_id !== undefined) return 'courses';
     if (item.class_id !== undefined) return 'classes';
     if (item.pending_id !== undefined) return 'pending_teachers';
     return 'users';

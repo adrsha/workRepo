@@ -1,58 +1,48 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { revFormatColName } from '../lib/utils';
 import "./innerStyles/EditableField.css"
 
+// Basic text field component
+export function EditableField({ initialValue, onSave, label, placeholder, disabled = false }) {
+    const [value, setValue] = useState(initialValue || '')
+    const [isUpdating, setIsUpdating] = useState(false)
 
-export function EditableField({ initialValue, onSave, label, placeholder }) {
-    const [isEditing, setIsEditing] = useState(false)
-    const [value, setValue] = useState(initialValue)
-    const [tempValue, setTempValue] = useState(initialValue)
+    useEffect(() => {
+        setValue(initialValue || '')
+    }, [initialValue])
 
-    const handleSave = useCallback(async () => {
+    const handleSave = useCallback(async (newValue) => {
+        if (newValue === initialValue || isUpdating) return
+        
+        setIsUpdating(true)
         try {
-            await onSave(tempValue)
-            setValue(tempValue)
-            setIsEditing(false)
+            await onSave(newValue)
         } catch (error) {
             console.error("Failed to save:", error)
+            setValue(initialValue || '') // Reset on error
+        } finally {
+            setIsUpdating(false)
         }
-    }, [tempValue, onSave])
+    }, [initialValue, onSave, isUpdating])
 
-    const handleCancel = () => {
-        setTempValue(value)
-        setIsEditing(false)
+    const handleBlur = () => {
+        handleSave(value)
     }
 
     return (
         <div className="editable-field">
-            {isEditing ? (
-                <div className="editable-field__edit-container">
-                    <input
-                    type="text"
-                    id={label}
-                    value={tempValue}
-                    onChange={(e) => setTempValue(e.target.value)}
-                    className="editable-field__input"
-                    placeholder={placeholder}
-                    autoFocus
-                    />
-                    <div className="editable-field__button-container">
-                        <button onClick={handleSave} className="editable-field__button editable-field__button--save">
-                            Save
-                        </button>
-                        <button onClick={handleCancel} className="editable-field__button editable-field__button--cancel">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            ) : (
-                <div onClick={() => setIsEditing(true)} className="editable-field__display">
-                    {(value != null) ? value.toString() : placeholder}
-                    {value && <input type="hidden" name={revFormatColName(label)} value={value} />}
-                </div>
-            )}
+            <input
+                type="text"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                onBlur={handleBlur}
+                className="editable-field__input"
+                placeholder={placeholder}
+                disabled={disabled || isUpdating}
+            />
+            {value && <input type="hidden" name={revFormatColName(label)} value={value} />}
         </div>
     )
 }
