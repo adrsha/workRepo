@@ -1,4 +1,4 @@
-export const formatDateTime = (dateTimeString) => {
+export const formatDateTime = (dateTimeString, length) => {
     if (!dateTimeString) return 'TBD';
 
     try {
@@ -6,16 +6,30 @@ export const formatDateTime = (dateTimeString) => {
             return dateTimeString;
         }
 
-        const date = new Date(dateTimeString);
+        const { yyyymmdd, hhmmss } = getDate(dateTimeString);
+        const date = new Date(`${yyyymmdd}T${hhmmss}`);
+        
+        if (length == 'short'){
+            return new Intl.DateTimeFormat('en-US', {
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true
+            }).format(date);
+        }
+        
         return new Intl.DateTimeFormat('en-US', {
-            weekday: 'long',
+            weekday: 'short',
             year: 'numeric', 
-            month: 'long', 
+            month: 'short', 
             day: 'numeric',
             hour: '2-digit', 
             minute: '2-digit',
             hour12: true
         }).format(date);
+            
     } catch (e) {
         console.error('Error formatting date:', e);
         return dateTimeString;
@@ -88,3 +102,19 @@ export const canTeacherGenerateLink = (startTime, endTime, repeatNDays) => {
     
     return now <= classEnd;
 };
+
+// export function getDate (string) {
+//     console.log("date", string)
+//     const date = new Date(string);
+//     
+//     const yyyymmdd = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+//     const hhmmss = `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}:${String(date.getUTCSeconds()).padStart(2, '0')}`;
+//     return { yyyymmdd, hhmmss };
+// }
+
+export function getDate(string) {
+    const date = new Date(string);
+    const yyyymmdd = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const hhmmss = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
+    return { yyyymmdd, hhmmss };
+}

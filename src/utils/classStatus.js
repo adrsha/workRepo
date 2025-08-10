@@ -1,4 +1,5 @@
 // utils/classStatus.js
+import { getDate } from './dateTime.js';
 
 /**
  * Parse repeat pattern string into structured object
@@ -26,6 +27,27 @@ export const parseRepeatPattern = (repeatPattern) => {
 };
 
 /**
+ * Create normalized Date object from ISO string using getDate utility
+ * @param {string} dateString - ISO date string
+ * @returns {Date} Normalized Date object
+ */
+const createDateFromString = (dateString) => {
+    const { yyyymmdd, hhmmss } = getDate(dateString);
+    return new Date(`${yyyymmdd}T${hhmmss}`);
+};
+
+/**
+ * Get date-only representation (midnight) of a date
+ * @param {Date} date - Input date
+ * @returns {Date} Date set to midnight
+ */
+const getDateOnly = (date) => {
+    const dateOnly = new Date(date);
+    dateOnly.setHours(0, 0, 0, 0);
+    return dateOnly;
+};
+
+/**
  * Check if class is available on a specific date
  * @param {string} startTime - ISO string of class start time
  * @param {string} endTime - ISO string of class end time  
@@ -36,15 +58,12 @@ export const parseRepeatPattern = (repeatPattern) => {
 export const isClassAvailableOnDate = (startTime, endTime, repeatPattern, checkDate = new Date()) => {
     if (!startTime) return false;
 
-    const classStart = new Date(startTime);
+    const classStart = createDateFromString(startTime);
     const targetDate = new Date(checkDate);
     
-    // For one-time classes, check if it's the same date
     if (!repeatPattern) {
-        const targetDateOnly = new Date(targetDate);
-        targetDateOnly.setHours(0, 0, 0, 0);
-        const classDateOnly = new Date(classStart);
-        classDateOnly.setHours(0, 0, 0, 0);
+        const targetDateOnly = getDateOnly(targetDate);
+        const classDateOnly = getDateOnly(classStart);
         return targetDateOnly.getTime() === classDateOnly.getTime();
     }
 
@@ -52,17 +71,14 @@ export const isClassAvailableOnDate = (startTime, endTime, repeatPattern, checkD
     const pattern = parseRepeatPattern(repeatPattern);
     if (!pattern) return false;
 
-    const targetDateOnly = new Date(targetDate);
-    targetDateOnly.setHours(0, 0, 0, 0);
-    const startDateOnly = new Date(classStart);
-    startDateOnly.setHours(0, 0, 0, 0);
+    const targetDateOnly = getDateOnly(targetDate);
+    const startDateOnly = getDateOnly(classStart);
 
     // Check if target date is before class start date
     if (targetDateOnly < startDateOnly) return false;
 
     const dayOfWeek = targetDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
     const daysSinceStart = Math.floor((targetDateOnly - startDateOnly) / (1000 * 60 * 60 * 24));
-
     switch (pattern.type) {
         case 'daily':
             return daysSinceStart % pattern.interval === 0;
@@ -109,8 +125,8 @@ export const isClassAvailableToday = (startTime, endTime, repeatPattern) => {
  */
 export const getTimeStatus = (startTime, endTime) => {
     const now = new Date();
-    const classStart = new Date(startTime);
-    const classEnd = new Date(endTime);
+    const classStart = createDateFromString(startTime);
+    const classEnd = createDateFromString(endTime);
     
     // Set today's class times
     const todayStart = new Date();
@@ -147,6 +163,7 @@ export const isClassCurrentlyJoinable = (startTime, endTime, repeatPattern) => {
  */
 export const getMeetingStatus = (startTime, endTime, repeatPattern) => {
     const isJoinable = isClassCurrentlyJoinable(startTime, endTime, repeatPattern);
+    console.log(isJoinable, startTime, endTime, repeatPattern);
     if (isJoinable) return 'active';
 
     if (repeatPattern) {
@@ -154,7 +171,8 @@ export const getMeetingStatus = (startTime, endTime, repeatPattern) => {
         if (!isValidDay) return 'notToday';
         return 'scheduled';
     } else {
-        const isInPast = new Date() > new Date(endTime);
+        const classEnd = createDateFromString(endTime);
+        const isInPast = new Date() > classEnd;
         if (isInPast) return 'inactive';
         return 'scheduled';
     }
@@ -217,7 +235,7 @@ export const findClassOccurrences = (startTime, repeatPattern) => {
     if (!pattern) return { next: null, previous: null };
 
     const today = new Date();
-    const startDate = new Date(startTime);
+    const startDate = createDateFromString(startTime);
     let nextDate = null;
     let previousDate = null;
 
@@ -245,10 +263,8 @@ export const findClassOccurrences = (startTime, repeatPattern) => {
                 continue;
         }
 
-        const checkDateOnly = new Date(checkDate);
-        checkDateOnly.setHours(0, 0, 0, 0);
-        const todayOnly = new Date(today);
-        todayOnly.setHours(0, 0, 0, 0);
+        const checkDateOnly = getDateOnly(checkDate);
+        const todayOnly = getDateOnly(today);
 
         if (checkDateOnly.getTime() === todayOnly.getTime()) continue; // Skip today
 

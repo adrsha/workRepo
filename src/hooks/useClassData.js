@@ -1,3 +1,4 @@
+'use client'
 import { useEffect, useState } from 'react';
 import { fetchJoinableData, fetchViewData } from '../app/lib/helpers';
 
@@ -22,6 +23,7 @@ export const useClassData = (classId, session) => {
                     { 'classes.class_id': classId },
                     session?.accessToken
                 );
+                console.log(classData);
 
                 if (classData?.length > 0) {
                     setClassDetails(classData[0]);

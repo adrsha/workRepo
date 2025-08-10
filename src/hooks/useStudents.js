@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchViewData } from '../app/lib/helpers';
+import { fetchViewData, fetchData } from '../app/lib/helpers';
 
 export const useStudents = (classId, session, isTeacher) => {
     const [students, setStudents] = useState([]);
@@ -10,8 +10,8 @@ export const useStudents = (classId, session, isTeacher) => {
         const fetchStudentData = async () => {
             try {
                 const [studentsData, classesData] = await Promise.all([
-                    fetchViewData('students_view'),
-                    fetchViewData('classes_users')
+                    fetchViewData('students_view', session.accessToken),
+                    fetchData('classes_users')
                 ]);
 
                 const registeredStudents = classesData
