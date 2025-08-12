@@ -231,7 +231,7 @@ export default function ProfileClient({ params }) {
 
                                             <div className={styles.classCost}>
                                                 <strong>Course Fee</strong>
-                                                <span>${classItem.cost}</span>
+                                                <span>Rs {classItem.cost}</span>
                                             </div>
 
                                             {canViewMeeting && classItem.meeting_url && (
@@ -256,7 +256,7 @@ export default function ProfileClient({ params }) {
                                             </p>
                                             <div className={styles.classCost}>
                                                 <strong>Course Fee</strong>
-                                                <span>${classItem.cost}</span>
+                                                <span>Rs {classItem.cost}</span>
                                             </div>
                                         </div>
                                     )}

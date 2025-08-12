@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/authOptions';
 import { executeQueryWithRetry } from '../../lib/db';
+import { makeApiCall } from '@/utils/api';
 
 
 export async function POST(request) {
@@ -91,7 +92,17 @@ export async function POST(request) {
 
         // Get the meeting details from Whereby
         const meetingData = await response.json();
-
+        
+        // Example of output
+        //{
+        //   startDate: '2025-08-10T14:44:37.835Z',
+        //   endDate: '2025-08-31T17:15:00.000Z',
+        //   roomName: '/class-57d5f0a5c5-4c72-49c6-a758-48b69c3bd0fc',
+        //   roomUrl: 'https://mero-tuition.whereby.com/class-57d5f0a5c5-4c72-49c6-a758-48b69c3bd0fc',
+        //   meetingId: '107797570',
+        //   hostRoomUrl: 'https://mero-tuition.whereby.com/class-57d5f0a5c5-4c72-49c6-a758-48b69c3bd0fc?roomKey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZWV0aW5nSWQiOiIxMDc3OTc1NzAiLCJyb29tUmVmZXJlbmNlIjp7InJvb21OYW1lIjoiL2NsYXNzLTU3ZDVmMGE1YzUtNGM3Mi00OWM2LWE3NTgtNDhiNjljM2JkMGZjIiwib3JnYW5pemF0aW9uSWQiOiIzMTI1OTcifSwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5zcnYud2hlcmVieS5jb20iLCJpYXQiOjE3NTQ4MzcwNzcsInJvb21LZXlUeXBlIjoibWVldGluZ0hvc3QifQ.oYmkb857asbdnAvlmHp7q6JWYZK3IPaa-L_uTXXNj8M'
+        // }
+        
         // Validate meeting data
         if (!meetingData || !meetingData.roomUrl) {
             return NextResponse.json(

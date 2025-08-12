@@ -35,11 +35,13 @@ export const regenerateMeetingLink = async (session, isTeacher, canGenerateLink,
         throw new Error('Cannot regenerate meeting link - class time has passed or not available today');
     }
 
-    return makeApiCall('/api/createMeeting', 'POST', {
+    const meetingDetails = await makeApiCall('/api/createMeeting', 'POST', {
         classId,
         startDate: classDetails.start_time,
         endDate: classDetails.end_time,
         className: classDetails.course_name,
         updateDatabase 
     }, session.accessToken);
+    
+    return meetingDetails;
 };

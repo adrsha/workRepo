@@ -119,7 +119,8 @@ export default function ClassDetailsClient({ initialData, classId, session }) {
         setIsRegenerating(true);
         try {
             const data = await regenerateMeetingLink(session, isClassOwner, true, classId, classDetails, false);
-            return data.meetingUrl;
+            return data;
+            // data.meetingUrl;
         } catch (err) {
             console.error('Error generating meeting link:', err);
             showToast(err.message || 'Failed to generate meeting link. Please try again.');
@@ -175,6 +176,7 @@ export default function ClassDetailsClient({ initialData, classId, session }) {
                             <div className={styles.infoRow}>
                                 <span className={styles.infoLabel}>Meeting URL</span>
                                 <MeetingUrlEditor
+                                    session={session}
                                     meetingUrl={classDetails.meeting_url}
                                     onUpdate={handleUpdateMeetingUrl}
                                     onRegenerate={handleRegenerateMeetingLink}

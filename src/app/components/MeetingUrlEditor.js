@@ -76,7 +76,6 @@ const validateUrl = (url) => {
     return { isValid: true, error: '' };
 };
 
-
 /**
  * Handle the complete regeneration process
  */
@@ -105,6 +104,8 @@ const ConfirmationModal = ({ isOpen, onConfirm, onCancel, generatedUrl }) => {
     if (!isOpen) return null;
 
     const hasGeneratedUrl = !!generatedUrl;
+    const hostUrl = generatedUrl?.hostUrl;
+    const meetingUrl = generatedUrl?.meetingUrl;
 
     return (
         <div className={styles.modalOverlay}>
@@ -116,22 +117,45 @@ const ConfirmationModal = ({ isOpen, onConfirm, onCancel, generatedUrl }) => {
                 {hasGeneratedUrl ? (
                     <div className={styles.urlGeneratedContent}>
                         <p className={styles.modalMessage}>
-                            Your new meeting URL has been generated. <br/>
-                            <strong>Please join the meeting first to become the admin/host</strong>, then click <strong>"Use This URL"</strong> to save it.
+                            Your new meeting URLs have been generated. <br/>
+                            <strong>Please join using the Host URL first to become the admin/host</strong>, then click <strong>"Use This URL"</strong> to save the meeting URL for students.
                         </p>
-                        <div className={styles.generatedUrlContainer}>
-                            <input
-                                type="text"
-                                value={generatedUrl}
-                                readOnly
-                                className={styles.generatedUrlInput}
-                            />
-                            <button
-                                onClick={() => window.open(generatedUrl, '_blank')}
-                                className={styles.meetingButton}
-                            >
-                                Join Meeting
-                            </button>
+                        
+                        <div className={styles.urlSection}>
+                            <h4 className={styles.urlLabel}>Host URL (Use this to join first):</h4>
+                            <div className={styles.generatedUrlContainer}>
+                                <input
+                                    type="text"
+                                    value={hostUrl || 'No host URL available'}
+                                    readOnly
+                                    className={styles.generatedUrlInput}
+                                />
+                                <button
+                                    onClick={() => window.open(hostUrl, '_blank')}
+                                    className={styles.meetingButton}
+                                    disabled={!hostUrl}
+                                >
+                                    Join as Host
+                                </button>
+                            </div>
+                            <p className={styles.urlNote}>
+                                ⚠️ <strong>Important:</strong> This host URL will not be accessible after this moment. Join now to become the meeting host.
+                            </p>
+                        </div>
+
+                        <div className={styles.urlSection}>
+                            <h4 className={styles.urlLabel}>Meeting URL (The url thats available for everyone):</h4>
+                            <div className={styles.generatedUrlContainer}>
+                                <input
+                                    type="text"
+                                    value={meetingUrl || 'No meeting URL available'}
+                                    readOnly
+                                    className={styles.generatedUrlInput}
+                                />
+                            </div>
+                            <p className={styles.urlNote}>
+                                This is the URL that will be saved and shared with students.
+                            </p>
                         </div>
                     </div>
                 ) : (
@@ -181,7 +205,7 @@ export const MeetingUrlEditor = ({
     const [urlInput, setUrlInput] = useState(meetingUrl || '');
     const [urlError, setUrlError] = useState('');
     const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [generatedUrl, setGeneratedUrl] = useState(''); 
+    const [generatedUrl, setGeneratedUrl] = useState(null); 
     const [regenerationError, setRegenerationError] = useState('');
 
     const repeatPattern = classDetails?.repeat_every_n_day || classDetails?.['repeat-n-days'];
@@ -239,25 +263,26 @@ export const MeetingUrlEditor = ({
                     throw new Error('Failed to generate new meeting URL');
                 }
                 setGeneratedUrl(newUrl);
-                // Keep modal open to show the URL
+                // Keep modal open to show the URLs
             } catch (error) {
                 console.error('URL generation failed:', error);
                 setRegenerationError(error.message || 'Failed to generate meeting URL');
                 setShowConfirmModal(false);
             }
         } else {
-            // Second step: user confirmed, update database
+            // Second step: user confirmed, update database with meetingUrl
             try {
                 if (onDatabaseUpdate) {
-                    await onDatabaseUpdate(generatedUrl);
+                    // Pass the meetingUrl to be saved in the database
+                    await onDatabaseUpdate(generatedUrl.meetingUrl || generatedUrl);
                 }
                 setShowConfirmModal(false);
-                setGeneratedUrl('');
+                setGeneratedUrl(null);
             } catch (error) {
                 console.error('Database update failed:', error);
                 setRegenerationError(error.message || 'Failed to update meeting URL');
                 setShowConfirmModal(false);
-                setGeneratedUrl('');
+                setGeneratedUrl(null);
             }
         }
     };
@@ -267,7 +292,7 @@ export const MeetingUrlEditor = ({
      */
     const handleRegenerationCancel = () => {
         setShowConfirmModal(false);
-        setGeneratedUrl(''); // Clear generated URL
+        setGeneratedUrl(null); // Clear generated URL
     };
 
     const statusMessage = getStatusMessage(isTeacher, classDetails, repeatPattern, isValidDay, timeStatus);
