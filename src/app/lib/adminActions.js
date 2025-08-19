@@ -66,6 +66,13 @@ export const createData = async (table, data, bulk = false) => {
     });
 };
 
+export const postData = async (table, data, authToken = null) => {
+    return makeAuthenticatedRequest('/api/changeData', {
+        method: 'POST',
+        body: JSON.stringify({ table, data }),
+    });
+};
+
 export const deleteData = async (table, id) => {
     return makeAuthenticatedRequest('/api/changeData', {
         method: 'DELETE',
@@ -260,9 +267,9 @@ export const createActionHandlers = (
     };
 
     // Create CRUD handlers for each entity type
-    const teacherHandlers = createCRUDHandlers('Teacher', 'teachers_view', 'teachersData', 'user_id');
-    const studentHandlers = createCRUDHandlers('Student', 'students_view', 'studentsData', 'user_id');
-    const classHandlers = createCRUDHandlers('Class', 'classes_view', 'classesData', 'class_id');
+    const teacherHandlers    = createCRUDHandlers('Teacher', 'teachers_view', 'teachersData',    'user_id');
+    const studentHandlers    = createCRUDHandlers('Student', 'students_view', 'studentsData',    'user_id');
+    const classHandlers      = createCRUDHandlers('Class',   'classes_view',  'classesData',     'class_id');
 
     // Specific handlers that don't follow the generic pattern
     const handleTeacherAction = async (pendingId, approved) => {
@@ -321,59 +328,51 @@ export const createActionHandlers = (
         }
     };
 
-
     const handleAddCourse = async (courseData) => {
-        await startAction();
+        const actionKey = 'add-course';
+        startAction(actionKey);
         try {
-            const authToken = localStorage.getItem('authToken');
-            const newCourse = await postData('courses', courseData, authToken);
-
-            updateArrayState('courseData', courses => [...courses, newCourse]);
-
+            const result = await postData('courses', courseData);
+            updateArrayState('courseData', courses => [...courses, { ...courseData, course_id: result.insertId }]);
             console.log('Course added successfully');
         } catch (error) {
             console.error('Error adding course:', error);
             throw error;
         } finally {
-            await endAction();
+            endAction(actionKey);
         }
     };
 
     const handleDeleteCourse = async (courseId) => {
-        await startAction();
+        const actionKey = `delete-course-${courseId}`;
+        startAction(actionKey);
         try {
-            const authToken = localStorage.getItem('authToken');
-            await deleteData('courses', courseId, authToken);
-
+            await deleteData('courses', courseId);
             updateArrayState('courseData', courses =>
                 courses.filter(course => course.course_id !== courseId)
             );
-
             console.log('Course deleted successfully');
         } catch (error) {
             console.error('Error deleting course:', error);
             throw error;
         } finally {
-            await endAction();
+            endAction(actionKey);
         }
     };
 
     const handleBulkAddCourse = async (coursesData) => {
-        await startAction();
+        const actionKey = 'bulk-add-courses';
+        startAction(actionKey);
         try {
-            const authToken = localStorage.getItem('authToken');
-            const results = await Promise.all(
-                coursesData.map(courseData => postData('courses', courseData, authToken))
-            );
-
-            updateArrayState('courseData', courses => [...courses, ...results]);
-
-            console.log(`${results.length} courses added successfully`);
+            const results = await bulkCreateData('courses', coursesData);
+            const updatedData = await fetchViewData('courses');
+            updateState({ courseData: updatedData });
+            console.log(`${coursesData.length} courses added successfully`);
         } catch (error) {
             console.error('Error bulk adding courses:', error);
             throw error;
         } finally {
-            await endAction();
+            endAction(actionKey);
         }
     };
 

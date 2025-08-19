@@ -6,7 +6,7 @@ import { createActionButtons } from './Table/utils.js';
 // Simple field mappings for courses
 const coursesFieldMappings = {
     course_name: 'text',
-    course_detail: 'textarea'
+    course_details: 'textarea'
 };
 
 // Async handlers
@@ -67,7 +67,7 @@ const CoursesTable = ({
             onAdd={handleAdd}
             onDelete={handleDelete}
             onBulkAdd={handleBulkAdd}
-            requiredFields={['course_name', 'course_detail']}
+            requiredFields={['course_name', 'course_details']}
             tableName="Course"
         />
     );
