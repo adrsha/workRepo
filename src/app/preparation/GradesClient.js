@@ -90,20 +90,20 @@ export default function GradesClient() {
     const router = useRouter();
     const { data: session, status, update } = useSession();
 
-    const [gradesData, setGradesData] = useState([]);
-    const [activeGradeId, setActiveGradeId] = useState(null);
-    const [classesData, setClassesData] = useState(null);
-    const [teachersData, setTeachersData] = useState([]);
-    const [groupedClassesData, setGroupedClassesData] = useState(null);
-    const [classesUserJoined, setClassesUserJoined] = useState([]);
-    const [showPayer, setShowPayer] = useState(false);
-    const [showClassroomOverlay, setShowClassroomOverlay] = useState(false);
-    const [selectedCourse, setSelectedCourse] = useState(null);
-    const [cart, setCart] = useState([]);
-    const [isJoining, setIsJoining] = useState(false);
+    const [gradesData, setGradesData]                         = useState([]);
+    const [activeGradeId, setActiveGradeId]                   = useState(null);
+    const [classesData, setClassesData]                       = useState(null);
+    const [teachersData, setTeachersData]                     = useState([]);
+    const [groupedClassesData, setGroupedClassesData]         = useState(null);
+    const [classesUserJoined, setClassesUserJoined]           = useState([]);
+    const [showPayer, setShowPayer]                           = useState(false);
+    const [showClassroomOverlay, setShowClassroomOverlay]     = useState(false);
+    const [selectedCourse, setSelectedCourse]                 = useState(null);
+    const [cart, setCart]                                     = useState([]);
+    const [isJoining, setIsJoining]                           = useState(false);
     const [classesPendingApproval, setClassesPendingApproval] = useState([]);
-    const [teacherOwnedClasses, setTeacherOwnedClasses] = useState([]);
-    const [classItem, setClassItem] = useState([]);
+    const [teacherOwnedClasses, setTeacherOwnedClasses]       = useState([]);
+    const [classItem, setClassItem]                           = useState([]);
 
     const currentUserLevel = getUserLevel(session);
 
@@ -123,7 +123,7 @@ export default function GradesClient() {
             fetchData('grades', authToken)
                 .then(data => {
                     data = data.filter((item) => {
-                        return item.grade_type == 'normal';
+                        return item.grade_type == 'preparation';
                     })
                     setGradesData(data)
                 })
@@ -375,8 +375,8 @@ export default function GradesClient() {
             <div className={styles.sidePanel}>
                 <h1 className={styles.header}>
                     {status === 'authenticated'
-                        ? `Select Classes ${getUserRoleLabel()}`
-                        : 'Select Classes'
+                        ? `Select Preparations ${getUserRoleLabel()}`
+                        : 'Select Preparations'
                     }
                 </h1>
                 <div className={`${styles.gradeCards} scrollable`}>

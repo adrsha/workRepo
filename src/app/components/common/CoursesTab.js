@@ -1,13 +1,8 @@
 import { Section } from './Table/Section.js';
 import { Table } from './Table/index.js';
 import { createFieldRenderer, createOptions } from './fieldRendererFactory.js';
-import { createActionButtons } from './Table/utils.js';
+import { coursesFieldMappings } from './tabFieldMappings.js';
 
-// Simple field mappings for courses
-const coursesFieldMappings = {
-    course_name: 'text',
-    course_details: 'textarea'
-};
 
 // Async handlers
 const createAsyncHandler = (fn, errorMessage) => async (...args) => {
@@ -33,7 +28,10 @@ const CoursesTable = ({
     onBulkAddCourses,
     schemas = {}
 }) => {
-    const newSchema = { columns: schemas.courses?.columns || [] };
+    
+    const originalColumns = schemas.courses?.columns  || [];
+    const filteredColumns = originalColumns.filter(col => col !== 'course_id');
+    const newSchema = { columns: filteredColumns };
 
     const dependencies = { schemas };
     const handlers = { onSaveData };
@@ -58,8 +56,6 @@ const CoursesTable = ({
             className="courses-table"
             keyField="course_id"
             createFieldRenderer={renderCell}
-            dropdownOptions={{}}
-            additionalColumns={[]}
             emptyMessage="No courses available"
             allowAdd={true}
             allowDelete={true}
@@ -83,7 +79,6 @@ export const CoursesTab = ({
     schemas = {}
 }) => (
     <Section title="Courses" className="courses-section scrollable">
-        {console.log(state.courseData)}
         <CoursesTable
             courses={state.courseData || []}
             onSaveData={handleSaveData}

@@ -95,13 +95,35 @@ const useFileUpload = (config, callbacks) => {
     const [uploadError, setUploadError] = useState(null);
     const [uploadedFilePath, setUploadedFilePath] = useState('');
 
-    const resetFile = useCallback(() => {
+    const resetFile = useCallback(async () => {
+        // If there's an uploaded file, delete it from server
+        if (uploadedFilePath) {
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ filePath: uploadedFilePath }),
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to delete file from server');
+                }
+            } catch (error) {
+                console.error('Error deleting file:', error);
+            }
+        }
+
+        // Clear local state
         setFile(null);
         setUploadError(null);
         setUploadedFilePath('');
+        
+        // Clear file input
         const fileInput = document.getElementById('file-upload');
         if (fileInput) fileInput.value = '';
-    }, []);
+    }, [uploadedFilePath]);
 
     const handleFileSelection = useCallback((selectedFile) => {
         setUploadError(null);
@@ -342,22 +364,22 @@ export default function FileUpload({
                     disabled={isUploading}
                     accept={config.accept}
                 />
-
+                
                 {file ? (
                     <FileInfo file={file} />
                 ) : (
-                    <UploadLabel label={config.uploadLabel} />
+                    <UploadLabel label={config.labels.upload} />
                 )}
             </div>
 
             {uploadError && <ErrorMessage error={uploadError} />}
-
+            {console.log(config)}
             {shouldShowUploadActions && (
                 <UploadActions
                     onUpload={handleUpload}
                     onCancel={resetFile}
                     isUploading={isUploading}
-                    buttonText={config.uploadButtonText}
+                    buttonText={config.labels.button}
                     showCancel={showCancelButton}
                 />
             )}
@@ -367,7 +389,7 @@ export default function FileUpload({
             )}
 
             {uploadedFilePath && (
-                <SuccessMessage message={config.successMessage} />
+                <SuccessMessage message={config.labels.success} />
             )}
         </div>
     );

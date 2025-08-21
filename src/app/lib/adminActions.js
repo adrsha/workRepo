@@ -27,7 +27,7 @@ export const listFiles = async (directory = '') => {
     return makeAuthenticatedRequest(`/api/files/list?directory=${encodeURIComponent(directory)}`, {
         method: 'GET',
         headers: {
-            'Content-Type': undefined, // Remove content-type for GET request
+            'Content-Type': undefined,
         },
     });
 };
@@ -66,7 +66,7 @@ export const createData = async (table, data, bulk = false) => {
     });
 };
 
-export const postData = async (table, data, authToken = null) => {
+export const postData = async (table, data) => {
     return makeAuthenticatedRequest('/api/changeData', {
         method: 'POST',
         body: JSON.stringify({ table, data }),
@@ -101,39 +101,27 @@ const deleteEntityData = async (viewName, entityId) => {
     await deleteData(viewName, entityId);
 };
 
-// Specific entity operations using generic functions
-const createTeacherData = async (teacherData) => {
-    return createEntityData('teachers_view', teacherData);
+// Generic action wrapper
+const withActionTracking = async (actionKey, operation, { startAction, endAction }) => {
+    startAction(actionKey);
+    try {
+        return await operation();
+    } catch (error) {
+        console.error(`Error in ${actionKey}:`, error);
+        throw error;
+    } finally {
+        endAction(actionKey);
+    }
 };
 
-const createStudentData = async (studentData) => {
-    return createEntityData('students_view', studentData);
-};
-
-const deleteTeacherData = async (teacherId) => {
-    return deleteEntityData('teachers_view', teacherId);
-};
-
-const deleteStudentData = async (studentId) => {
-    return deleteEntityData('students_view', studentId);
-};
-
-// Generic action handler creator
-const createGenericActionHandler = (actionName, operation) => {
-    return async (...args) => {
-        const actionKey = `${actionName}-${args[0] || 'action'}`;
-        const { startAction, endAction } = args[args.length - 1].actionHelpers;
-
-        startAction(actionKey);
-        try {
-            return await operation(...args.slice(0, -1));
-        } catch (error) {
-            console.error(`Error in ${actionName}:`, error);
-            throw error;
-        } finally {
-            endAction(actionKey);
-        }
-    };
+// Entity configurations - aligned for easy vim block editing
+const ENTITY_CONFIGS = {
+    Teacher: { viewName: 'teachers_view', stateKey: 'teachersData',    idField: 'user_id'  },
+    Student: { viewName: 'students_view', stateKey: 'studentsData',    idField: 'user_id'  },
+    Class:   { viewName: 'classes_view',  stateKey: 'classesData',     idField: 'class_id' },
+    Grades:  { viewName: 'grades_view',   stateKey: 'gradesData',      idField: 'grade_id' },
+    Course:  { viewName: 'courses',       stateKey: 'courseData',      idField: 'course_id'},
+    Grade:   { viewName: 'grades',        stateKey: 'gradesData',      idField: 'grade_id' },
 };
 
 export const createActionHandlers = (
@@ -147,11 +135,8 @@ export const createActionHandlers = (
     // Generic save handler
     const handleSaveData = async (table, id, column, value) => {
         if (!session) return;
-        console.log(table, id, column, value);
-        const actionKey = `${table}-${id}-${column}`;
-        startAction(actionKey);
-
-        try {
+    
+        return withActionTracking(`${table}-${id}-${column}`, async () => {
             const { targetTable, targetId } = await getTargetTableAndId(table, id, column);
             const schema = await getSchema(table);
 
@@ -166,19 +151,14 @@ export const createActionHandlers = (
                     )
                 );
             }
-        } catch (error) {
-            console.error(`Error updating ${table}:`, error);
-            alert(`Failed to update ${table}: ${error.message}`);
-        } finally {
-            endAction(actionKey);
-        }
+        }, actionHelpers);
     };
 
     // Helper function to determine target table and ID
     const getTargetTableAndId = async (table, id, column) => {
         if (table === 'teachers' || table === 'students') {
-            const usersSchema = await getSchema('users');
-            const targetSchema = await getSchema(table);
+            const usersSchema   = await getSchema('users');
+            const targetSchema  = await getSchema(table);
 
             if (usersSchema.columns.includes(column) && !targetSchema.columns.includes(column)) {
                 return { targetTable: 'users', targetId: id };
@@ -190,10 +170,7 @@ export const createActionHandlers = (
     const handleMultiSaveData = async (table, id, updates) => {
         if (!session) return;
 
-        const actionKey = `${table}-${id}-multi`;
-        startAction(actionKey);
-
-        try {
+        return withActionTracking(`${table}-${id}-multi`, async () => {
             const schema = await getSchema(table);
 
             await updateData(table, id, updates);
@@ -207,75 +184,102 @@ export const createActionHandlers = (
                     )
                 );
             }
-        } catch (error) {
-            console.error(`Error updating ${table}:`, error);
-            alert(`Failed to update ${table}: ${error.message}`);
-        } finally {
-            endAction(actionKey);
+        }, actionHelpers);
+    };
+
+    // Generic entity operation creator
+    const createEntityOperation = (operationType, entityType, config) => {
+        const { viewName, stateKey, idField } = config;
+        const entityTypeLower = entityType.toLowerCase();
+
+        switch (operationType) {
+            case 'add':
+                return async (entityData) => {
+                    return withActionTracking(`add-${entityTypeLower}`, async () => {
+                        await createEntityData(viewName, entityData);
+                        const updatedData = await fetchViewData(viewName);
+                        updateState({ [stateKey]: updatedData });
+                    }, actionHelpers);
+                };
+
+            case 'delete':
+                return async (entityId) => {
+                    return withActionTracking(`delete-${entityTypeLower}-${entityId}`, async () => {
+                        await deleteEntityData(viewName, entityId);
+                        updateArrayState(stateKey, data =>
+                            data.filter(item => item[idField] !== entityId)
+                        );
+                    }, actionHelpers);
+                };
+
+            case 'bulkAdd':
+                return async (entitiesData) => {
+                    return withActionTracking(`bulk-add-${entityTypeLower}s`, async () => {
+                        await bulkCreateData(viewName, entitiesData);
+                        const updatedData = await fetchViewData(viewName);
+                        updateState({ [stateKey]: updatedData });
+                    }, actionHelpers);
+                };
+
+            case 'addDirect':
+                return async (entityData) => {
+                    return withActionTracking(`add-${entityTypeLower}`, async () => {
+                        const result = await postData(viewName, entityData);
+                        updateArrayState(stateKey, items => [...items, { ...entityData, [idField]: result.insertId }]);
+                        console.log(`${entityType} added successfully`);
+                    }, actionHelpers);
+                };
+
+            case 'deleteDirect':
+                return async (entityId) => {
+                    return withActionTracking(`delete-${entityTypeLower}-${entityId}`, async () => {
+                        await deleteData(viewName, entityId);
+                        updateArrayState(stateKey, items =>
+                            items.filter(item => item[idField] !== entityId)
+                        );
+                        console.log(`${entityType} deleted successfully`);
+                    }, actionHelpers);
+                };
+
+            case 'bulkAddDirect':
+                return async (entitiesData) => {
+                    return withActionTracking(`bulk-add-${entityTypeLower}s`, async () => {
+                        await bulkCreateData(viewName, entitiesData);
+                        const updatedData = await fetchViewData(viewName);
+                        updateState({ [stateKey]: updatedData });
+                        console.log(`${entitiesData.length} ${entityTypeLower}s added successfully`);
+                    }, actionHelpers);
+                };
         }
     };
 
-    // Generic CRUD handlers
-    const createCRUDHandlers = (entityType, viewName, stateKey, idField) => {
-        return {
-            [`handleAdd${entityType}`]: async (entityData) => {
-                const actionKey = `add-${entityType.toLowerCase()}`;
-                startAction(actionKey);
-                try {
-                    await createEntityData(viewName, entityData);
-                    const updatedData = await fetchViewData(viewName);
-                    updateState({ [stateKey]: updatedData });
-                } catch (error) {
-                    console.error(`Error adding ${entityType.toLowerCase()}:`, error);
-                    throw error;
-                } finally {
-                    endAction(actionKey);
-                }
-            },
+    // Generate handlers dynamically
+    const generateHandlers = () => {
+        const handlers = {};
 
-            [`handleDelete${entityType}`]: async (entityId) => {
-                const actionKey = `delete-${entityType.toLowerCase()}-${entityId}`;
-                startAction(actionKey);
-                try {
-                    await deleteEntityData(viewName, entityId);
-                    updateArrayState(stateKey, data =>
-                        data.filter(item => item[idField] !== entityId)
-                    );
-                } catch (error) {
-                    console.error(`Error deleting ${entityType.toLowerCase()}:`, error);
-                    throw error;
-                } finally {
-                    endAction(actionKey);
-                }
-            },
+        // Generate standard CRUD handlers for view-based entities
+        ['Teacher', 'Student', 'Class', 'Grades'].forEach(entityType => {
+            const config = ENTITY_CONFIGS[entityType];
+            handlers[`handleAdd${entityType}`]     = createEntityOperation('add', entityType, config);
+            handlers[`handleDelete${entityType}`]  = createEntityOperation('delete', entityType, config);
+            handlers[`handleBulkAdd${entityType}`] = createEntityOperation('bulkAdd', entityType, config);
+        });
 
-            [`handleBulkAdd${entityType}`]: async (entitiesData) => {
-                const actionKey = `bulk-add-${entityType.toLowerCase()}s`;
-                startAction(actionKey);
-                try {
-                    await bulkCreateData(viewName, entitiesData);
-                    const updatedData = await fetchViewData(viewName);
-                    updateState({ [stateKey]: updatedData });
-                } catch (error) {
-                    console.error(`Error bulk adding ${entityType.toLowerCase()}s:`, error);
-                    throw error;
-                } finally {
-                    endAction(actionKey);
-                }
-            }
-        };
+        // Generate direct table handlers for Course and Grade
+        ['Course', 'Grade'].forEach(entityType => {
+            const config = ENTITY_CONFIGS[entityType];
+            handlers[`handleAdd${entityType}`]     = createEntityOperation('addDirect', entityType, config);
+            handlers[`handleDelete${entityType}`]  = createEntityOperation('deleteDirect', entityType, config);
+            handlers[`handleBulkAdd${entityType}`] = createEntityOperation('bulkAddDirect', entityType, config);
+        });
+
+        return handlers;
     };
-
-    // Create CRUD handlers for each entity type
-    const teacherHandlers    = createCRUDHandlers('Teacher', 'teachers_view', 'teachersData',    'user_id');
-    const studentHandlers    = createCRUDHandlers('Student', 'students_view', 'studentsData',    'user_id');
-    const classHandlers      = createCRUDHandlers('Class',   'classes_view',  'classesData',     'class_id');
 
     // Specific handlers that don't follow the generic pattern
     const handleTeacherAction = async (pendingId, approved) => {
-        const actionKey = `teacher-${approved ? 'approve' : 'deny'}-${pendingId}`;
-        startAction(actionKey);
-        try {
+        const actionType = approved ? 'approve' : 'deny';
+        return withActionTracking(`teacher-${actionType}-${pendingId}`, async () => {
             await pendingTeachers(pendingId, approved);
             updateArrayState('pendingTeachersData', data =>
                 data.filter(teacher => teacher.pending_id !== pendingId)
@@ -284,96 +288,34 @@ export const createActionHandlers = (
                 const updatedTeachers = await fetchViewData('teachers_view');
                 updateState({ teachersData: updatedTeachers });
             }
-        } catch (error) {
-            console.error('Failed to process teacher action:', error);
-            alert(`Failed to ${approved ? 'approve' : 'deny'} teacher: ${error.message}`);
-        } finally {
-            endAction(actionKey);
-        }
+        }, actionHelpers);
+    };
+
+    const handleStudentQueueAction = async (action, pendingId, classId = null, userId = null) => {
+        const isApproval = action === 'approve';
+        const endpoint   = isApproval ? '/api/acceptPayment' : '/api/rejectPayment';
+        const actionKey  = `student-${action}-${pendingId}`;
+        const payload    = isApproval ? { classId, userId, pendingId } : { pendingId };
+
+        return withActionTracking(actionKey, async () => {
+            await processStudentAction(endpoint, payload);
+            updateArrayState('studentsQueued', data =>
+                data.filter(student => student.pending_id !== pendingId)
+            );
+            if (isApproval) {
+                const updatedStudents = await fetchViewData('students_view');
+                updateState({ studentsData: updatedStudents });
+            }
+            update();
+        }, actionHelpers);
     };
 
     const handleStudentQueueApproval = async (classId, userId, pendingId) => {
-        const actionKey = `student-approve-${pendingId}`;
-        startAction(actionKey);
-        try {
-            await processStudentAction('/api/acceptPayment', { classId, userId, pendingId });
-            updateArrayState('studentsQueued', data =>
-                data.filter(student => student.pending_id !== pendingId)
-            );
-            const updatedStudents = await fetchViewData('students_view');
-            updateState({ studentsData: updatedStudents });
-            update();
-        } catch (error) {
-            console.error('Error:', error);
-            alert(`Failed to approve student: ${error.message}`);
-        } finally {
-            endAction(actionKey);
-        }
+        return handleStudentQueueAction('approve', pendingId, classId, userId);
     };
 
     const handleStudentQueueRejection = async (pendingId) => {
-        const actionKey = `student-reject-${pendingId}`;
-        startAction(actionKey);
-        try {
-            await processStudentAction('/api/rejectPayment', { pendingId });
-            updateArrayState('studentsQueued', data =>
-                data.filter(student => student.pending_id !== pendingId)
-            );
-            update();
-        } catch (error) {
-            console.error('Error:', error);
-            alert(`Failed to reject student: ${error.message}`);
-        } finally {
-            endAction(actionKey);
-        }
-    };
-
-    const handleAddCourse = async (courseData) => {
-        const actionKey = 'add-course';
-        startAction(actionKey);
-        try {
-            const result = await postData('courses', courseData);
-            updateArrayState('courseData', courses => [...courses, { ...courseData, course_id: result.insertId }]);
-            console.log('Course added successfully');
-        } catch (error) {
-            console.error('Error adding course:', error);
-            throw error;
-        } finally {
-            endAction(actionKey);
-        }
-    };
-
-    const handleDeleteCourse = async (courseId) => {
-        const actionKey = `delete-course-${courseId}`;
-        startAction(actionKey);
-        try {
-            await deleteData('courses', courseId);
-            updateArrayState('courseData', courses =>
-                courses.filter(course => course.course_id !== courseId)
-            );
-            console.log('Course deleted successfully');
-        } catch (error) {
-            console.error('Error deleting course:', error);
-            throw error;
-        } finally {
-            endAction(actionKey);
-        }
-    };
-
-    const handleBulkAddCourse = async (coursesData) => {
-        const actionKey = 'bulk-add-courses';
-        startAction(actionKey);
-        try {
-            const results = await bulkCreateData('courses', coursesData);
-            const updatedData = await fetchViewData('courses');
-            updateState({ courseData: updatedData });
-            console.log(`${coursesData.length} courses added successfully`);
-        } catch (error) {
-            console.error('Error bulk adding courses:', error);
-            throw error;
-        } finally {
-            endAction(actionKey);
-        }
+        return handleStudentQueueAction('reject', pendingId);
     };
 
     return {
@@ -382,11 +324,6 @@ export const createActionHandlers = (
         handleTeacherAction,
         handleStudentQueueApproval,
         handleStudentQueueRejection,
-        handleAddCourse,
-        handleDeleteCourse,
-        handleBulkAddCourse,
-        ...teacherHandlers,
-        ...studentHandlers,
-        ...classHandlers
+        ...generateHandlers()
     };
 };

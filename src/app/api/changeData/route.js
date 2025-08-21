@@ -4,7 +4,7 @@ import { authOptions } from "../auth/[...nextauth]/authOptions";
 
 const ALLOWED_TABLES = [
     'users', 'teachers', 'students', 'classes', 'pending_teachers',
-    'classes_view', 'students_view', 'teachers_view', 'courses'
+    'classes_view', 'students_view', 'teachers_view', 'courses', 'grades'
 ];
 
 const DISALLOWED_FIELDS = {
@@ -17,6 +17,7 @@ const TABLE_PRIMARY_KEYS = {
     'classes_view': 'class_id', 
     'students_view': 'user_id', 
     'teachers_view': 'user_id',
+    'grades': 'grade_id',
     'users': 'user_id', 
     'teachers': 'user_id', 
     'students': 'user_id',
@@ -26,6 +27,7 @@ const TABLE_PRIMARY_KEYS = {
 
 const REQUIRED_FIELDS = {
     'courses': ['course_name'],
+    'grade': ['grade_name'],
     'classes': ['course_id', 'teacher_id', 'grade_id', 'start_time', 'end_time'],
     'users': ['user_name', 'user_email'],
     'pending_teachers': ['user_name', 'user_email'],

@@ -40,7 +40,6 @@ export const TableRow = ({
 
     const renderCellContent = (col) => {
         const value = item[col];
-
         // Handle custom rendering first - pass allColumns for full data access
         if (renderCell) {
             const customContent = renderCell(item, col, index, allColumns);

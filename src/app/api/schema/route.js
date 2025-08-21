@@ -4,7 +4,7 @@ import { authOptions } from "../auth/[...nextauth]/authOptions";
 import { getServerSession } from 'next-auth/next';
 
 const allowedTables = [
-    'grades', 'classes', 'courses', 'classes_users', 'notices',
+    'classes', 'courses', 'classes_users', 'notices', 'grades',
     'users', 'pending_teachers', 'teachers', 'students', 'class_joining_pending'
 ];
 

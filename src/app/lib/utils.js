@@ -25,7 +25,13 @@ export const formatColName = (colName) =>
         .replace(/^\w/, c => c.toUpperCase())
         .trim();
 
-export const TABS = { TEACHERS: 0, CLASSES: 1, STUDENTS: 2, COURSES: 3 };
+export const TABS = {
+    TEACHERS: 0,
+    CLASSES:  1,
+    STUDENTS: 2,
+    COURSES:  3,
+    GRADES:   4
+};
 export const STORAGE_KEY = 'adminActiveTab';
 
 export const getStoredTab = () => {

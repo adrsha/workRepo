@@ -115,7 +115,6 @@ const fetchTableSchema = async (tableName) => {
 
 export const getSchema = async (tableName) => {
     if (tableName) {
-        console.log(tableName)
         return await fetchTableSchema(tableName);
     }
     

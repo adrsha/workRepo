@@ -337,3 +337,38 @@ export const pendingTeachersFieldMappings = {
         return renderers.display(item.user_level, {});
     }
 };
+
+export const gradesFieldMappings = {
+    grade_name: (item, onSave, config, deps, renderers) => 
+        renderers.text(item.grade_name, onSave, {
+            ...config,
+            placeholder: "Enter grade name"
+        }),
+
+    grade_type: (item, onSave, config, deps, renderers) => 
+        renderers.dropdown(item.grade_type, onSave, {
+            ...config,
+            options: [
+                { value: 'normal', label: 'Normal' },
+                { value: 'preparation', label: 'Preparation' },
+                { value: 'language classes', label: 'Language Classes' },
+                { value: 'other classes', label: 'Other Classes' }
+            ],
+            placeholder: "Select grade type"
+        })
+};
+
+export const coursesFieldMappings = {
+    course_name: (item, onSave, config, deps, renderers) => 
+        renderers.text(item.course_name, onSave, {
+            ...config,
+            placeholder: "Enter course name"
+        }),
+
+    course_details: (item, onSave, config, deps, renderers) => 
+        renderers.textarea(item.course_details, onSave, {
+            ...config,
+            placeholder: "Enter course details"
+        }),
+};
+

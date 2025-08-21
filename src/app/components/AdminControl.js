@@ -10,10 +10,11 @@ import { TeachersTab } from './common/TeachersTab';
 import { ClassesTab } from './common/ClassesTab';
 import { StudentsTab } from './common/StudentsTab';
 import { CoursesTab } from './common/CoursesTab';
+import { GradesTab } from './common/GradesTab';
 import { TABS } from '../lib/utils';
 import { getSchema } from '../lib/schema';
 
-const TAB_NAMES = ['teachers', 'classes', 'students', 'courses'];
+const TAB_NAMES = ['teachers', 'classes', 'students', 'courses', 'grades'];
 const TAB_ENTRIES = Object.entries(TABS);
 
 const LoadingSpinner = ({ tabIndex }) => (
@@ -46,7 +47,8 @@ const TabContent = ({ activeTab, props }) => {
         [TABS.TEACHERS]: <TeachersTab {...props.teachers} />,
         [TABS.CLASSES]: <ClassesTab {...props.classes} />,
         [TABS.STUDENTS]: <StudentsTab {...props.students} />,
-        [TABS.COURSES]: <CoursesTab {...props.courses} />
+        [TABS.COURSES]:  <CoursesTab {...props.courses} />,
+        [TABS.GRADES]:   <GradesTab {...props.grades} />,
     };
 
     return <div className="table-content">{tabs[activeTab]}</div>;
@@ -158,6 +160,15 @@ export default function AdminControl({ pendingTeachersData = [] }) {
             handleDeleteCourse: actionHandlers.handleDeleteCourse,
             handleBulkAddCourses: actionHandlers.handleBulkAddCourse,
             schemas,
+        },
+        grades: {
+           state,
+           actionInProgress,
+           handleSaveData:        actionHandlers.handleSaveData,
+           handleAddGrade:        actionHandlers.handleAddGrade,
+           handleDeleteGrade:     actionHandlers.handleDeleteGrade,
+           handleBulkAddGrades:   actionHandlers.handleBulkAddGrade,
+           schemas,
         }
     };
 

@@ -1,9 +1,24 @@
-// export const SYSTEM_FIELDS = [];
 export const SYSTEM_FIELDS = ['id', 'user_id', 'class_id', 'pending_id', 'created_at', 'updated_at'];
 
-export const isSystemField = (field) => SYSTEM_FIELDS.includes(field);
+export const isSystemField = (field) => {
+    return SYSTEM_FIELDS.includes(field);
+};
 
-export const getEditableFields = (fields) => fields.filter(field => !isSystemField(field));
+export const isPrimaryKey = (field, keyField) => {
+    return field === keyField;
+};
+
+export const isFilteredField = (field, keyField = null, excludePrimaryKey = false) => {
+    return isSystemField(field) || (excludePrimaryKey && isPrimaryKey(field, keyField));
+};
+
+export const getEditableFields = (fields, keyField = null, excludePrimaryKey = false) => {
+    return fields.filter(field => !isFilteredField(field, keyField, excludePrimaryKey));
+};
+
+export const getVisibleFields = (fields, keyField = null) => {
+    return fields.filter(field => !isSystemField(field));
+};
 
 export const createEmptyRow = (fields) => 
     fields.reduce((row, field) => ({ ...row, [field]: '' }), {});

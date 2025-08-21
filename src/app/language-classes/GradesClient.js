@@ -123,7 +123,7 @@ export default function GradesClient() {
             fetchData('grades', authToken)
                 .then(data => {
                     data = data.filter((item) => {
-                        return item.grade_type == 'normal';
+                        return item.grade_type == 'language classes';
                     })
                     setGradesData(data)
                 })

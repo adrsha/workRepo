@@ -1,7 +1,9 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/authOptions';
 import { writeFile, mkdir } from 'fs/promises';
+import { unlink } from 'fs/promises';
 import { join } from 'path';
+import { existsSync } from 'fs';
 import { CONFIG } from '../../../constants/config';
 import { generateFileName } from '../../../utils/contentUtils';
 
@@ -152,5 +154,33 @@ export async function POST(req) {
         return createResponse(fileData);
     } catch (error) {
         return createErrorResponse(error);
+    }
+}
+
+export async function DELETE(req) {
+    try {
+        const { filePath } = await req.json();
+
+        if (!filePath) {
+            return createResponse({ error: 'File path is required' }, 400);
+        }
+
+        // Convert public path back to server path
+        const serverPath = join(
+            CONFIG.SERVER_UPLOADS_DIR, 
+            filePath.replace('/uploads', '').replace(/^\//, '')
+        );
+
+        // Check if file exists before attempting to delete
+        if (existsSync(serverPath)) {
+            await unlink(serverPath);
+            return createResponse({ message: 'File deleted successfully' });
+        } else {
+            return createResponse({ message: 'File not found' }, 404);
+        }
+
+    } catch (error) {
+        console.error('File deletion error:', error);
+        return createResponse({ error: 'Failed to delete file' }, 500);
     }
 }

@@ -23,6 +23,7 @@ export const createConfirmHandler = (handler, message) => (...args) => {
         return handler(...args);
     }
 };
+
 // Core field renderers
 const createBaseRenderers = () => ({
     text: (value, onSave, config) => (
@@ -46,16 +47,16 @@ const createBaseRenderers = () => ({
         />
     ),
 
-    dropdown: (value, onSave, config) => (
-        <EditableDropdown
+    dropdown: (value, onSave, config) => {
+        return <EditableDropdown
             initialValue={value || ''}
             onSave={onSave}
-            options={config.options}
+            options={config.options || []}
             placeholder={config.placeholder}
             label={config.label}
             isFormMode={config.isFormMode}
         />
-    ),
+    },
 
     datetime: (value, onSave, config) => (
         <EditableStartTime
@@ -97,18 +98,21 @@ const createBaseRenderers = () => ({
     )
 });
 
-// Field configuration factory
-const createFieldConfig = (item, col, options = {}) => ({
-    label: formatColName(col),
-    placeholder: `Enter ${formatColName(col).toLowerCase()}`,
-    isFormMode: item.isFormMode,
-    ...options
-});
+// Enhanced field configuration factory that handles dropdown options
+const createFieldConfig = (item, col, options = {}, dependencies = {}) => {
+    const baseConfig = {
+        label       : formatColName(col),
+        placeholder : `Enter ${formatColName(col).toLowerCase()}`,
+        isFormMode  : item.isFormMode,
+        ...options
+    };
+    return baseConfig;
+};
 
 // Improved save handler factory that better handles form mode
 const createSaveHandler = (item, col, handlers, schemas = {}) => {
     const { onSaveData, onMultiSaveData, onChange } = handlers;
-
+ 
     if (item.isFormMode && onChange) {
         return (value) => {
             onChange(col, value);
@@ -133,18 +137,19 @@ const createSaveHandler = (item, col, handlers, schemas = {}) => {
     return (value) => onSaveData(tableName, item[keyField], col, value);
 };
 
-// Main field renderer factory with better debugging
+// Main field renderer factory with better debugging and dropdown support
 export const createFieldRenderer = (fieldMappings, dependencies, handlers) => {
     const baseRenderers = createBaseRenderers();
 
     return (item, col, onChange = null, options = {}) => {
         const extendedHandlers = { ...handlers, onChange };
         const onSave = createSaveHandler(item, col, extendedHandlers, dependencies.schemas);
-        
+        // Enhanced config creation that includes dropdown options
         const config = createFieldConfig(item, col, {
             ...options,
-            error: options.error // Make sure error gets passed through
-        });
+            error: options.error,
+            dropdownOptions: options.dropdownOptions || dependencies.dropdownOptions
+        }, dependencies);
 
         // Check for custom field mapping first
         const customMapping = fieldMappings[col];
@@ -153,11 +158,13 @@ export const createFieldRenderer = (fieldMappings, dependencies, handlers) => {
             return customMapping(item, onSave, config, dependencies, baseRenderers);
         }
 
-        // Check if it's a simple string mapping (like 'textarea')
+        // Check if it's a simple string mapping (like 'dropdown', 'textarea')
         if (customMapping && typeof customMapping === 'string') {
             const renderer = baseRenderers[customMapping];
             if (renderer) {
                 return renderer(item[col], onSave, config);
+            } else {
+                console.warn(`Unknown field mapping: ${customMapping} for field: ${col}`);
             }
         }
 
@@ -168,10 +175,11 @@ export const createFieldRenderer = (fieldMappings, dependencies, handlers) => {
 
 // Utility functions
 const getKeyField = (item) => {
-    if (item.class_id !== undefined) return 'class_id';
-    if (item.user_id !== undefined) return 'user_id';
+    if (item.class_id !== undefined)   return 'class_id';
+    if (item.user_id !== undefined)    return 'user_id';
     if (item.pending_id !== undefined) return 'pending_id';
-    if (item.course_id !== undefined) return 'course_id'; // add this at the last as this also exists in non course tabs
+    if (item.course_id !== undefined)  return 'course_id'; 
+    if (item.grade_id !== undefined)   return 'grade_id'; 
     return null;
 };
 
@@ -182,16 +190,17 @@ const getTableName = (schemas, col, item) => {
         }
     }
 
-    if (item.course_id !== undefined) return 'courses';
-    if (item.class_id !== undefined) return 'classes';
+    if (item.course_id !== undefined)  return 'courses';
+    if (item.class_id !== undefined)   return 'classes';
     if (item.pending_id !== undefined) return 'pending_teachers';
+    if (item.grade_id !== undefined)   return 'grades';
     return 'users';
 };
 
-
 // Utility to create options for dropdowns
-export const createOptions = (data, valueKey, labelKey) =>
-    data?.map(item => ({ 
+export const createOptions = (data, valueKey, labelKey) =>{
+    return data?.map(item => ({ 
         value: item[valueKey], 
         label: item[labelKey] 
-    })) || [];
+    })) || []
+};

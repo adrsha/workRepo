@@ -188,7 +188,6 @@ const ApprovedStudentsTable = ({
 }) => {
     const enrichedStudents = enrichStudentsWithClassData(students, classesUsersData, classesData, teachersData, courseData);
     const newSchema = {columns : [...schemas.users.columns, ...schemas.students.columns]}
-
     const dependencies = { gradesData, rolesData, schemas };
     const handlers = { onSaveData, onMultiSaveData };
     const renderCell = createFieldRenderer(studentsFieldMappings, dependencies, handlers);
