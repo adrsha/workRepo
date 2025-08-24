@@ -15,9 +15,9 @@ const USER_NAV_ITEMS = [
 
 const UNAUTHENTICATED_NAV_ITEMS = [
     { name: 'Classes', path: '/classes' },
-    { name: 'Preparation', path: '#' },
-    { name: 'Language Classes', path: '#' },
-    { name: 'Other Classes', path: '/registration/other-classes' },
+    { name: 'Preparation', path: '/preparation' },
+    { name: 'Language Classes', path: '/language-classes' },
+    { name: 'Other Classes', path: '/other-classes' },
     { name: 'Downloads', path: '/downloads' },
 ];
 

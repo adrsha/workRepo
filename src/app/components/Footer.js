@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { fetchFooterData } from '../lib/footerActions';
 import styles from '../../styles/Footer.module.css';
 import dynamic from 'next/dynamic';
 
@@ -20,23 +21,7 @@ export default function Footer() {
     const isAdmin = session?.user?.level === 2;
     
     useEffect(() => {
-        const fetchFooterData = async () => {
-            try {
-                setLoading(true);
-                let data = {};
-                const response = await fetch('/api/footer');
-                if (response.ok) {
-                    data = await response.json();
-                }
-                setFooterData(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchFooterData();
+        fetchFooterData(setFooterData, setLoading, setError);
     }, []);
 
     if (loading) {
