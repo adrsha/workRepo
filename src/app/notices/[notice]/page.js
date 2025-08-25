@@ -9,7 +9,7 @@ export const metadata = getMetadata('notice');
 
 // Server component that can fetch data and handle SEO
 export default function NoticeDetailsPage({ params }) {
-    const noticeId = use(params)?.notice;
+    const noticeId = params.notice;
     
     return (
         <div className={styles.container}>

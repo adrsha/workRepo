@@ -9,10 +9,10 @@ export async function GET(request) {
             query: `
                 SELECT 
                     notices_id,
-                    notice_title,
-                    notice_date_time
+                    notices_title,
+                    notices_date_time
                 FROM notices
-                ORDER BY notice_date_time DESC
+                ORDER BY notices_date_time DESC
             `,
             values: [],
         });
@@ -44,7 +44,7 @@ export async function POST(request) {
         // Create notice only (no content)
         const noticeResult = await executeQueryWithRetry({
             query: `
-                INSERT INTO notices (notice_title, notice_date_time)
+                INSERT INTO notices (notices_title, notices_date_time)
                 VALUES (?, ?)
             `,
             values: [notice_title || null, noticeDateTime]
@@ -57,8 +57,8 @@ export async function POST(request) {
             query: `
                 SELECT 
                     notices_id,
-                    notice_title,
-                    notice_date_time
+                    notices_title,
+                    notices_date_time
                 FROM notices
                 WHERE notices_id = ?
             `,
@@ -95,7 +95,7 @@ export async function PUT(request) {
         // Get current notice info
         const currentNotice = await executeQueryWithRetry({
             query: `
-                SELECT notices_id, notice_title, notice_date_time
+                SELECT notices_id, notices_title, notices_date_time
                 FROM notices
                 WHERE notices_id = ?
             `,
@@ -113,7 +113,7 @@ export async function PUT(request) {
         await executeQueryWithRetry({
             query: `
                 UPDATE notices 
-                SET notice_title = ?, notice_date_time = ?
+                SET notices_title = ?, notices_date_time = ?
                 WHERE notices_id = ?
             `,
             values: [noticeTitleToUse, noticeDateTime, noticeId]
@@ -124,8 +124,8 @@ export async function PUT(request) {
             query: `
                 SELECT 
                     notices_id,
-                    notice_title,
-                    notice_date_time
+                    notices_title,
+                    notices_date_time
                 FROM notices
                 WHERE notices_id = ?
             `,

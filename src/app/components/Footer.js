@@ -2,26 +2,51 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { fetchFooterData } from '../lib/footerActions';
 import styles from '../../styles/Footer.module.css';
 import dynamic from 'next/dynamic';
 
-// Dynamically import FooterAdmin to avoid loading it unless needed
 const FooterAdmin = dynamic(() => import('./FooterAdmin'), {
     ssr: false,
     loading: () => <div>Loading admin panel...</div>
 });
+
+// Client-side fetch function with cache busting
+const fetchFooterData = async () => {
+    try {
+        const response = await fetch(`/api/footer`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            return { data, error: null };
+        } else {
+            return { data: null, error: 'Failed to fetch footer data' };
+        }
+    } catch (err) {
+        return { data: null, error: err.message };
+    }
+};
 
 export default function Footer() {
     const { data: session, status } = useSession();
     const [footerData, setFooterData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    // Check if user has admin level 2
     const isAdmin = session?.user?.level === 2;
     
     useEffect(() => {
-        fetchFooterData(setFooterData, setLoading, setError);
+        const loadFooterData = async () => {
+            setLoading(true);
+            const result = await fetchFooterData();
+ 
+            if (result.error) {
+                setError(result.error);
+            } else {
+                setFooterData(result.data);
+            }
+            setLoading(false);
+        };
+
+        loadFooterData();
     }, []);
 
     if (loading) {
@@ -132,7 +157,6 @@ export default function Footer() {
                 </div>
             </footer>
             
-            {/* Render Admin Panel if user has admin level 2 */}
             {status === 'authenticated' && isAdmin && <FooterAdmin />}
         </>
     );

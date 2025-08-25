@@ -63,6 +63,7 @@ export default function ClassDetailsClient({ initialData, classId, session }) {
     const [teacher] = useState(initialData.teacher);
     const [students] = useState(initialData.students);
     const isClassOwner = initialData.isClassOwner;
+    const isAdmin = session?.user?.level === 2;
 
     const [isUpdatingUrl, setIsUpdatingUrl] = useState(false);
     const [isRegenerating, setIsRegenerating] = useState(false);
@@ -198,7 +199,7 @@ export default function ClassDetailsClient({ initialData, classId, session }) {
 
                     <ClassContent classId={classId} isTeacher={isClassOwner} currentUser={session?.user} />
 
-                    {isClassOwner && (
+                    {(isClassOwner || isAdmin) && (
                         <StudentsList students={students} />
                     )}
                 </div>

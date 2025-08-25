@@ -6,19 +6,6 @@ export const getCols = (array) => {
     );
 };
 
-export const formatDateTime = (dateTimeStr) => {
-    if (!dateTimeStr) return 'Not set';
-
-    try {
-        return new Intl.DateTimeFormat('en-US', {
-            year: 'numeric', month: 'short', day: 'numeric',
-            hour: '2-digit', minute: '2-digit',
-        }).format(new Date(dateTimeStr));
-    } catch {
-        return dateTimeStr;
-    }
-};
-
 export const formatColName = (colName) =>
     colName.replace(/_/g, ' ')
         .replace(/([A-Z])/g, ' $1')

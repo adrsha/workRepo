@@ -1,16 +1,16 @@
-export const fetchFooterData = async (setFooterData, setLoading, setError) => {
+'use server';
+
+export const fetchFooterData = async () => {
     try {
-        setLoading(true);
-        let data = {};
         const response = await fetch('/api/footer');
         if (response.ok) {
-            data = await response.json();
+            const data = await response.json();
+            console.log(data);
+            return { data, error: null };
+        } else {
+            return { data: null, error: 'Failed to fetch footer data' };
         }
-        setFooterData(data);
     } catch (err) {
-        setError(err.message);
-    } finally {
-        setLoading(false);
+        return { data: null, error: err.message };
     }
 };
-

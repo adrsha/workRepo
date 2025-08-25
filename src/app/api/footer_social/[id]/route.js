@@ -1,7 +1,6 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/authOptions';
 import { CONFIG } from '../../../../constants/config';
-import { executeQueryWithRetry } from '@/app/lib/db';
 
 const validateInput = {
 
@@ -19,37 +18,39 @@ const validateInput = {
         return Number.isInteger(Number(id)) && Number(id) > 0;
     }
 };
-// Add link (admin only)
-async function addLink(linkData) {
+async function updateSocialLink(socialId, socialData) {
     try {
-        const { section_id, title, url, display_order = 0 } = linkData;
+        // await authService.requireAdmin();
+
+        if (!validateInput.isValidId(socialId)) {
+            throw new Error('Valid social link ID is required');
+        }
+
+        const { platform, url, icon_svg, display_order } = socialData;
 
         // Validate inputs
-        if (!validateInput.isValidId(section_id)) {
-            throw new Error('Valid section ID is required');
-        }
-        if (!title || typeof title !== 'string') {
-            throw new Error('Valid link title is required');
+        if (!platform || typeof platform !== 'string') {
+            throw new Error('Valid platform name is required');
         }
         if (display_order < 0 || display_order > 999) {
             throw new Error('Display order must be between 0 and 999');
         }
 
-        const sanitizedTitle = validateInput.sanitizeString(title, 100);
+        const sanitizedPlatform = validateInput.sanitizeString(platform, 50);
         const sanitizedUrl = validateInput.sanitizeString(url, 255);
+        const sanitizedIconSvg = validateInput.sanitizeString(icon_svg, 2000);
 
-        const result = await executeQueryWithRetry({
-            query: 'INSERT INTO footer_links (section_id, title, url, display_order) VALUES (?, ?, ?, ?)',
-            values: [section_id, sanitizedTitle, sanitizedUrl, display_order]
+        await executeQueryWithRetry({
+            query: 'UPDATE footer_social_links SET platform = ?, url = ?, icon_svg = ?, display_order = ? WHERE id = ?',
+            values: [sanitizedPlatform, sanitizedUrl, sanitizedIconSvg, display_order, socialId]
         });
 
-        return { id: result.insertId, success: true };
+        return { success: true };
     } catch (error) {
-        console.error('Error adding link:', error);
-        throw new Error(error.message || 'Failed to add link');
+        console.error('Error updating social link:', error);
+        throw new Error(error.message || 'Failed to update social link');
     }
 }
-
 const auth = {
     async getUser() {
         const session = await getServerSession(authOptions);
@@ -69,20 +70,11 @@ const respond = (data, status = 200) =>
     });
 
 const handleError = (error) => {
-    console.error('Footer links API error:', error);
-
-    const statusMap = {
-        [CONFIG.ERRORS.UNAUTHORIZED]: 401,
-        [CONFIG.ERRORS.MISSING_CONTENT]: 400
-    };
-
-    const status = statusMap[error.message] || 500;
-    const message = statusMap[error.message] ? error.message : 'Internal server error';
-
-    return respond({ error: message }, status);
+    console.error('Footer social API error:', error);
+    return respond({ error: error.message }, 500);
 };
 
-export async function POST(req) {
+export async function PUT(req, { params }) {
     try {
         const user = await auth.getUser();
 
@@ -90,13 +82,10 @@ export async function POST(req) {
             throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
         }
 
-        const linkData = await req.json();
+        const socialData = await req.json();
+        const socialId = params.id;
 
-        if (!linkData.section_id || !linkData.title || !linkData.url) {
-            throw new Error(CONFIG.ERRORS.MISSING_CONTENT);
-        }
-
-        const result = await addLink(linkData);
+        const result = await updateSocialLink(socialId, socialData);
         return respond(result);
     } catch (error) {
         return handleError(error);

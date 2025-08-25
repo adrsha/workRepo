@@ -201,11 +201,12 @@ export default function HomePageClient({ featureSidesData, featuresData }) {
             </section>
 
             <section
-                className={`${styles.features} ${animatedFeatures.visible ? styles.featuresVisible : ''}`}
                 ref={featuresRef}
                 aria-label="Featured services"
             >
-                {featuresData.map(renderMainFeature)}
+                <div className={`${styles.features} ${animatedFeatures.visible ? styles.featuresVisible : ''}`}>
+                    {featuresData.map(renderMainFeature)}
+                </div>
             </section>
 
             <div

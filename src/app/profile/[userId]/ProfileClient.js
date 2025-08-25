@@ -1,5 +1,5 @@
 'use client';
-import { use, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import styles from '../../../styles/Profile.module.css';
 
@@ -16,7 +16,7 @@ export default function ProfileClient({ params }) {
     const [teacherClasses, setTeacherClasses] = useState([]);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [userEnrolledClasses, setUserEnrolledClasses] = useState([]);
-    const userId = parseInt(use(params).userId);
+    const userId = parseInt(params.userId);
 
     useEffect(() => {
         async function fetchProfile() {

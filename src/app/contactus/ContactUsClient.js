@@ -1,30 +1,56 @@
 'use client';
-
 import styles from '../../styles/ContactUs.module.css';
 import '../global.css';
 import { useState, useEffect } from 'react';
-import { fetchFooterData } from '../lib/footerActions';
 import Loading from '../components/Loading';
+
+// Client-side fetch function with cache busting
+const fetchFooterData = async () => {
+    try {
+        const response = await fetch(`/api/footer`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            return { data, error: null };
+        } else {
+            return { data: null, error: 'Failed to fetch footer data' };
+        }
+    } catch (err) {
+        return { data: null, error: err.message };
+    }
+};
 
 export default function ContactUsClient() {
     const [footerData, setFooterData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    
     useEffect(() => {
-        fetchFooterData(setFooterData, setLoading, setError);
-    }, []);
+        const loadFooterData = async () => {
+            setLoading(true);
+            const result = await fetchFooterData();
+            console.log(result);
+            if (result.error) {
+                setError(result.error);
+            } else {
+                setFooterData(result.data);
+            }
+            setLoading(false);
+        };
 
+        loadFooterData();
+    }, []);
+    
     if (loading) {
         return <Loading />;
     }
-
+    
     if (error || !footerData) {
         return <div className={styles.error}>{error || "Error loading company information"}</div>;
     }
-
+    
     const { config } = footerData;
-
+    
     return (
         <div className={styles.contactUsContainer}>
             <h1 className={styles.heading}>Contact Us</h1>

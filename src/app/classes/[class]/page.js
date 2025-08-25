@@ -43,12 +43,18 @@ export default async function ClassDetailsPage({ params }) {
             // Fetch class details from classes_view
             const classesViewData = await fetchViewData('classes_view', authToken);
             const classDetails = classesViewData.find(cls => cls.class_id.toString() === classId);
-
+            
+            
             if (!classDetails) {
                 initialData.error = 'Class not found or you don\'t have access to it.';
                 return <ClassDetailsClient initialData={initialData} classId={classId} session={session} />;
             }
-
+            
+            const classesUsersData = await fetchData('classes_users', authToken);
+            const usersData = await fetchViewData('users_view', authToken);
+            const students = classesUsersData.map(cu => cu.class_id.toString() === classId && usersData.find(u => u.user_id === cu.user_id));
+            
+            initialData.students = students;
             initialData.classDetails = classDetails;
             initialData.isClassOwner = userId === classDetails.teacher_id;
 

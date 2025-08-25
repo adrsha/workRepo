@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getStoredTab, setStoredTab, formatDateTime } from '../app/lib/utils';
+import { getStoredTab, setStoredTab } from '../app/lib/utils';
+import { formatDateTime } from '@/utils/dateTime';
 
 export const usePersistedTab = () => {
     const [activeTab, setActiveTab] = useState(getStoredTab);

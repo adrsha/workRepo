@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/authOptions';
-import { executeQueryWithRetry } from '@/app/lib/db';
-import { CONFIG } from '../../../../constants/config';
+import { authOptions } from '../auth/[...nextauth]/authOptions';
+import { executeQueryWithRetry } from '../../lib/db';
+import { CONFIG } from '../../../constants/config';
 
 const validateInput = {
 
@@ -43,23 +43,23 @@ async function updateConfig(configData) {
             copyright_text: validateInput.sanitizeString(copyright_text, 100)
         };
 
-        await executeQueryWithRetry({
+        const respose = await executeQueryWithRetry({
             query: `
           UPDATE footer_config 
-          SET company_name = ?, company_description = ?, contact_phone = ?, 
+          SET company_name = ?, company_description = ?, contact_phone = ?,
               contact_email = ?, contact_address = ?, copyright_text = ?
           WHERE id = (SELECT id FROM (SELECT id FROM footer_config WHERE is_active = 1 ORDER BY id DESC LIMIT 1) as temp)
         `,
             values: [
-                sanitizedData.company_name,
-                sanitizedData.company_description,
-                sanitizedData.contact_phone,
+                sanitizedData.company_name || "",
+                sanitizedData.company_description || "",
+                sanitizedData.contact_phone || "",
                 sanitizedData.contact_email,
                 sanitizedData.contact_address,
                 sanitizedData.copyright_text
             ]
         });
-
+        console.log("RESPONSE", respose)
         return { success: true };
     } catch (error) {
         console.error('Error updating footer config:', error);
@@ -92,7 +92,7 @@ const handleError = (error) => {
         [CONFIG.ERRORS.UNAUTHORIZED]: 401,
         [CONFIG.ERRORS.MISSING_CONTENT]: 400
     };
-
+    
     const status = statusMap[error.message] || 500;
     const message = statusMap[error.message] ? error.message : 'Internal server error';
 

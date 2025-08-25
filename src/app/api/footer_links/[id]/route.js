@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../auth/[...nextauth]/authOptions';
+import { authOptions } from '../../auth/[...nextauth]/authOptions';
 import { executeQueryWithRetry } from '@/app/lib/db';
-import { CONFIG } from '../../../../../constants/config';
+import { CONFIG } from '../../../../constants/config';
 
 const validateInput = {
 
@@ -19,53 +19,58 @@ const validateInput = {
         return Number.isInteger(Number(id)) && Number(id) > 0;
     }
 };
-async function updateSection(sectionId, sectionData) {
+// Update link (admin only)
+async function updateLink(linkId, linkData) {
     try {
-        if (!validateInput.isValidId(sectionId)) {
-            throw new Error('Valid section ID is required');
+        // await authService.requireAdmin();
+
+        if (!validateInput.isValidId(linkId)) {
+            throw new Error('Valid link ID is required');
         }
 
-        const { title, display_order } = sectionData;
+        const { title, url, display_order } = linkData;
 
         // Validate inputs
         if (!title || typeof title !== 'string') {
-            throw new Error('Valid section title is required');
+            throw new Error('Valid link title is required');
         }
         if (display_order < 0 || display_order > 999) {
             throw new Error('Display order must be between 0 and 999');
         }
 
         const sanitizedTitle = validateInput.sanitizeString(title, 100);
+        const sanitizedUrl = validateInput.sanitizeString(url, 255);
 
         await executeQueryWithRetry({
-            query: 'UPDATE footer_sections SET title = ?, display_order = ? WHERE id = ?',
-            values: [sanitizedTitle, display_order, sectionId]
+            query: 'UPDATE footer_links SET title = ?, url = ?, display_order = ? WHERE id = ?',
+            values: [sanitizedTitle, sanitizedUrl, display_order, linkId]
         });
 
         return { success: true };
     } catch (error) {
-        console.error('Error updating section:', error);
-        throw new Error(error.message || 'Failed to update section');
+        console.error('Error updating link:', error);
+        throw new Error(error.message || 'Failed to update link');
     }
 }
 
-// Delete section (admin only)
-async function deleteSection(sectionId) {
+// Delete link (admin only)
+async function deleteLink(linkId) {
     try {
+        // await authService.requireAdmin();
 
-        if (!validateInput.isValidId(sectionId)) {
-            throw new Error('Valid section ID is required');
+        if (!validateInput.isValidId(linkId)) {
+            throw new Error('Valid link ID is required');
         }
 
         await executeQueryWithRetry({
-            query: 'UPDATE footer_sections SET is_active = 0 WHERE id = ?',
-            values: [sectionId]
+            query: 'UPDATE footer_links SET is_active = 0 WHERE id = ?',
+            values: [linkId]
         });
 
         return { success: true };
     } catch (error) {
-        console.error('Error deleting section:', error);
-        throw new Error(error.message || 'Failed to delete section');
+        console.error('Error deleting link:', error);
+        throw new Error(error.message || 'Failed to delete link');
     }
 }
 
@@ -88,7 +93,7 @@ const respond = (data, status = 200) =>
     });
 
 const handleError = (error) => {
-    console.error('Footer section API error:', error);
+    console.error('Footer link API error:', error);
     return respond({ error: error.message }, 500);
 };
 
@@ -100,10 +105,10 @@ export async function PUT(req, { params }) {
             throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
         }
 
-        const sectionData = await req.json();
-        const sectionId = params.id;
+        const linkData = await req.json();
+        const linkId = params.id;
 
-        const result = await updateSection(sectionId, sectionData);
+        const result = await updateLink(linkId, linkData);
         return respond(result);
     } catch (error) {
         return handleError(error);
@@ -118,8 +123,8 @@ export async function DELETE(req, { params }) {
             throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
         }
 
-        const sectionId = params.id;
-        const result = await deleteSection(sectionId);
+        const linkId = params.id;
+        const result = await deleteLink(linkId);
         return respond(result);
     } catch (error) {
         return handleError(error);

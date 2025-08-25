@@ -65,6 +65,8 @@
     max-height: 50vh;
     overflow-y: auto;
     position: relative;
+    border-left: 1px solid rgba(0,0,0,0.1);
+    padding: 2rem;
 }
 
 .backButton:focus {
@@ -367,7 +369,7 @@
 /* Action buttons */
 .actionButtons {
     display: flex;
-    justify-content: center;
+    justify-content:flex-start;
     gap: 1rem;
 }
 
@@ -375,7 +377,7 @@
 .addButton {
     display: inline-flex;
     gap: 0.5rem;
-    padding: 1rem 2rem;
+    padding: 0.5rem 1rem;
     margin-bottom: 1rem;
     background: var(--tertiary);
     color: white;

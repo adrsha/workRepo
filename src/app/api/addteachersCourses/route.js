@@ -6,7 +6,6 @@ export async function POST(req) {
     try {
         const body = await req.json();
         const { courseId, gradeId, startTime, endTime, repeatEveryNDay, classDescription } = body;
-        console.log(body)
 
         // Get the session using NextAuth
         const session = await getServerSession(authOptions); // Fetch session using NextAuth.js session management

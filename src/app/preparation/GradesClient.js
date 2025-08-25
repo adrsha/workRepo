@@ -455,7 +455,7 @@ export default function GradesClient() {
                                                 {getDate(classData.start_time).yyyymmdd} - {getDate(classData.end_time).yyyymmdd}
                                             </span>
                                             <span className={styles.classCost}>
-                                                ${classData.cost}
+                                                रू{classData.cost}
                                             </span>
                                             <button
                                                 className={styles.removeItemBtn}
@@ -471,7 +471,7 @@ export default function GradesClient() {
                         </div>
                         <div className={styles.totalSection}>
                             <div className={styles.totalAmount}>
-                                Total: ${cartTotal.toFixed(2)}
+                                Total: रू{cartTotal.toFixed(2)}
                             </div>
                             <div className={styles.checkoutActions}>
                                 <button

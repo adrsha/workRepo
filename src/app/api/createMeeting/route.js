@@ -44,86 +44,195 @@ export async function POST(request) {
             );
         }
 
-        // Format dates for Whereby API
+        // Format dates for API with validation and adjustment
         let startDateTime, endDateTime;
         try {
-            startDateTime = new Date(startDate);
-            endDateTime = new Date(endDate);
+            const originalStartDate = new Date(startDate);
+            const originalEndDate = new Date(endDate);
 
             // Validate dates are valid
-            if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+            if (isNaN(originalStartDate.getTime()) || isNaN(originalEndDate.getTime())) {
                 return NextResponse.json({ message: 'Invalid date format' }, { status: 400 });
             }
+
+            const now = new Date();
+            
+            // Extract time components from original start date
+            const startHours = originalStartDate.getHours();
+            const startMinutes = originalStartDate.getMinutes();
+            const startSeconds = originalStartDate.getSeconds();
+            const startMilliseconds = originalStartDate.getMilliseconds();
+            
+            // Check if start date is before current date
+            if (originalStartDate.toDateString() < now.toDateString()) {
+                // Use current date but preserve the original time
+                startDateTime = new Date(now);
+                startDateTime.setHours(startHours, startMinutes, startSeconds, startMilliseconds);
+                
+                // If the time has already passed today, add a buffer of 30 seconds
+                if (startDateTime <= now) {
+                    startDateTime = new Date(now.getTime() + 30000); // 30 seconds buffer
+                }
+            } else if (originalStartDate.toDateString() === now.toDateString()) {
+                // Same date - check if time has passed
+                if (originalStartDate <= now) {
+                    // Time has passed, set to current time + 30 seconds buffer
+                    startDateTime = new Date(now.getTime() + 30000);
+                } else {
+                    // Future time today, use as is
+                    startDateTime = originalStartDate;
+                }
+            } else {
+                // Future date, use as is
+                startDateTime = originalStartDate;
+            }
+
+            // Calculate duration from original TIME difference only (handles midnight crossover)
+            const startHrs = originalStartDate.getUTCHours();
+            const startMins = originalStartDate.getUTCMinutes();
+            const startSecs = originalStartDate.getUTCSeconds();
+            const startMsecs = originalStartDate.getUTCMilliseconds();
+            
+            const endHours = originalEndDate.getUTCHours();
+            const endMinutes = originalEndDate.getUTCMinutes();
+            const endSeconds = originalEndDate.getUTCSeconds();
+            const endMilliseconds = originalEndDate.getUTCMilliseconds();
+            
+            // Calculate time difference in milliseconds
+            const startTotalMs = (startHours * 60 * 60 + startMinutes * 60 + startSeconds) * 1000 + startMilliseconds;
+            const endTotalMs = (endHours * 60 * 60 + endMinutes * 60 + endSeconds) * 1000 + endMilliseconds;
+            
+            let timeDifferenceMs = endTotalMs - startTotalMs;
+            
+            // Handle midnight crossover
+            if (timeDifferenceMs < 0) {
+                timeDifferenceMs += 24 * 60 * 60 * 1000; // Add 24 hours worth of milliseconds
+            }
+            
+            // Set end time based on adjusted start time + time duration only
+            endDateTime = new Date(startDateTime.getTime() + timeDifferenceMs);
+            
         } catch (error) {
             return NextResponse.json({ message: 'Invalid date format' }, { status: 400 });
         }
+        
+        // Calculate duration in hours (from time difference only, not date)
+        const durationMs = endDateTime.getTime() - startDateTime.getTime();
+        const durationHours = Math.round((durationMs / (1000 * 60 * 60)) * 100) / 100; // Round to 2 decimal places
+
+        console.log({
+            name: className || `Class ${classId} Meeting`,
+            room_type: 'webinar',
+            permanent_room: false, // Use boolean as per docs
+            starts_at: startDateTime.toISOString(),
+            duration: durationHours,
+            timezone: 'UTC',
+            access_type: 1,
+            lobby_enabled: true, // Use boolean as per docs
+            lobby_description: `Welcome to ${className || 'Class'} meeting! Please wait for the instructor to start the session.`,
+            settings: {
+                show_on_personal_page: false,
+                thank_you_emails_enabled: true,
+                connection_tester_enabled: true,
+                phonegateway_enabled: false,
+                recorder_autostart_enabled: false,
+                room_invite_button_enabled: true,
+                social_media_sharing_enabled: false,
+                connection_status_enabled: true,
+                encryption_enabled: true
+            }
+        })
+        
+         // Prepare the conference data
+        const conferenceData = {
+            name: className || `Class ${classId} Meeting`,
+            room_type: 'webinar',
+            permanent_room: false, // Use boolean as per docs
+            starts_at: startDateTime.toISOString(),
+            duration: durationHours,
+            timezone: 'UTC',
+            access_type: 1,
+            lobby_enabled: true, // Use boolean as per docs
+            lobby_description: `Welcome to ${className || 'Class'} meeting! Please wait for the instructor to start the session.`,
+            'settings[show_on_personal_page]': false,
+            'settings[thank_you_emails_enabled]': true,
+            'settings[connection_tester_enabled]': true,
+            'settings[phonegateway_enabled]': false,
+            'settings[recorder_autostart_enabled]': false,
+            'settings[room_invite_button_enabled]': true,
+            'settings[social_media_sharing_enabled]': false,
+            'settings[connection_status_enabled]': true,
+            'settings[encryption_enabled]': true
+        };
 
         const isoDates = {
             startDate: startDateTime.toISOString(),
-            endDate: endDateTime.toISOString()
+            endDate: endDateTime.toISOString(),
+            duration: durationHours
         };
 
-        // Call Whereby API to create a room
-        const response = await fetch('https://api.whereby.dev/v1/meetings', {
+        // Call clickmeeting api
+        const response = await fetch('https://api.clickmeeting.com/v1/conferences', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${process.env.WHEREBY_API_KEY}`,
-                'Content-Type': 'application/json'
+                'X-API-KEY': process.env.CLICKMEETING_API_KEY,
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: JSON.stringify({
-                isLocked: false,
-                roomNamePrefix: `class-${classId}`,
-                roomNamePattern: 'uuid',
-                roomMode: 'normal',
-                startDate: isoDates.startDate,
-                endDate: isoDates.endDate,
-                fields: ['hostRoomUrl', 'roomUrl']
-            })
+            body: new URLSearchParams(conferenceData).toString()
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('Whereby API error:', errorData);
+            console.error('ClickMeeting API error:', errorData);
             return NextResponse.json(
                 { message: 'Failed to create meeting room' },
                 { status: response.status }
             );
         }
 
-        // Get the meeting details from Whereby
+        // Get the meeting details from ClickMeeting
         const meetingData = await response.json();
+        console.log('ClickMeeting Response:', meetingData);
         
-        // Example of output
-        //{
-        //   startDate: '2025-08-10T14:44:37.835Z',
-        //   endDate: '2025-08-31T17:15:00.000Z',
-        //   roomName: '/class-57d5f0a5c5-4c72-49c6-a758-48b69c3bd0fc',
-        //   roomUrl: 'https://mero-tuition.whereby.com/class-57d5f0a5c5-4c72-49c6-a758-48b69c3bd0fc',
-        //   meetingId: '107797570',
-        //   hostRoomUrl: 'https://mero-tuition.whereby.com/class-57d5f0a5c5-4c72-49c6-a758-48b69c3bd0fc?roomKey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZWV0aW5nSWQiOiIxMDc3OTc1NzAiLCJyb29tUmVmZXJlbmNlIjp7InJvb21OYW1lIjoiL2NsYXNzLTU3ZDVmMGE1YzUtNGM3Mi00OWM2LWE3NTgtNDhiNjljM2JkMGZjIiwib3JnYW5pemF0aW9uSWQiOiIzMTI1OTcifSwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5zcnYud2hlcmVieS5jb20iLCJpYXQiOjE3NTQ4MzcwNzcsInJvb21LZXlUeXBlIjoibWVldGluZ0hvc3QifQ.oYmkb857asbdnAvlmHp7q6JWYZK3IPaa-L_uTXXNj8M'
-        // }
-        
-        // Validate meeting data
-        if (!meetingData || !meetingData.roomUrl) {
+        // Validate meeting data - ClickMeeting returns data in 'room' object
+        if (!meetingData || !meetingData.room || !meetingData.room.room_url) {
+            console.error('Invalid ClickMeeting response structure:', meetingData);
             return NextResponse.json(
                 { message: 'Invalid response from meeting provider' },
                 { status: 500 }
             );
         }
 
+        const roomData = meetingData.room;
+
         // UPDATE: Only update database if requested
         if (updateDatabase) {
             await executeQueryWithRetry({
                 query: 'UPDATE classes SET meeting_url = ? WHERE class_id = ?',
-                values: [meetingData.roomUrl, classId]
+                values: [roomData.room_url, classId]
             });
         }
 
-        // Return the meeting URL to the client
+        // Return the meeting URL to the client with ClickMeeting structure
         return NextResponse.json({
-            meetingUrl: meetingData.roomUrl,
-            hostUrl: meetingData.hostRoomUrl || meetingData.roomUrl,
-            databaseUpdated: updateDatabase 
+            meetingUrl: roomData.room_url,
+            hostUrl: roomData.room_url + `?hash=${roomData.autologin_hash}`, // Add host hash for direct access
+            meetingId: roomData.id,
+            roomPin: roomData.room_pin,
+            embedUrl: roomData.embed_room_url,
+            phonePresenterPin: roomData.phone_presenter_pin,
+            phoneListenerPin: roomData.phone_listener_pin,
+            accessRoles: roomData.access_role_hashes,
+            startsAt: roomData.starts_at,
+            endsAt: roomData.ends_at,
+            databaseUpdated: updateDatabase,
+            meetingDetails: {
+                name: roomData.name,
+                timezone: roomData.timezone,
+                status: roomData.status,
+                lobbyEnabled: roomData.lobby_enabled,
+                accessType: roomData.access_type
+            }
         });
     } catch (error) {
         console.error('Error creating meeting:', error);

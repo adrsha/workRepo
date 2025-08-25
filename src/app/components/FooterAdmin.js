@@ -88,7 +88,7 @@ const ConfigSection = ({ config, onRefresh }) => {
         
         execute(async () => {
             const apiRequest = createApiRequest();
-            await apiRequest('/api/footer/config', {
+            await apiRequest('/api/footer_config', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(configData),
@@ -239,7 +239,7 @@ const AddSectionForm = ({ onRefresh }) => {
         
         execute(async () => {
             const apiRequest = createApiRequest();
-            await apiRequest('/api/footer/sections', {
+            await apiRequest('/api/footer_sections', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(sectionData),
@@ -306,7 +306,7 @@ const LinkManager = ({ sectionId, links, onRefresh }) => {
         
         execute(async () => {
             const apiRequest = createApiRequest();
-            await apiRequest('/api/footer/links', {
+            await apiRequest('/api/footer_links', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(linkData),
@@ -327,11 +327,11 @@ const LinkManager = ({ sectionId, links, onRefresh }) => {
         
         execute(async () => {
             const apiRequest = createApiRequest();
-            await apiRequest(`/api/footer/links/${link.id}`, {
+            await apiRequest(`/api/footer_links/${link.id}`, {
                 method: 'DELETE',
             });
             
-            await apiRequest('/api/footer/links', {
+            await apiRequest('/api/footer_links', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ section_id: sectionId, title, url }),
@@ -344,7 +344,7 @@ const LinkManager = ({ sectionId, links, onRefresh }) => {
         
         execute(async () => {
             const apiRequest = createApiRequest();
-            await apiRequest(`/api/footer/links/${linkId}`, {
+            await apiRequest(`/api/footer_links/${linkId}`, {
                 method: 'DELETE',
             });
         });
@@ -500,11 +500,11 @@ const SectionManager = ({ sections, onRefresh }) => {
             const apiRequest = createApiRequest();
             const existingLinks = section.links || [];
             
-            await apiRequest(`/api/footer/sections/${section.id}`, {
+            await apiRequest(`/api/footer_sections/${section.id}`, {
                 method: 'DELETE',
             });
             
-            const newSectionResponse = await apiRequest('/api/footer/sections', {
+            const newSectionResponse = await apiRequest('/api/footer_sections', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title, display_order }),
@@ -512,7 +512,7 @@ const SectionManager = ({ sections, onRefresh }) => {
             
             const newSectionId = newSectionResponse.id;
             for (const link of existingLinks) {
-                await apiRequest('/api/footer/links', {
+                await apiRequest('/api/footer_links', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -532,7 +532,7 @@ const SectionManager = ({ sections, onRefresh }) => {
         
         execute(async () => {
             const apiRequest = createApiRequest();
-            await apiRequest(`/api/footer/sections/${sectionId}`, {
+            await apiRequest(`/api/footer_sections/${sectionId}`, {
                 method: 'DELETE',
             });
         });

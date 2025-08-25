@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { executeQueryWithRetry } from '../../lib/db';
 
 async function getFooterData() {

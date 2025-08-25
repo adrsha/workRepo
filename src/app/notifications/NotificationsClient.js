@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { formatDateTime, getDate } from '@/utils/dateTime';
 import styles from '../../styles/Notifications.module.css';
 
 const ITEMS_PER_PAGE = 15;
@@ -27,32 +28,6 @@ const buildNotificationParams = (page, filter) => {
     // If filter === 'all', no read_status parameter is added
 
     return params;
-};
-
-// Utility function to format notification dates
-const formatNotificationDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now - date;
-    const diffInHours = diffInMs / (1000 * 60 * 60);
-    const diffInDays = diffInHours / 24;
-
-    if (diffInHours < 1) {
-        const minutes = Math.floor(diffInMs / (1000 * 60));
-        return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
-    } else if (diffInHours < 24) {
-        const hours = Math.floor(diffInHours);
-        return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
-    } else if (diffInDays < 7) {
-        const days = Math.floor(diffInDays);
-        return `${days} day${days !== 1 ? 's' : ''} ago`;
-    } else {
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-        });
-    }
 };
 
 // Custom hook for authentication check
@@ -252,7 +227,7 @@ const NotificationItem = ({ notification, onNotificationClick }) => (
         <div className={styles.notificationContent}>
             <p className={styles.notificationMessage}>{notification.message}</p>
             <span className={styles.notificationTime}>
-                {formatNotificationDate(notification.created_at)}
+                {formatDateTime(notification.created_at, 'short')}
             </span>
         </div>
     </li>
