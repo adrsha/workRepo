@@ -126,43 +126,9 @@ export const classesFieldMappings = {
     end_time: (item, onSave, config, deps, renderers) => 
         renderers.datetime(item.end_time, onSave, config),
 
-    enrolled_students: (item, onSave, config, deps, renderers) => {
-        // In form mode, show a simple text field or display message
-        if (item.isFormMode) {
-            return renderers.display('Students will be enrolled after class creation', {
-                className: "form-info-text",
-                fallback: "No students yet"
-            });
-        }
+    repeat_every_n_day:  (item, onSave, config, deps, renderers) => 
+        renderers.repeat(item.repeat_every_n_day, onSave, config),
         
-        // Regular mode - show expandable list
-        return (
-            <ExpandableCell
-                id={item.class_id}
-                count={item.enrolled_students || 0}
-                items={(item.enrolled_students_list || []).map(student => ({
-                    id: student.user_id,
-                    title: `Click to view ${student.user_name}'s profile`,
-                    ...student
-                }))}
-                countLabel="student"
-                renderItem={(student) => (
-                    <>
-                        <div className="student-name">{student.user_name}</div>
-                        {student.contact && <div className="student-contact">{student.contact}</div>}
-                        <div className="profile-link-icon">👤</div>
-                    </>
-                )}
-                onItemClick={(userId, e) => {
-                    e.stopPropagation();
-                    window.open(`/profile/${userId}`, '_blank');
-                }}
-                emptyMessage="No students enrolled"
-                containerClass="enrolled-students-container"
-                itemClass="student-item"
-            />
-        );
-    }
 };
 
 // Students tab field mappings
@@ -182,54 +148,10 @@ export const studentsFieldMappings = {
         }),
         
     date_of_birth: (item, onSave, config, deps, renderers) => 
-        renderers.date(item.date_of_birth, onSave, config),
+        {
+            return renderers.date(item.date_of_birth, onSave, config)
+        },
 
-    enrolled_classes: (item, onSave, config, deps, renderers) => {
-        // In form mode, show a simple message
-        if (item.isFormMode) {
-            return renderers.display('Classes will be available after student creation', {
-                className: "form-info-text",
-                fallback: "No classes yet"
-            });
-        }
-        
-        // Regular mode - show expandable list
-        return (
-            <ExpandableCell
-                id={item.user_id}
-                count={item.enrolled_classes || 0}
-                items={(item.enrolled_classes_list || []).map(classItem => ({
-                    id: classItem.class_id,
-                    title: `Click to view ${classItem.class_name || 'class'} details`,
-                    ...classItem
-                }))}
-                countLabel="class"
-                renderItem={(classItem) => (
-                    <>
-                        <div className="class-name">
-                            {classItem.course_name || classItem.class_name || 'Unknown Class'}
-                        </div>
-                        {classItem.teacher_name && (
-                            <div className="class-teacher">Teacher: {classItem.teacher_name}</div>
-                        )}
-                        {classItem.start_time && (
-                            <div className="class-time">
-                                {new Date(classItem.start_time).toLocaleString()}
-                            </div>
-                        )}
-                        <div className="class-link-icon">📚</div>
-                    </>
-                )}
-                onItemClick={(classId, e) => {
-                    e.stopPropagation();
-                    window.open(`/classes/${classId}`, '_blank');
-                }}
-                emptyMessage="No classes enrolled"
-                containerClass="enrolled-classes-container"
-                itemClass="class-item"
-            />
-        );
-    }
 };
 
 // Teachers tab field mappings  

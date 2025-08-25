@@ -6,8 +6,8 @@ export const formatDateTime = (dateTimeString, length) => {
             return dateTimeString;
         }
 
-        const { yyyymmdd, hhmmss } = getDate(dateTimeString);
-        const date = new Date(`${yyyymmdd}T${hhmmss}`);
+        // Use the original date object directly instead of reconstructing it
+        const date = new Date(dateTimeString);
         
         if (length == 'short'){
             return new Intl.DateTimeFormat('en-US', {
@@ -103,15 +103,7 @@ export const canTeacherGenerateLink = (startTime, endTime, repeatNDays) => {
     return now <= classEnd;
 };
 
-// export function getDate (string) {
-//     console.log("date", string)
-//     const date = new Date(string);
-//     
-//     const yyyymmdd = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
-//     const hhmmss = `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}:${String(date.getUTCSeconds()).padStart(2, '0')}`;
-//     return { yyyymmdd, hhmmss };
-// }
-
+// Fixed getDate function - using local timezone methods consistently
 export function getDate(string) {
     const date = new Date(string);
     const yyyymmdd = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;

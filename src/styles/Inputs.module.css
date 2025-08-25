@@ -8,27 +8,27 @@
 }
 
 .inputContainer:not(:has(.input[type="radio"], .input[type="checkbox"])) {
-    border: var(--input-border-width) solid var(--offWhite);
-    border-radius: var(--input-border-radius);
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    border: var(--input-border-width, 1px) solid var(--offWhite, #e5e7eb);
+    border-radius: var(--input-border-radius, 4px);
+    transition: border-color var(--transition-fast, 0.2s ease-in-out), box-shadow var(--transition-fast, 0.2s ease-in-out);
 }
 
 .inputContainer:focus-within:not(:has(.input[type="radio"], .input[type="checkbox"])) {
-    border-color: var(--lightBlue);
-    box-shadow: var(--focus-ring) var(--focus-ring-color);
+    border-color: var(--lightBlue, #3db0b7);
+    box-shadow: var(--focus-ring, 0 0 0 2px) var(--focus-ring-color, rgba(61, 176, 183, 0.25));
 }
 
 /* ===== BASE INPUT STYLES ===== */
 .input {
     width: 100%;
-    padding: var(--input-padding);
-    font-size: var(--input-font-size);
+    padding: var(--input-padding, 0.75rem);
+    font-size: var(--input-font-size, 1rem);
     line-height: 1.5;
-    color: var(--foreground);
-    background: var(--background);
+    color: var(--foreground, #1f2937);
+    background: var(--background, #ffffff);
     border: none;
-    border-radius: var(--input-border-radius);
-    transition: all var(--transition-fast);
+    border-radius: var(--input-border-radius, 4px);
+    transition: all var(--transition-fast, 0.2s ease-in-out);
 }
 
 .input:focus {
@@ -40,8 +40,8 @@
 }
 
 .input:disabled {
-    background: var(--offWhite);
-    color: var(--gray);
+    background: var(--offWhite, #f3f4f6);
+    color: var(--gray, #6b7280);
     cursor: not-allowed;
     opacity: 0.7;
 }
@@ -49,23 +49,23 @@
 /* ===== FLOATING LABELS ===== */
 .inputLabel {
     position: absolute;
-    top: var(--input-padding);
-    left: var(--input-padding);
+    top: var(--input-padding, 0.75rem);
+    left: var(--input-padding, 0.75rem);
     padding: 0 0.25rem;
-    font-size: var(--input-font-size);
-    color: var(--gray);
-    background: var(--background);
+    font-size: var(--input-font-size, 1rem);
+    color: var(--gray, #6b7280);
+    background: var(--background, #ffffff);
     border-radius: 0.25rem;
     pointer-events: none;
-    transition: all var(--transition-fast);
+    transition: all var(--transition-fast, 0.2s ease-in-out);
     white-space: nowrap;
 }
 
 .input:focus+.inputLabel,
 .input:not(:placeholder-shown)+.inputLabel {
-    top: var(--label-offset);
-    font-size: var(--label-font-size);
-    color: var(--lightBlue);
+    top: var(--label-offset, -0.5rem);
+    font-size: var(--label-font-size, 0.75rem);
+    color: var(--lightBlue, #3db0b7);
     font-weight: 500;
 }
 
@@ -98,10 +98,10 @@
     width: 1rem;
     height: 1rem;
     padding: 0;
-    border: 2px solid var(--lightBlue);
-    background: var(--background);
+    border: 2px solid var(--lightBlue, #3db0b7);
+    background: var(--background, #ffffff);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all var(--transition-fast, 0.2s ease-in-out);
     flex-shrink: 0;
     margin: 0;
 }
@@ -109,13 +109,13 @@
 .input[type="checkbox"]:focus,
 .input[type="radio"]:focus {
     outline: none;
-    box-shadow: var(--focus-ring) var(--focus-ring-color);
+    box-shadow: var(--focus-ring, 0 0 0 2px) var(--focus-ring-color, rgba(61, 176, 183, 0.25));
 }
 
 .input[type="checkbox"]:hover,
 .input[type="radio"]:hover {
-    border-color: var(--lightBlue);
-    box-shadow: 0 0 0 2px var(--tertiaryLight);
+    border-color: var(--lightBlue, #3db0b7);
+    box-shadow: 0 0 0 2px var(--tertiaryLight, rgba(61, 176, 183, 0.1));
 }
 
 /* ===== CHECKBOX SPECIFIC ===== */
@@ -124,14 +124,14 @@
 }
 
 .input[type="checkbox"]:checked {
-    background: var(--lightBlue);
-    border-color: var(--lightBlue);
+    background: var(--lightBlue, #3db0b7);
+    border-color: var(--lightBlue, #3db0b7);
 }
 
 .input[type="checkbox"]:checked::after {
     content: "✓";
     display: block;
-    color: var(--white);
+    color: var(--white, #ffffff);
     font-size: 0.875rem;
     font-weight: bold;
     text-align: center;
@@ -149,7 +149,7 @@
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 50%;
-    background: var(--lightBlue);
+    background: var(--lightBlue, #3db0b7);
     margin: 0.125rem auto;
 }
 
@@ -167,7 +167,7 @@
     position: static;
     padding: 0;
     margin: 0;
-    color: var(--foreground);
+    color: var(--foreground, #1f2937);
     cursor: pointer;
     pointer-events: auto;
     background: none;
@@ -175,7 +175,7 @@
 }
 
 .input[type="radio"]:checked+.inputLabel {
-    color: var(--lightBlue);
+    color: var(--lightBlue, #3db0b7);
     font-weight: 500;
 }
 
@@ -194,11 +194,11 @@
     order: -1;
     padding: 0.5rem;
     margin: 0;
-    color: var(--lightBlue);
-    font-size: var(--label-font-size);
+    color: var(--lightBlue, #3db0b7);
+    font-size: var(--label-font-size, 0.75rem);
     font-weight: 500;
-    background: var(--background);
-    border-radius: var(--input-border-radius) var(--input-border-radius) 0 0;
+    background: var(--background, #ffffff);
+    border-radius: var(--input-border-radius, 4px) var(--input-border-radius, 4px) 0 0;
     pointer-events: auto;
 }
 
@@ -212,15 +212,15 @@
     background: none;
     border: none;
     cursor: pointer;
-    color: var(--gray);
-    transition: all var(--transition-fast);
+    color: var(--gray, #6b7280);
+    transition: all var(--transition-fast, 0.2s ease-in-out);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .toggleVisibleButton:hover {
-    color: var(--lightBlue);
+    color: var(--lightBlue, #3db0b7);
     transform: translateY(-50%) scale(1.1);
 }
 
@@ -231,29 +231,29 @@
 
 /* ===== STATE VARIATIONS ===== */
 .inputContainer.error:not(:has(.input[type="radio"], .input[type="checkbox"])) {
-    border-color: var(--lightRed);
+    border-color: var(--lightRed, #ff5a73);
 }
 
 .inputContainer.error:focus-within {
-    border-color: var(--lightRed);
-    box-shadow: var(--focus-ring) rgba(255, 90, 115, 0.25);
+    border-color: var(--lightRed, #ff5a73);
+    box-shadow: var(--focus-ring, 0 0 0 2px) rgba(255, 90, 115, 0.25);
 }
 
 .inputContainer.error .inputLabel {
-    color: var(--lightRed);
+    color: var(--lightRed, #ff5a73);
 }
 
 .inputContainer.success:not(:has(.input[type="radio"], .input[type="checkbox"])) {
-    border-color: var(--lightGreen);
+    border-color: var(--lightGreen, #00b87d);
 }
 
 .inputContainer.success:focus-within {
-    border-color: var(--lightGreen);
-    box-shadow: var(--focus-ring) rgba(0, 184, 125, 0.25);
+    border-color: var(--lightGreen, #00b87d);
+    box-shadow: var(--focus-ring, 0 0 0 2px) rgba(0, 184, 125, 0.25);
 }
 
 .inputContainer.success .inputLabel {
-    color: var(--lightGreen);
+    color: var(--lightGreen, #00b87d);
 }
 
 /* ===== DISABLED STATE ===== */
@@ -262,7 +262,7 @@
 }
 
 .input:disabled+.inputLabel {
-    color: var(--gray);
+    color: var(--gray, #6b7280);
 }
 
 /* ===== AUTOFILL STYLES ===== */
@@ -270,9 +270,9 @@
 .input:-webkit-autofill:hover,
 .input:-webkit-autofill:focus,
 .input:-webkit-autofill:active {
-    -webkit-text-fill-color: var(--foreground);
-    -webkit-box-shadow: 0 0 0 1000px var(--background) inset;
-    background-color: var(--background) !important;
+    -webkit-text-fill-color: var(--foreground, #1f2937);
+    -webkit-box-shadow: 0 0 0 1000px var(--background, #ffffff) inset;
+    background-color: var(--background, #ffffff) !important;
 }
 
 /* ===== RESPONSIVE ===== */

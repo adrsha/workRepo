@@ -1,7 +1,11 @@
-import { useState, useEffect } from 'react';
-import Input from "./Input";
+"use client"
 
-export const RepeatScheduleInput = ({ onChange, initialDate = new Date() }) => {
+import { useState, useEffect, useCallback } from 'react';
+import { revFormatColName } from '../lib/utils';
+import Input from "./Input";
+import "./innerStyles/EditableField.css"
+
+export const RepeatScheduleInput = ({ initialValue, onSave, label, placeholder, disabled = false, initialDate = new Date() }) => {
     const [repeatType, setRepeatType] = useState('daily');
     const [interval, setInterval] = useState(1);
     const [selectedDays, setSelectedDays] = useState([]);
@@ -11,6 +15,7 @@ export const RepeatScheduleInput = ({ onChange, initialDate = new Date() }) => {
     const [monthlyDate, setMonthlyDate] = useState(
         initialDate.toISOString().split('T')[0]
     );
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const repeatTypes = [
         { id: 'daily', name: 'Daily' },
@@ -31,6 +36,32 @@ export const RepeatScheduleInput = ({ onChange, initialDate = new Date() }) => {
         { id: 6, name: 'Saturday', short: 'Sat' }
     ];
 
+    // Parse initial value if provided
+    useEffect(() => {
+        if (initialValue) {
+            parseInitialValue(initialValue);
+        }
+    }, [initialValue]);
+
+    const parseInitialValue = (value) => {
+        if (!value) return;
+        
+        const parts = value.split(':');
+        if (parts.length < 2) return;
+        
+        const [type, intervalStr, daysStr] = parts;
+        
+        setRepeatType(type);
+        setInterval(parseInt(intervalStr) || 1);
+        
+        if (type === 'custom' && daysStr) {
+            const days = daysStr.split(',').map(Number).filter(n => !isNaN(n));
+            setSelectedDays(days);
+        } else if (type === 'weekdays') {
+            setSelectedDays([1, 2, 3, 4, 5]);
+        }
+    };
+
     const generateRepeatValue = () => {
         switch (repeatType) {
             case 'daily':
@@ -50,24 +81,32 @@ export const RepeatScheduleInput = ({ onChange, initialDate = new Date() }) => {
         }
     };
 
-    // Update parent component when values change
-    const handleChange = () => {
-        if (onChange) {
-            const value = generateRepeatValue();
-            onChange({
-                value: value,
-                type: repeatType,
-                interval: interval,
-                selectedDays: selectedDays,
-                weeklyDate: weeklyDate,
-                monthlyDate: monthlyDate
-            });
+    const handleSave = useCallback(async () => {
+        const newValue = generateRepeatValue();
+        if (newValue === initialValue || isUpdating) return;
+        
+        setIsUpdating(true);
+        try {
+            await onSave(newValue);
+        } catch (error) {
+            console.error("Failed to save repeat schedule:", error);
+            // Reset to initial state on error
+            parseInitialValue(initialValue);
+        } finally {
+            setIsUpdating(false);
         }
-    };
+    }, [initialValue, onSave, isUpdating, repeatType, interval, selectedDays]);
 
+    // Auto-save when values change (with debounce effect)
     useEffect(() => {
-        handleChange();
-    }, [repeatType, interval, selectedDays, weeklyDate, monthlyDate]);
+        const timeoutId = setTimeout(() => {
+            if (!isUpdating) {
+                handleSave();
+            }
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(timeoutId);
+    }, [repeatType, interval, selectedDays, weeklyDate, monthlyDate, handleSave]);
 
     const handleRepeatTypeChange = (e) => {
         setRepeatType(e.target.value);
@@ -106,6 +145,7 @@ export const RepeatScheduleInput = ({ onChange, initialDate = new Date() }) => {
         return labels[repeatType] || 'interval';
     };
 
+    const currentValue = generateRepeatValue();
     const showIntervalInput = ['daily', 'yearly'].includes(repeatType);
     const showWeeklyInterval = repeatType === 'weekly';
     const showMonthlyInterval = repeatType === 'monthly';
@@ -114,125 +154,143 @@ export const RepeatScheduleInput = ({ onChange, initialDate = new Date() }) => {
     const showDaySelector = repeatType === 'custom';
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <input
-                type="hidden"
-                name="repeatEveryNDay"
-                id="repeatEveryNDay"
-                value={generateRepeatValue()}
-            />
-            
-            <Input
-                label="Repeat Type"
-                type="select"
-                value={repeatType}
-                onChange={handleRepeatTypeChange}
-                data={repeatTypes}
-                required
-            />
+        <div className="editable-field repeat-time">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <Input
+                    label="Repeat Type"
+                    type="select"
+                    value={repeatType}
+                    onChange={handleRepeatTypeChange}
+                    data={repeatTypes}
+                    disabled={disabled || isUpdating}
+                    required
+                />
 
-            {showIntervalInput && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                {showIntervalInput && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <Input
+                            label="Every"
+                            type="number"
+                            value={interval}
+                            onChange={handleIntervalChange}
+                            disabled={disabled || isUpdating}
+                            required
+                        />
+                        <span style={{ fontSize: '14px', color: '#666' }}>
+                            {getIntervalLabel()}
+                        </span>
+                    </div>
+                )}
+
+                {showWeeklyInterval && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ flex: '0 0 auto' }}>
+                            <Input
+                                label="Every"
+                                type="number"
+                                value={interval}
+                                onChange={handleIntervalChange}
+                                disabled={disabled || isUpdating}
+                                required
+                            />
+                        </div>
+                        <span style={{ fontSize: '14px', color: '#666' }}>
+                            {interval === 1 ? 'week' : 'weeks'}
+                        </span>
+                    </div>
+                )}
+
+                {showWeeklyDateSelector && (
                     <Input
-                        label="Every"
-                        type="number"
-                        value={interval}
-                        onChange={handleIntervalChange}
+                        label="Starting Week Date"
+                        type="date"
+                        value={weeklyDate}
+                        onChange={handleWeeklyDateChange}
+                        disabled={disabled || isUpdating}
                         required
                     />
-                    <span style={{ fontSize: '14px', color: '#666' }}>
-                        {getIntervalLabel()}
-                    </span>
-                </div>
-            )}
+                )}
 
-            {showWeeklyInterval && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ flex: '0 0 auto' }}>
-                        <Input
-                            label="Every"
-                            type="number"
-                            value={interval}
-                            onChange={handleIntervalChange}
-                            required
-                        />
+                {showMonthlyInterval && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ flex: '0 0 auto' }}>
+                            <Input
+                                label="Every"
+                                type="number"
+                                value={interval}
+                                onChange={handleMonthlyDateChange}
+                                disabled={disabled || isUpdating}
+                                required
+                            />
+                        </div>
+                        <span style={{ fontSize: '14px', color: '#666' }}>
+                            {interval === 1 ? 'month' : 'months'}
+                        </span>
                     </div>
-                    <span style={{ fontSize: '14px', color: '#666' }}>
-                        {interval === 1 ? 'week' : 'weeks'}
-                    </span>
-                </div>
-            )}
+                )}
 
-            {showWeeklyDateSelector && (
-                <Input
-                    label="Starting Week Date"
-                    type="date"
-                    value={weeklyDate}
-                    onChange={handleWeeklyDateChange}
-                    required
+                {showMonthlyDateSelector && (
+                    <Input
+                        label="Starting Month Date"
+                        type="date"
+                        value={monthlyDate}
+                        onChange={handleMonthlyDateChange}
+                        disabled={disabled || isUpdating}
+                        required
+                    />
+                )}
+
+                {showDaySelector && (
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                            Select Days:
+                        </label>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {weekDays.map(day => (
+                                <button
+                                    key={day.id}
+                                    type="button"
+                                    onClick={() => handleDayToggle(day.id)}
+                                    disabled={disabled || isUpdating}
+                                    style={{
+                                        padding: '8px 12px',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        backgroundColor: selectedDays.includes(day.id) ? 'var(--tertiary)' : 'white',
+                                        color: selectedDays.includes(day.id) ? 'white' : 'var(--foreground)',
+                                        transition: '0.2s ease',
+                                        cursor: disabled || isUpdating ? 'not-allowed' : 'pointer',
+                                        fontSize: '12px',
+                                        opacity: disabled || isUpdating ? 0.6 : 1
+                                    }}
+                                >
+                                    {day.short}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {repeatType === 'weekdays' && (
+                    <div style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>
+                        Repeats Monday through Friday only
+                    </div>
+                )}
+
+                {isUpdating && (
+                    <div style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>
+                        Updating...
+                    </div>
+                )}
+            </div>
+            
+            {/* Hidden input for form submission */}
+            {currentValue && (
+                <input 
+                    type="hidden" 
+                    name={revFormatColName(label)} 
+                    value={currentValue} 
                 />
-            )}
-
-            {showMonthlyInterval && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ flex: '0 0 auto' }}>
-                        <Input
-                            label="Every"
-                            type="number"
-                            value={interval}
-                            onChange={handleIntervalChange}
-                            required
-                        />
-                    </div>
-                    <span style={{ fontSize: '14px', color: '#666' }}>
-                        {interval === 1 ? 'month' : 'months'}
-                    </span>
-                </div>
-            )}
-
-            {showMonthlyDateSelector && (
-                <Input
-                    label="Starting Month Date"
-                    type="date"
-                    value={monthlyDate}
-                    onChange={handleMonthlyDateChange}
-                    required
-                />
-            )}
-
-            {showDaySelector && (
-                <div>
-                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
-                        Select Days:
-                    </label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                        {weekDays.map(day => (
-                            <button
-                                key={day.id}
-                                type="button"
-                                onClick={() => handleDayToggle(day.id)}
-                                style={{
-                                    padding: '8px 12px',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    backgroundColor: selectedDays.includes(day.id) ? 'var(--tertiary)' : 'white',
-                                    color: selectedDays.includes(day.id) ? 'white' : 'var(--foreground)',
-                                    transition: '0.2s ease',
-                                    cursor: 'pointer',
-                                    fontSize: '12px'
-                                }}
-                            >
-                                {day.short}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {repeatType === 'weekdays' && (
-                <div style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>
-                    Repeats Monday through Friday only
-                </div>
             )}
         </div>
     );
@@ -243,9 +301,9 @@ export const getRepeatDescription = (repeatValue) => {
     if (!repeatValue) return 'No repeat';
     
     const parts = repeatValue.split(':');
-    if (parts.length < 3) return 'Invalid format';
+    if (parts.length < 2) return 'Invalid format';
     
-    const [type, dateStr, intervalStr, daysStr] = parts;
+    const [type, intervalStr, daysStr] = parts;
     const interval = parseInt(intervalStr) || 1;
     
     switch (type) {

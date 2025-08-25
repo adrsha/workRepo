@@ -6,6 +6,7 @@
     text-overflow: ellipsis;
     max-width: 20vw;
     overflow: auto;
+    position: relative; /* Added for loading spinner positioning */
 }
 
 .editable-field__label {
@@ -96,12 +97,16 @@ td > .editable-field .editable-field__input {
     padding-right: 2.5rem;
 }
 
+.editable-field.repeat-time{
+    padding-top: 1.5rem;
+}
+
 .editable-field select.editable-field__input:disabled {
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3e%3cpath fill='%23999' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e");
 }
 
-/* Loading state indicator */
-.editable-field__input:disabled::after {
+/* Fixed loading state indicator */
+.editable-field.loading::after {
     content: '';
     position: absolute;
     right: 0.5rem;
@@ -113,6 +118,8 @@ td > .editable-field .editable-field__input {
     border-top: 2px solid transparent;
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    pointer-events: none;
+    z-index: 1;
 }
 
 @keyframes spin {

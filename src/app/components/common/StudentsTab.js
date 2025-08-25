@@ -86,12 +86,6 @@ const getEnrolledClassesForStudent = (studentId, classesUsersData, classesData, 
     }).filter(classItem => classItem.class_id);
 };
 
-const enrichStudentsWithClassData = (studentsData, classesUsersData, classesData = [], teachersData = [], courseData = []) =>
-    studentsData.map(student => ({
-        ...student,
-        enrolled_classes: getClassCountForStudent(student.user_id, classesUsersData),
-        enrolled_classes_list: getEnrolledClassesForStudent(student.user_id, classesUsersData, classesData, teachersData, courseData)
-    }));
 
 // Async handlers
 const createAsyncHandler = (fn, errorMessage) => async (...args) => {
@@ -186,7 +180,7 @@ const ApprovedStudentsTable = ({
     onBulkAddStudents,
     schemas = {}
 }) => {
-    const enrichedStudents = enrichStudentsWithClassData(students, classesUsersData, classesData, teachersData, courseData);
+    const enrichedStudents = students;
     const newSchema = {columns : [...schemas.users.columns, ...schemas.students.columns]}
     const dependencies = { gradesData, rolesData, schemas };
     const handlers = { onSaveData, onMultiSaveData };

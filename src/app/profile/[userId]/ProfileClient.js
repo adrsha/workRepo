@@ -14,6 +14,7 @@ export default function ProfileClient({ params }) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [teacherClasses, setTeacherClasses] = useState([]);
+    const [studentClasses, setStudentClasses] = useState([]);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [userEnrolledClasses, setUserEnrolledClasses] = useState([]);
     const userId = parseInt(params.userId);
@@ -95,6 +96,50 @@ export default function ProfileClient({ params }) {
 
         fetchTeacherClasses();
     }, [userData, userId]);
+
+    useEffect(() => {
+        async function fetchStudentClasses() {
+            // Only fetch if user is a student and viewer is an admin
+            if (!userData || userData.user_level !== 0 || session?.user?.level !== 2) return;
+
+            setLoadingClasses(true);
+            try {
+                const authToken = localStorage.getItem('authToken');
+
+                // First get the enrollments for this student
+                const enrollments = await fetchDataWhereAttrIs(
+                    'classes_users',
+                    { user_id: userId },
+                    authToken
+                );
+
+                if (!enrollments || enrollments.length === 0) {
+                    setStudentClasses([]);
+                    return;
+                }
+
+                // Get class IDs from enrollments
+                const classIds = enrollments.map(enrollment => enrollment.class_id);
+
+                // Fetch class details with course and grade information
+                const classesData = await fetchJoinableData(
+                    ['classes', 'courses', 'grades'],
+                    ['classes.course_id = courses.course_id', 'classes.grade_id = grades.grade_id'],
+                    '*',
+                    { 'classes.class_id': classIds },
+                    authToken
+                );
+
+                setStudentClasses(classesData || []);
+            } catch (err) {
+                console.error('Error fetching student classes:', err);
+            } finally {
+                setLoadingClasses(false);
+            }
+        }
+
+        fetchStudentClasses();
+    }, [userData, userId, session?.user?.level]);
 
     const canViewClassDetails = (classId) => {
         if (session?.user?.id === userId) {
@@ -189,83 +234,119 @@ export default function ProfileClient({ params }) {
         );
     };
 
+    const renderClassCard = (classItem, isEnrolled = false) => {
+        const canViewDetails = canViewClassDetails(classItem.class_id);
+        const canViewMeeting = canViewMeetingUrl(classItem.class_id);
+
+        return (
+            <div key={classItem.class_id} className={styles.classCard}>
+                <div className={styles.classHeader}>
+                    <h3 className={styles.courseName}>{classItem.course_name}</h3>
+                    <span className={styles.gradeBadge}>{classItem.grade_name}</span>
+                </div>
+
+                {classItem.class_description && (
+                    <p className={styles.classDescription}>{classItem.class_description}</p>
+                )}
+
+                {canViewDetails ? (
+                    <div className={styles.classDetails}>
+                        <div className={styles.classTime}>
+                            <strong>Schedule</strong>
+                            <div>
+                                {getDate(classItem.start_time).yyyymmdd} to {getDate(classItem.end_time).yyyymmdd}
+                            </div>
+                            <div>
+                                {getDate(classItem.start_time).hhmmss} - {getDate(classItem.end_time).hhmmss}
+                            </div>
+                            <div>
+                                Repeats every {classItem.repeat_every_n_day} day{classItem.repeat_every_n_day !== 1 ? 's' : ''}
+                            </div>
+                        </div>
+
+                        <div className={styles.classCost}>
+                            <strong>Course Fee</strong>
+                            <span>Rs {classItem.cost}</span>
+                        </div>
+
+                        {canViewMeeting && classItem.meeting_url && (
+                            <div className={styles.meetingUrl}>
+                                <strong>Meeting Link</strong>
+                                <a
+                                    href={classItem.meeting_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.meetingLink}
+                                >
+                                    Join Class
+                                </a>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className={styles.restrictedAccess}>
+                        <p className={styles.restrictedMessage}>
+                            <strong>Enrollment Required</strong><br />
+                            Join this class to view schedule and meeting details.
+                        </p>
+                        <div className={styles.classCost}>
+                            <strong>Course Fee</strong>
+                            <span>Rs {classItem.cost}</span>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     const renderTeacherClasses = () => {
         if (userData?.user_level !== 1) return null;
 
         return (
             <div className={styles.teacherClassesSection}>
-                <h2>Classes Teaching</h2>
+                <div className={styles.sectionHeader}>
+                    <h2>Classes Teaching</h2>
+                    {!loadingClasses && (
+                        <span className={styles.classCount}>
+                            Total: {teacherClasses.length}
+                        </span>
+                    )}
+                </div>
                 {loadingClasses ? (
                     <div className={styles.loadingSpinner}>Loading classes...</div>
                 ) : teacherClasses.length > 0 ? (
                     <div className={styles.teacherClassesList}>
-                        {teacherClasses.map(classItem => {
-                            const canViewDetails = canViewClassDetails(classItem.class_id);
-                            const canViewMeeting = canViewMeetingUrl(classItem.class_id);
-
-                            return (
-                                <div key={classItem.class_id} className={styles.classCard}>
-                                    <div className={styles.classHeader}>
-                                        <h3 className={styles.courseName}>{classItem.course_name}</h3>
-                                        <span className={styles.gradeBadge}>{classItem.grade_name}</span>
-                                    </div>
-
-                                    {classItem.class_description && (
-                                        <p className={styles.classDescription}>{classItem.class_description}</p>
-                                    )}
-
-                                    {canViewDetails ? (
-                                        <div className={styles.classDetails}>
-                                            <div className={styles.classTime}>
-                                                <strong>Schedule</strong>
-                                                <div>
-                                                    {getDate(classItem.start_time).yyyymmdd} to {getDate(classItem.end_time).yyyymmdd}
-                                                </div>
-                                                <div>
-                                                    {getDate(classItem.start_time).hhmmss} - {getDate(classItem.end_time).hhmmss}
-                                                </div>
-                                                <div>
-                                                    Repeats every {classItem.repeat_every_n_day} day{classItem.repeat_every_n_day !== 1 ? 's' : ''}
-                                                </div>
-                                            </div>
-
-                                            <div className={styles.classCost}>
-                                                <strong>Course Fee</strong>
-                                                <span>Rs {classItem.cost}</span>
-                                            </div>
-
-                                            {canViewMeeting && classItem.meeting_url && (
-                                                <div className={styles.meetingUrl}>
-                                                    <strong>Meeting Link</strong>
-                                                    <a
-                                                        href={classItem.meeting_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className={styles.meetingLink}
-                                                    >
-                                                        Join Class
-                                                    </a>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className={styles.restrictedAccess}>
-                                            <p className={styles.restrictedMessage}>
-                                                <strong>Enrollment Required</strong><br />
-                                                Join this class to view schedule and meeting details.
-                                            </p>
-                                            <div className={styles.classCost}>
-                                                <strong>Course Fee</strong>
-                                                <span>Rs {classItem.cost}</span>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                        {teacherClasses.map(classItem => renderClassCard(classItem))}
                     </div>
                 ) : (
                     <p className={styles.noClasses}>No classes found for this teacher.</p>
+                )}
+            </div>
+        );
+    };
+
+    const renderStudentClasses = () => {
+        // Only show for students when viewed by admins
+        if (userData?.user_level !== 0 || session?.user?.level !== 2) return null;
+
+        return (
+            <div className={styles.teacherClassesSection}>
+                <div className={styles.sectionHeader}>
+                    <h2>Enrolled Classes</h2>
+                    {!loadingClasses && (
+                        <span className={styles.classCount}>
+                            Total: {studentClasses.length}
+                        </span>
+                    )}
+                </div>
+                {loadingClasses ? (
+                    <div className={styles.loadingSpinner}>Loading classes...</div>
+                ) : studentClasses.length > 0 ? (
+                    <div className={styles.teacherClassesList}>
+                        {studentClasses.map(classItem => renderClassCard(classItem, true))}
+                    </div>
+                ) : (
+                    <p className={styles.noClasses}>No enrolled classes found for this student.</p>
                 )}
             </div>
         );
@@ -328,10 +409,10 @@ export default function ProfileClient({ params }) {
                     renderDynamicSection('Student Information', userData.student_data)}
 
                 {renderTeacherClasses()}
+                {renderStudentClasses()}
             </div>
 
             <center>
-
                 {userData.user_level === 1 && userData.teacher_data &&
                     <TeacherVideoPlayer teacherId={userData.user_id} />
                 }

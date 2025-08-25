@@ -4,45 +4,37 @@ import { useState, useEffect, useCallback } from "react"
 import { revFormatColName } from '../lib/utils';
 import "./innerStyles/EditableField.css"
 
-// DateTime component helpers
-const formatDateTime = (dateTimeStr) => {
-    if (!dateTimeStr) return 'Not set'
-
-    try {
-        const date = new Date(dateTimeStr)
-        return new Intl.DateTimeFormat('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        }).format(date)
-    } catch (e) {
-        console.error('Date formatting error:', e)
-        return dateTimeStr
-    }
-}
-
 const combineDateTime = (date, time) => {
-    return date && time ? `${date}T${time}:00` : ''
+    return date && time ? `${date}T${time}:00.000Z` : ''
 }
 
+// Fixed timezone-aware date extraction
 const extractDateFromDateTime = (dateTimeStr) => {
     if (!dateTimeStr) return ''
     try {
+        // Create date object and get local date components
         const date = new Date(dateTimeStr)
-        return date.toISOString().split('T')[0]
+        // Use local timezone methods to avoid UTC conversion issues
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
     } catch (e) {
         console.error('Date extraction error:', e)
         return ''
     }
 }
 
+// Fixed timezone-aware time extraction
 const extractTimeFromDateTime = (dateTimeStr) => {
     if (!dateTimeStr) return ''
     try {
+        // Create date object and get local time components
         const date = new Date(dateTimeStr)
-        return date.toTimeString().slice(0, 5)
+        // Use local timezone methods to avoid UTC conversion issues
+        const hours = String(date.getHours()).padStart(2, '0')
+        const minutes = String(date.getMinutes()).padStart(2, '0')
+        return `${hours}:${minutes}`
     } catch (e) {
         console.error('Time extraction error:', e)
         return ''
@@ -73,7 +65,10 @@ export const EditableDateTime = ({
         
         setIsUpdating(true)
         try {
-            await onSave(newDateTime)
+            const localDate = new Date(newDateTime)
+            const localUTCDate = new Date(localDate.getTime() - (5 * 60 + 45) * 60 * 1000);
+            const utcIsoString = localUTCDate.toISOString()
+            await onSave(utcIsoString)
         } catch (error) {
             console.error("Failed to save:", error)
             setDate(extractDateFromDateTime(initialDateTime))
@@ -129,7 +124,10 @@ export const EditableDateTime = ({
                 <input 
                     type="hidden" 
                     name={revFormatColName(label)} 
-                    value={combineDateTime(date, time)} 
+                    value={(() => {
+                        const localDateTime = combineDateTime(date, time)
+                        return localDateTime ? new Date(localDateTime).toISOString() : ''
+                    })()} 
                 />
             )}
         </div>

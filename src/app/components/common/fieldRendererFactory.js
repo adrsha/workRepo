@@ -2,9 +2,9 @@ import { EditableField } from '../EditableField';
 import { EditableDropdown } from '../EditableDropdown';
 import { EditableStartTime } from '../EditableTimeSchedule';
 import { EditableDate } from '../EditableDate';
+import { RepeatScheduleInput } from '../RepeatTime';
 import { formatColName } from '../../lib/utils';
 import FullScreenableImage from '../FullScreenableImage';
-
 
 // Async handler wrapper for error handling
 export const createAsyncHandler = (handler, errorMessage) => async (...args) => {
@@ -12,7 +12,6 @@ export const createAsyncHandler = (handler, errorMessage) => async (...args) => 
         await handler(...args);
     } catch (error) {
         console.error(errorMessage, error);
-        // You might want to show a toast/notification here
         throw error;
     }
 };
@@ -75,13 +74,23 @@ const createBaseRenderers = () => ({
         />
     ),
 
+    repeat: (value, onSave, config) => (
+        <RepeatScheduleInput
+            initialValue={value || ''}
+            onSave={onSave}
+            label={config.label}
+            disabled={config.disabled}
+            initialDate={config.initialDate || new Date()}
+        />
+    ),
+
     image: (value, onSave, config) => (
-        value ? 
-            <FullScreenableImage 
-                src={value} 
-                alt={config.alt || 'image'} 
-                className={config.className || 'image'} 
-            /> : 
+        value ?
+            <FullScreenableImage
+                src={value}
+                alt={config.alt || 'image'}
+                className={config.className || 'image'}
+            /> :
             <EditableField
                 initialValue={value || ''}
                 onSave={onSave}
@@ -101,9 +110,9 @@ const createBaseRenderers = () => ({
 // Enhanced field configuration factory that handles dropdown options
 const createFieldConfig = (item, col, options = {}, dependencies = {}) => {
     const baseConfig = {
-        label       : formatColName(col),
-        placeholder : `Enter ${formatColName(col).toLowerCase()}`,
-        isFormMode  : item.isFormMode,
+        label: formatColName(col),
+        placeholder: `Enter ${formatColName(col).toLowerCase()}`,
+        isFormMode: item.isFormMode,
         ...options
     };
     return baseConfig;
@@ -112,7 +121,7 @@ const createFieldConfig = (item, col, options = {}, dependencies = {}) => {
 // Improved save handler factory that better handles form mode
 const createSaveHandler = (item, col, handlers, schemas = {}) => {
     const { onSaveData, onMultiSaveData, onChange } = handlers;
- 
+
     if (item.isFormMode && onChange) {
         return (value) => {
             onChange(col, value);
@@ -121,10 +130,10 @@ const createSaveHandler = (item, col, handlers, schemas = {}) => {
 
     // For non-form mode (editing existing records)
     const keyField = getKeyField(item);
-    
+
     if (!keyField || !item[keyField]) {
         console.warn(`No key field found for item:`, item);
-        return () => {};
+        return () => { };
     }
 
     const isTimeField = ['start_time', 'end_time'].includes(col);
@@ -144,21 +153,23 @@ export const createFieldRenderer = (fieldMappings, dependencies, handlers) => {
     return (item, col, onChange = null, options = {}) => {
         const extendedHandlers = { ...handlers, onChange };
         const onSave = createSaveHandler(item, col, extendedHandlers, dependencies.schemas);
-        // Enhanced config creation that includes dropdown options
+
+        // Enhanced config creation that includes dropdown options and repeat-specific options
         const config = createFieldConfig(item, col, {
             ...options,
             error: options.error,
-            dropdownOptions: options.dropdownOptions || dependencies.dropdownOptions
+            dropdownOptions: options.dropdownOptions || dependencies.dropdownOptions,
+            initialDate: options.initialDate || (item.start_time ? new Date(item.start_time) : new Date())
         }, dependencies);
 
         // Check for custom field mapping first
         const customMapping = fieldMappings[col];
-        
+
         if (customMapping && typeof customMapping === 'function') {
             return customMapping(item, onSave, config, dependencies, baseRenderers);
         }
 
-        // Check if it's a simple string mapping (like 'dropdown', 'textarea')
+        // Check if it's a simple string mapping (like 'dropdown', 'textarea', 'repeat')
         if (customMapping && typeof customMapping === 'string') {
             const renderer = baseRenderers[customMapping];
             if (renderer) {
@@ -175,11 +186,11 @@ export const createFieldRenderer = (fieldMappings, dependencies, handlers) => {
 
 // Utility functions
 const getKeyField = (item) => {
-    if (item.class_id !== undefined)   return 'class_id';
-    if (item.user_id !== undefined)    return 'user_id';
+    if (item.class_id !== undefined) return 'class_id';
+    if (item.user_id !== undefined) return 'user_id';
     if (item.pending_id !== undefined) return 'pending_id';
-    if (item.course_id !== undefined)  return 'course_id'; 
-    if (item.grade_id !== undefined)   return 'grade_id'; 
+    if (item.course_id !== undefined) return 'course_id';
+    if (item.grade_id !== undefined) return 'grade_id';
     return null;
 };
 
@@ -190,17 +201,18 @@ const getTableName = (schemas, col, item) => {
         }
     }
 
-    if (item.course_id !== undefined)  return 'courses';
-    if (item.class_id !== undefined)   return 'classes';
+    if (item.course_id !== undefined) return 'courses';
+    if (item.class_id !== undefined) return 'classes';
     if (item.pending_id !== undefined) return 'pending_teachers';
-    if (item.grade_id !== undefined)   return 'grades';
+    if (item.grade_id !== undefined) return 'grades';
     return 'users';
 };
 
 // Utility to create options for dropdowns
-export const createOptions = (data, valueKey, labelKey) =>{
-    return data?.map(item => ({ 
-        value: item[valueKey], 
-        label: item[labelKey] 
-    })) || []
+export const createOptions = (data, valueKey, labelKey) => {
+    return data?.map(item => ({
+        value: item[valueKey],
+        label: item[labelKey]
+    })) || [];
 };
+

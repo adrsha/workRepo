@@ -19,12 +19,6 @@ const getEnrolledStudentsForClass = (classId, classesUsersData, usersData) => {
     }).filter(student => student.user_name !== 'Unknown User');
 };
 
-const enrichClassesWithUserData = (classesData, classesUsersData, usersData = []) =>
-    classesData.map(classItem => ({
-        ...classItem,
-        enrolled_students: getUserCountForClass(classItem.class_id, classesUsersData),
-        enrolled_students_list: getEnrolledStudentsForClass(classItem.class_id, classesUsersData, usersData)
-    }));
 
 // Async handlers
 const createAsyncHandler = (fn, errorMessage) => async (...args) => {
@@ -56,7 +50,7 @@ const ApprovedClassesTable = ({
     onBulkAddClasses,
     schemas = {}
 }) => {
-    const enrichedClasses = enrichClassesWithUserData(classes, classesUsersData, usersData);
+    const enrichedClasses = classes;
     const dependencies = { teachersData, courseData, gradesData, schemas };
     const handlers = { onSaveData, onMultiSaveData };
     const renderCell = createFieldRenderer(classesFieldMappings, dependencies, handlers);

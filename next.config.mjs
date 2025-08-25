@@ -1,4 +1,5 @@
 const nextConfig = {
+    productionBrowserSourceMaps: true,
     webpack: (config, { isServer }) => {
         if (!isServer) {
             config.resolve.fallback = {
@@ -10,9 +11,6 @@ const nextConfig = {
             config.optimization.minimize = false;
         }
         return config;
-    },
-    experimental: {
-        swcPlugins: [] // Empty any plugins
     },
     output: 'standalone',
     compiler: {

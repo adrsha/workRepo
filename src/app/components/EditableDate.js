@@ -4,27 +4,28 @@ import { useState, useEffect, useCallback } from "react"
 import { revFormatColName } from '../lib/utils';
 import "./innerStyles/EditableField.css"
 
-export function EditableDate ({ initialValue, onSave, label, placeholder, disabled = false }) {
-    const [value, setValue] = useState(initialValue || '')
+export function EditableDate ({ initialDate, onSave, label, placeholder, disabled = false }) {
+    console.log(initialDate)
+    const [value, setValue] = useState(initialDate || '')
     const [isUpdating, setIsUpdating] = useState(false)
 
     useEffect(() => {
-        setValue(initialValue || '')
-    }, [initialValue])
+        setValue(initialDate || '')
+    }, [initialDate])
 
     const handleSave = useCallback(async (newValue) => {
-        if (newValue === initialValue || isUpdating) return
+        if (newValue === initialDate || isUpdating) return
         
         setIsUpdating(true)
         try {
             await onSave(newValue)
         } catch (error) {
             console.error("Failed to save date:", error)
-            setValue(initialValue || '') // Reset on error
+            setValue(initialDate || '') // Reset on error
         } finally {
             setIsUpdating(false)
         }
-    }, [initialValue, onSave, isUpdating])
+    }, [initialDate, onSave, isUpdating])
 
     const handleBlur = () => {
         handleSave(value)
@@ -34,10 +35,10 @@ export function EditableDate ({ initialValue, onSave, label, placeholder, disabl
         if (e.key === 'Enter') {
             e.target.blur() // Trigger save on Enter
         } else if (e.key === 'Escape') {
-            setValue(initialValue || '') // Reset on Escape
+            setValue(initialDate || '') // Reset on Escape
         }
     }
-
+    console.log("date", value)
     return (
         <div className="editable-field">
             <input
