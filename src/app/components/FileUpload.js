@@ -314,6 +314,7 @@ export default function FileUpload({
 
     const config = getConfig();
     const callbacks = { onUploadComplete, onFileUpload };
+    console.log()
 
     const dragProps = useDragAndDrop();
     const {
@@ -368,7 +369,7 @@ export default function FileUpload({
                 {file ? (
                     <FileInfo file={file} />
                 ) : (
-                    <UploadLabel label={config.labels.upload} />
+                    <UploadLabel label={config.uploadLabel} />
                 )}
             </div>
 
@@ -379,7 +380,7 @@ export default function FileUpload({
                     onUpload={handleUpload}
                     onCancel={resetFile}
                     isUploading={isUploading}
-                    buttonText={config.labels.button}
+                    buttonText={config.uploadButtonText}
                     showCancel={showCancelButton}
                 />
             )}
@@ -389,7 +390,7 @@ export default function FileUpload({
             )}
 
             {uploadedFilePath && (
-                <SuccessMessage message={config.labels.success} />
+                <SuccessMessage message={config.successMessage} />
             )}
         </div>
     );
