@@ -163,7 +163,6 @@ export const isClassCurrentlyJoinable = (startTime, endTime, repeatPattern) => {
  */
 export const getMeetingStatus = (startTime, endTime, repeatPattern) => {
     const isJoinable = isClassCurrentlyJoinable(startTime, endTime, repeatPattern);
-    console.log(isJoinable, startTime, endTime, repeatPattern);
     if (isJoinable) return 'active';
 
     if (repeatPattern) {

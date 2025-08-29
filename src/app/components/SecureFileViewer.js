@@ -21,9 +21,16 @@ const parseContentData = (data) => {
     return data || {};
 };
 
-const fetchFile = async (contentId, token) => {
-    const response = await fetch(`/api/secureFile/${contentId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+const fetchFile = async (contentId, token, isPublic = false) => {
+    const headers = {};
+    
+    // Only add auth header if not public or if token exists
+    if (!isPublic && token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+    
+    const response = await fetch(`/api/secureFile/${contentId}${isPublic ? '?public=true' : ''}`, {
+        headers
     });
 
     if (!response.ok) {
@@ -110,10 +117,11 @@ const PdfViewer = ({ src }) => (
 );
 
 // Generic file viewer
-const GenericViewer = ({ contentId }) => {
+const GenericViewer = ({ contentId, isPublic = false }) => {
     const handleOpenViewer = useCallback(() => {
-        window.open(`/viewer/${contentId}`, '_blank', 'noopener,noreferrer');
-    }, [contentId]);
+        const publicParam = isPublic ? '?public=true' : '';
+        window.open(`/viewer/${contentId}${publicParam}`, '_blank', 'noopener,noreferrer');
+    }, [contentId, isPublic]);
 
     return (
         <div className={styles.genericViewer}>
@@ -131,24 +139,33 @@ const GenericViewer = ({ contentId }) => {
 };
 
 // Security overlay
-const SecurityOverlay = () => (
+const SecurityOverlay = ({ isPublic = false }) => (
     <>
-        <div className={styles.watermark}>CONFIDENTIAL merotuition.com</div>
+        <div className={styles.watermark}>
+            {isPublic ? '' : 'CONFIDENTIAL merotuition.com'}
+        </div>
         <div className={styles.securityBar}>
-            <span>🔒 Protected Content</span>
+            <span>{isPublic ? '🔓 Public Content' : '🔒 Protected Content'}</span>
         </div>
     </>
 );
 
 // Custom hook for file loading
-const useSecureFile = (contentId, token) => {
-    const [fileUrl, setFileUrl] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+const useSecureFile = (contentId, token, isPublic = false) => {
+    const [fileUrl,   setFileUrl] = useState(null);
+    const [loading,   setLoading] = useState(true);
+    const [error,     setError]   = useState(null);
 
     const loadFile = useCallback(async () => {
-        if (!contentId || !token) {
-            setError('Missing content ID or access token');
+        if (!contentId) {
+            setError('Missing content ID');
+            setLoading(false);
+            return;
+        }
+
+        // For non-public content, require token
+        if (!isPublic && !token) {
+            setError('Missing access token');
             setLoading(false);
             return;
         }
@@ -157,15 +174,15 @@ const useSecureFile = (contentId, token) => {
             setLoading(true);
             setError(null);
 
-            const blob = await fetchFile(contentId, token);
-            const url = createFileUrl(blob);
+            const blob = await fetchFile(contentId, token, isPublic);
+            const url  = createFileUrl(blob);
             setFileUrl(url);
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    }, [contentId, token]);
+    }, [contentId, token, isPublic]);
 
     useEffect(() => {
         loadFile();
@@ -181,15 +198,21 @@ const useSecureFile = (contentId, token) => {
 };
 
 // Main component
-export default function SecureFileViewer({ content }) {
+export default function SecureFileViewer({ content, className, allowPublicAccess = false }) {
     const { content_id, content_data } = content;
     const { fileType } = parseContentData(content_data);
 
-    const { data: session, status } = useSession();
-    const { fileUrl, loading, error, retry } = useSecureFile(content_id, session?.accessToken);
+    const { data: session, status }         = useSession();
+    const { fileUrl, loading, error, retry } = useSecureFile(
+        content_id, 
+        session?.accessToken, 
+        allowPublicAccess
+    );
 
-    // Disable print for this component
+    // Disable print for this component (only for non-public content)
     useEffect(() => {
+        if (allowPublicAccess) return;
+
         const handleBeforePrint = (e) => {
             e.preventDefault();
             return false;
@@ -212,9 +235,9 @@ export default function SecureFileViewer({ content }) {
             window.removeEventListener('beforeprint', handleBeforePrint);
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, []);
+    }, [allowPublicAccess]);
 
-    if (status === 'loading') {
+    if (status === 'loading' && !allowPublicAccess) {
         return (
             <div className={styles.container}>
                 <Loading />
@@ -222,7 +245,7 @@ export default function SecureFileViewer({ content }) {
         );
     }
 
-    if (status === 'unauthenticated') {
+    if (status === 'unauthenticated' && !allowPublicAccess) {
         return (
             <div className={styles.container}>
                 <ErrorMessage error="Authentication required to view this file" />
@@ -241,7 +264,7 @@ export default function SecureFileViewer({ content }) {
             return <PdfViewer src={fileUrl} />;
         }
 
-        return <GenericViewer contentId={content_id} />;
+        return <GenericViewer contentId={content_id} isPublic={allowPublicAccess} />;
     };
 
     return (
@@ -253,7 +276,7 @@ export default function SecureFileViewer({ content }) {
                     {renderFileViewer()}
                 </div>
             )}
-            <SecurityOverlay />
+            <SecurityOverlay isPublic={allowPublicAccess} />
         </div>
     );
 }

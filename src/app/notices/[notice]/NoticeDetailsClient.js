@@ -51,7 +51,7 @@ const DeleteButton = ({ onDelete, contentId }) => {
 
     const handleDelete = async () => {
         if (isDeleting) return;
-        
+
         if (confirm('Are you sure you want to delete this content?')) {
             setIsDeleting(true);
             try {
@@ -86,7 +86,7 @@ const NoticeContentItem = ({ content, canEdit, onDeleteContent }) => {
     return (
         <div className={styles.noticeContentItem}>
             <div className={styles.contentBody}>
-                <ContentRenderer content={transformedContent} />
+                <ContentRenderer content={transformedContent} allowPublicAccess={true}/>
             </div>
             
             {canEdit && (
@@ -149,7 +149,7 @@ const ToastContainer = ({ notifications }) => {
 
 const AddContentSection = ({ canEdit, formControls, contentHandlers, noticeId }) => {
     if (!canEdit) return null;
-    
+
     return (
         <div className={styles.addContentSection}>
             {formControls.isEditing ? (
@@ -190,7 +190,7 @@ const ErrorDisplay = ({ error }) => (
 
 export default function NoticeDetailsClient({ noticeId }) {
     const { data: session } = useSession();
-    
+
     const { noticeDetails, setNoticeDetails, loading, error, refetch } = useNoticeData(noticeId);
     const notifications = useNotifications();
     const formControls = useContentForm();

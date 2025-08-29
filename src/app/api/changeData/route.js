@@ -166,7 +166,6 @@ async function handleRequest(req, operation) {
 
 async function handleUpdate(body, userId) {
     const { table, id, updates } = body;
-
     if (!table || id === undefined || !updates || typeof updates !== 'object') {
         return createErrorResponse('Invalid request parameters', 400);
     }

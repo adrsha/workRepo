@@ -314,7 +314,6 @@ export default function FileUpload({
 
     const config = getConfig();
     const callbacks = { onUploadComplete, onFileUpload };
-    console.log()
 
     const dragProps = useDragAndDrop();
     const {
@@ -374,7 +373,6 @@ export default function FileUpload({
             </div>
 
             {uploadError && <ErrorMessage error={uploadError} />}
-            {console.log(config)}
             {shouldShowUploadActions && (
                 <UploadActions
                     onUpload={handleUpload}

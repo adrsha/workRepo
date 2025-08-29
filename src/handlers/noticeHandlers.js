@@ -68,7 +68,6 @@ export const createNoticeHandlers = (
         }
     };
 
-
     return {
         handleAddNotice,
         handleDeleteNotice,
@@ -83,6 +82,31 @@ export const createNoticeContentHandlers = (
     formControls,
     refetch
 ) => {
+    const deleteAssociatedFiles = async (contentId) => {
+        try {
+            // Get the content details to find associated files
+            const content = noticeDetails.find(item => item.content_id === contentId);
+            if (!content || !content.file_path) {
+                return; // No files to delete
+            }
+
+            // Delete file using the same endpoint as FileUpload component
+            const response = await fetch('/api/upload', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ filePath: content.file_path }),
+            });
+
+            if (!response.ok) {
+                console.warn('Failed to delete file:', content.file_path);
+            }
+        } catch (error) {
+            console.warn('Error deleting associated files:', error);
+        }
+    };
+
     // Updated handleAddContent function
     const handleAddContent = async (contentForm) => {
         if (!contentForm.content_data?.trim()) {
@@ -121,6 +145,10 @@ export const createNoticeContentHandlers = (
         }
 
         try {
+            // First delete associated files
+            await deleteAssociatedFiles(contentId);
+
+            // Then delete the content
             const response = await fetch(`/api/noticeContent/${noticeId}`, {
                 method: 'DELETE',
                 headers: {
@@ -180,6 +208,7 @@ export const createNoticeContentHandlers = (
             notifications.setError(error.message || 'Failed to upload file');
         }
     };
+
     return {
         handleAddContent,
         handleDeleteContent,

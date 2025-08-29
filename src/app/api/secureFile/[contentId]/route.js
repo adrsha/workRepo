@@ -18,6 +18,11 @@ const authService = {
         const session = await getServerSession(authOptions);
         if (!session) throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
         return session.user;
+    },
+
+    async getOptionalAuthenticatedUser() {
+        const session = await getServerSession(authOptions);
+        return session?.user || null;
     }
 };
 
@@ -88,19 +93,46 @@ const validationService = {
             throw new Error(CONFIG.ERRORS.NOT_FILE_CONTENT);
         }
         return content;
+    },
+
+    validatePublicAccess(content, isPublicRequest, user) {
+        // If it's a public request, ensure the content is allowed
+        if (isPublicRequest) {
+            return true;
+        }
+ 
+        if (!content.is_public) {
+            throw new Error(CONFIG.ERRORS.CONTENT_NOT_PUBLIC);
+        }
+
+        // If it's not a public request and user is not authenticated, deny access
+        if (!user) {
+            throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
+        }
+
+        return true;
     }
 };
 
 // ============== RESPONSE SERVICE ==============
 const responseService = {
-    createFileResponse(fileBuffer, fileType, fileName) {
+    createFileResponse(fileBuffer, fileType, fileName, isPublic = false) {
         const headers = {
-            'Content-Type': fileType || 'application/octet-stream',
+            'Content-Type':        fileType || 'application/octet-stream',
             'Content-Disposition': `inline; filename="${fileName || 'file'}"`,
-            'Cache-Control': 'private, no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0',
+            'Cache-Control':       isPublic 
+                                   ? 'public, max-age=3600' 
+                                   : 'private, no-cache, no-store, must-revalidate',
+            'Pragma':              isPublic ? 'cache' : 'no-cache',
+            'Expires':             isPublic ? new Date(Date.now() + 3600000).toUTCString() : '0',
         };
+
+        // Add security headers for private content
+        if (!isPublic) {
+            headers['X-Content-Type-Options'] = 'nosniff';
+            headers['X-Frame-Options']        = 'DENY';
+            headers['X-Download-Options']     = 'noopen';
+        }
 
         return new NextResponse(fileBuffer, { headers });
     },
@@ -116,12 +148,13 @@ const responseService = {
         console.error('File retrieval error:', error);
 
         const errorStatusMap = {
-            [CONFIG.ERRORS.UNAUTHORIZED]: 401,
+            [CONFIG.ERRORS.UNAUTHORIZED]:       401,
             [CONFIG.ERRORS.CONTENT_ID_REQUIRED]: 400,
-            [CONFIG.ERRORS.CONTENT_NOT_FOUND]: 404,
-            [CONFIG.ERRORS.NOT_FILE_CONTENT]: 400,
-            [CONFIG.ERRORS.INVALID_FILE_DATA]: 400,
-            [CONFIG.ERRORS.FILE_READ_FAILED]: 404
+            [CONFIG.ERRORS.CONTENT_NOT_FOUND]:   404,
+            [CONFIG.ERRORS.NOT_FILE_CONTENT]:    400,
+            [CONFIG.ERRORS.INVALID_FILE_DATA]:   400,
+            [CONFIG.ERRORS.FILE_READ_FAILED]:    404,
+            [CONFIG.ERRORS.CONTENT_NOT_PUBLIC]:  403,
         };
 
         const status = errorStatusMap[error.message] || 500;
@@ -136,19 +169,30 @@ const responseService = {
 // ============== MAIN HANDLER ==============
 export async function GET(request, { params }) {
     try {
-        // Authenticate user
-        const user = await authService.getAuthenticatedUser();
+        // Extract query parameters
+        const { searchParams } = new URL(request.url);
+        const isPublicRequest = searchParams.get('public') === 'true';
+
+        // Authenticate user (optional for public requests)
+        const user = isPublicRequest 
+            ? await authService.getOptionalAuthenticatedUser()
+            : await authService.getAuthenticatedUser();
         
         // Validate and extract content ID
         const staticParams = await params;
-        const contentId = validationService.validateContentId(staticParams.contentId);
+        const contentId    = validationService.validateContentId(staticParams.contentId);
         console.log("Content Params", staticParams);
+        console.log("Is Public Request", isPublicRequest);
 
         // Fetch content with parent information
         const content = await dbService.getContentWithParent(contentId);
         console.log("Content", content);
-        // Validate it's a file
+        
+        // Validate file type
         validationService.validateFileContent(content);
+
+        // Validate access permissions
+        validationService.validatePublicAccess(content, isPublicRequest, user);
 
         // Parse file metadata
         const fileData = dbService.parseContentData(content.content_data);
@@ -160,11 +204,12 @@ export async function GET(request, { params }) {
             fileData.fileName
         );
 
-        // Return file response
+        // Return file response with appropriate caching based on public status
         return responseService.createFileResponse(
             fileBuffer,
             fileData.fileType,
-            fileData.originalName || fileData.fileName
+            fileData.originalName || fileData.fileName,
+            content.is_public
         );
 
     } catch (error) {

@@ -88,10 +88,11 @@ const TextContent = ({ data, showRaw, onToggleRaw }) => {
     );
 };
 
-const FileContent = ({ content }) => (
+const FileContent = ({ content, allowPublicAccess }) => (
     <SecureFileViewer
         content={content}
         className={styles.fileContent}
+        allowPublicAccess={allowPublicAccess}
     />
 );
 
@@ -110,7 +111,7 @@ const DefaultContent = ({ content_data, showRaw, onToggleRaw }) => {
     );
 };
 
-export const ContentRenderer = ({ content }) => {
+export const ContentRenderer = ({ content, allowPublicAccess = false }) => {
     const [showRaw, setShowRaw] = useState(false);
     
     if (!content) return null;
@@ -122,7 +123,7 @@ export const ContentRenderer = ({ content }) => {
             const data = parseContentData(content.content_data);
             return <TextContent data={data} showRaw={showRaw} onToggleRaw={toggleRaw} />;
         case 'file':
-            return <FileContent content={content} />;
+            return <FileContent content={content} allowPublicAccess={allowPublicAccess}/>;
         default:
             return <DefaultContent content_data={content.content_data} showRaw={showRaw} onToggleRaw={toggleRaw} />;
     }

@@ -3,51 +3,87 @@ import styles from './innerStyles/FileViewer.module.css';
 
 // Constants
 const FILE_ICONS = {
-    pdf: '📄',
-    image: '🖼️',
-    text: '📝',
-    word: '📘',
-    folder: '📁',
-    default: '📎'
+    pdf     : '📄',
+    image   : '🖼️',
+    text    : '📝',
+    word    : '📘',
+    folder  : '📁',
+    default : '📎'
 };
 
-const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-const TEXT_EXTENSIONS = ['txt'];
-const DOCUMENT_EXTENSIONS = ['doc', 'docx'];
+const FILE_EXTENSIONS = {
+    image       : ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    text        : ['txt'],
+    document    : ['doc', 'docx'],
+    pdf         : ['pdf']
+};
 
 // Utility functions
-const getFileUrl = (path) => {
-    if (!path) return '';
-    return path.startsWith('/uploads/') ? path : `/uploads/${path}`;
+const fileUtils = {
+    getFileUrl(path) {
+        if (!path) return '';
+        return path.startsWith('/') ? path : `/${path}`;
+    },
+
+    getFileIcon(item) {
+        if (item.type === 'directory') return FILE_ICONS.folder;
+
+        const extension = item.name?.split('.').pop()?.toLowerCase();
+        
+        if (extension === 'pdf') return FILE_ICONS.pdf;
+        if (FILE_EXTENSIONS.image.includes(extension)) return FILE_ICONS.image;
+        if (FILE_EXTENSIONS.text.includes(extension)) return FILE_ICONS.text;
+        if (FILE_EXTENSIONS.document.includes(extension)) return FILE_ICONS.word;
+        
+        return FILE_ICONS.default;
+    },
+
+    getFileExtension(fileName) {
+        return fileName?.split('.').pop()?.toLowerCase();
+    },
+
+    isImageFile(fileName) {
+        const extension = this.getFileExtension(fileName);
+        return FILE_EXTENSIONS.image.includes(extension);
+    },
+
+    formatFileSize(size) {
+        if (!size) return '';
+        
+        if (size === 0) return '0 Bytes';
+        
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(size) / Math.log(k));
+        
+        return parseFloat((size / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
 };
-
-const getFileIcon = (item) => {
-    if (item.type === 'directory') return FILE_ICONS.folder;
-
-    const fileType = item.name?.split('.').pop()?.toLowerCase();
-    if (fileType === 'pdf') return FILE_ICONS.pdf;
-    if (IMAGE_EXTENSIONS.includes(fileType)) return FILE_ICONS.image;
-    if (TEXT_EXTENSIONS.includes(fileType)) return FILE_ICONS.text;
-    if (DOCUMENT_EXTENSIONS.includes(fileType)) return FILE_ICONS.word;
-    return FILE_ICONS.default;
-};
-
-const isImageFile = (fileType) => IMAGE_EXTENSIONS.includes(fileType?.toLowerCase());
 
 // Custom hooks
 const useFileValidation = () => {
     const checkFileExists = useCallback(async (path) => {
         try {
-            const fileUrl = getFileUrl(path);
+            const fileUrl = fileUtils.getFileUrl(path);
             const response = await fetch(fileUrl, { method: 'HEAD' });
 
             if (response.ok) {
-                const extension = path.split('.').pop()?.toLowerCase();
-                return { exists: true, fileType: extension };
+                const extension = fileUtils.getFileExtension(path);
+                return { 
+                    exists      : true, 
+                    fileType    : extension 
+                };
             }
-            return { exists: false, error: `File not found: ${path}` };
+            
+            return { 
+                exists  : false, 
+                error   : `File not found: ${path}` 
+            };
         } catch (err) {
-            return { exists: false, error: `Unable to access file: ${path}` };
+            return { 
+                exists  : false, 
+                error   : `Unable to access file: ${path}` 
+            };
         }
     }, []);
 
@@ -58,18 +94,26 @@ const useFileManager = () => {
     const [availableItems, setAvailableItems] = useState([]);
     const [loadingFiles, setLoadingFiles] = useState(false);
     const [currentPath, setCurrentPath] = useState('');
+    const [error, setError] = useState(null);
 
     const fetchDirectoryContents = useCallback(async (directory = '') => {
         setLoadingFiles(true);
+        setError(null);
+        
         try {
             const response = await fetch(`/api/files/list?directory=${encodeURIComponent(directory)}`);
-            if (!response.ok) throw new Error('Failed to fetch directory contents');
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to fetch directory contents');
+            }
 
             const data = await response.json();
-            setAvailableItems(data.items || data.files || []);
+            setAvailableItems(data.items || []);
             setCurrentPath(directory);
         } catch (error) {
             console.error('Error fetching directory contents:', error);
+            setError(error.message);
             setAvailableItems([]);
         } finally {
             setLoadingFiles(false);
@@ -89,6 +133,7 @@ const useFileManager = () => {
         availableItems,
         loadingFiles,
         currentPath,
+        error,
         fetchDirectoryContents,
         navigateToDirectory,
         navigateUp
@@ -156,7 +201,7 @@ const Breadcrumb = ({ currentPath, onNavigate }) => {
                 className={styles.breadcrumbItem}
                 onClick={() => onNavigate('')}
             >
-                🏠 Root
+                🏠 uploads
             </button>
             {pathParts.map((part, index) => {
                 const path = pathParts.slice(0, index + 1).join('/');
@@ -185,10 +230,10 @@ const FilePreview = ({ item, onLoad, onError }) => {
         );
     }
 
-    const fileUrl = getFileUrl(item.path);
-    const extension = item.name?.split('.').pop()?.toLowerCase();
+    const fileUrl = fileUtils.getFileUrl(item.publicPath);
+    const isImage = fileUtils.isImageFile(item.name);
 
-    if (isImageFile(extension)) {
+    if (isImage) {
         return (
             <img
                 src={fileUrl}
@@ -202,7 +247,7 @@ const FilePreview = ({ item, onLoad, onError }) => {
 
     return (
         <div className={styles.filePreviewPlaceholder}>
-            <div className={styles.fileIcon}>{getFileIcon(item)}</div>
+            <div className={styles.fileIcon}>{fileUtils.getFileIcon(item)}</div>
         </div>
     );
 };
@@ -216,13 +261,17 @@ const FileItem = ({ item, onSelect, onNavigate }) => {
         }
     };
 
+    const fileSize = item.type !== 'directory' 
+        ? fileUtils.formatFileSize(item.rawSize || item.size) 
+        : null;
+
     return (
         <div className={styles.fileItem} onClick={handleClick}>
             <div className={styles.filePreviewContainer}>
                 <FilePreview
                     item={item}
-                    onLoad={() => { }}
-                    onError={() => { }}
+                    onLoad={() => {}}
+                    onError={() => {}}
                 />
             </div>
             <div className={styles.fileInfo}>
@@ -231,7 +280,10 @@ const FileItem = ({ item, onSelect, onNavigate }) => {
                     {item.type === 'directory' && ' /'}
                 </div>
                 <div className={styles.fileDetails}>
-                    {item.type === 'directory' ? 'Folder' : `${item.size || ''} • ${item.type || 'File'}`}
+                    {item.type === 'directory' 
+                        ? 'Folder' 
+                        : `${fileSize || ''} • ${fileUtils.getFileExtension(item.name)?.toUpperCase() || 'File'}`
+                    }
                 </div>
             </div>
         </div>
@@ -244,6 +296,7 @@ const FileBrowser = ({
     availableItems,
     loadingFiles,
     currentPath,
+    error,
     onFileSelect,
     onNavigate,
     onNavigateUp
@@ -270,7 +323,11 @@ const FileBrowser = ({
                 </div>
 
                 <div className={styles.fileBrowserContent}>
-                    {loadingFiles ? (
+                    {error ? (
+                        <div className={styles.error}>
+                            <p>Error: {error}</p>
+                        </div>
+                    ) : loadingFiles ? (
                         <div className={styles.loadingFiles}>Loading...</div>
                     ) : availableItems.length === 0 ? (
                         <div className={styles.noFiles}>No items found</div>
@@ -278,7 +335,7 @@ const FileBrowser = ({
                         <div className={styles.fileList}>
                             {availableItems.map((item, index) => (
                                 <FileItem
-                                    key={index}
+                                    key={`${item.type}-${item.name}-${index}`}
                                     item={item}
                                     onSelect={onFileSelect}
                                     onNavigate={onNavigate}
@@ -292,8 +349,15 @@ const FileBrowser = ({
     );
 };
 
-const FileContent = ({ fileType, currentFilePath, onLoad, onError, allowFileChange, onShowFileBrowser }) => {
-    const fileUrl = getFileUrl(currentFilePath);
+const FileContent = ({ 
+    fileType, 
+    currentFilePath, 
+    onLoad, 
+    onError, 
+    allowFileChange, 
+    onShowFileBrowser 
+}) => {
+    const fileUrl = fileUtils.getFileUrl(currentFilePath);
 
     const renderPlaceholder = (icon, title, description) => (
         <div className={styles.placeholder}>
@@ -303,23 +367,31 @@ const FileContent = ({ fileType, currentFilePath, onLoad, onError, allowFileChan
         </div>
     );
 
+    const renderWithActions = (content) => (
+        <>
+            {content}
+            <FileActions
+                fileType={fileType}
+                fileUrl={fileUrl}
+                allowFileChange={allowFileChange}
+                onShowFileBrowser={onShowFileBrowser}
+            />
+        </>
+    );
+
     switch (fileType) {
         case 'pdf':
             return (
                 <div className={styles.pdfContainer}>
-                    <iframe
-                        src={fileUrl}
-                        className={styles.pdf}
-                        title="PDF Preview"
-                        onLoad={onLoad}
-                        onError={onError}
-                    />
-                    <FileActions
-                        fileType={fileType}
-                        fileUrl={fileUrl}
-                        allowFileChange={allowFileChange}
-                        onShowFileBrowser={onShowFileBrowser}
-                    />
+                    {renderWithActions(
+                        <iframe
+                            src={fileUrl}
+                            className={styles.pdf}
+                            title="PDF Preview"
+                            onLoad={onLoad}
+                            onError={onError}
+                        />
+                    )}
                 </div>
             );
 
@@ -330,38 +402,30 @@ const FileContent = ({ fileType, currentFilePath, onLoad, onError, allowFileChan
         case 'webp':
             return (
                 <div className={styles.imageContainer}>
-                    <img
-                        src={fileUrl}
-                        alt="File preview"
-                        className={styles.image}
-                        onLoad={onLoad}
-                        onError={onError}
-                    />
-                    <FileActions
-                        fileType={fileType}
-                        fileUrl={fileUrl}
-                        allowFileChange={allowFileChange}
-                        onShowFileBrowser={onShowFileBrowser}
-                    />
+                    {renderWithActions(
+                        <img
+                            src={fileUrl}
+                            alt="File preview"
+                            className={styles.image}
+                            onLoad={onLoad}
+                            onError={onError}
+                        />
+                    )}
                 </div>
             );
 
         case 'txt':
             return (
                 <div className={styles.textContainer}>
-                    <iframe
-                        src={fileUrl}
-                        className={styles.text}
-                        title="Text Preview"
-                        onLoad={onLoad}
-                        onError={onError}
-                    />
-                    <FileActions
-                        fileType={fileType}
-                        fileUrl={fileUrl}
-                        allowFileChange={allowFileChange}
-                        onShowFileBrowser={onShowFileBrowser}
-                    />
+                    {renderWithActions(
+                        <iframe
+                            src={fileUrl}
+                            className={styles.text}
+                            title="Text Preview"
+                            onLoad={onLoad}
+                            onError={onError}
+                        />
+                    )}
                 </div>
             );
 
@@ -369,26 +433,22 @@ const FileContent = ({ fileType, currentFilePath, onLoad, onError, allowFileChan
         case 'docx':
             return (
                 <div className={styles.documentContainer}>
-                    {renderPlaceholder('📄', 'Word Document', 'Preview not available for this file type')}
-                    <FileActions
-                        fileType={fileType}
-                        fileUrl={fileUrl}
-                        allowFileChange={allowFileChange}
-                        onShowFileBrowser={onShowFileBrowser}
-                    />
+                    {renderWithActions(
+                        renderPlaceholder('📄', 'Word Document', 'Preview not available for this file type')
+                    )}
                 </div>
             );
 
         default:
             return (
                 <div className={styles.unknownContainer}>
-                    {renderPlaceholder('📎', `File (${fileType?.toUpperCase() || 'Unknown'})`, 'Preview not available for this file type')}
-                    <FileActions
-                        fileType={fileType}
-                        fileUrl={fileUrl}
-                        allowFileChange={allowFileChange}
-                        onShowFileBrowser={onShowFileBrowser}
-                    />
+                    {renderWithActions(
+                        renderPlaceholder(
+                            '📎', 
+                            `File (${fileType?.toUpperCase() || 'Unknown'})`, 
+                            'Preview not available for this file type'
+                        )
+                    )}
                 </div>
             );
     }
@@ -412,6 +472,7 @@ const FileViewer = ({
         availableItems,
         loadingFiles,
         currentPath,
+        error: fileManagerError,
         fetchDirectoryContents,
         navigateToDirectory,
         navigateUp
@@ -457,7 +518,7 @@ const FileViewer = ({
         setLoading(true);
         setError(null);
 
-        const newFilePath = selectedFile.path;
+        const newFilePath = selectedFile.publicPath;
         setCurrentFilePath(newFilePath);
 
         if (onFileChange) {
@@ -498,6 +559,7 @@ const FileViewer = ({
                     availableItems={availableItems}
                     loadingFiles={loadingFiles}
                     currentPath={currentPath}
+                    error={fileManagerError}
                     onFileSelect={handleFileSelect}
                     onNavigate={navigateToDirectory}
                     onNavigateUp={navigateUp}
@@ -522,6 +584,7 @@ const FileViewer = ({
                 availableItems={availableItems}
                 loadingFiles={loadingFiles}
                 currentPath={currentPath}
+                error={fileManagerError}
                 onFileSelect={handleFileSelect}
                 onNavigate={navigateToDirectory}
                 onNavigateUp={navigateUp}
