@@ -59,7 +59,7 @@ function getApprovalEmailContent(teacherName) {
         Welcome to our teaching community!
 
         Best regards,
-        MeroTuit LMS Team
+        MeroTuition Team
     `.trim();
 }
 
@@ -76,7 +76,7 @@ function getRejectionEmailContent(teacherName) {
         Thank you for your understanding.
 
         Best regards,
-        MeroTuit LMS Team
+        MeroTuition Team
     `.trim();
 }
 

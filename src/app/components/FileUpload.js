@@ -2,40 +2,40 @@
 import { useState, useCallback } from 'react';
 import styles from "../../styles/ClassContent.module.css";
 
-// Configuration presets
+// Configuration presets with aligned key-value pairs
 const UPLOAD_PRESETS = {
     carousel: {
-        accept: 'image/*',
-        allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-        labels: {
-            upload: 'Drop image here or click to upload',
-            button: 'Upload Image',
-            success: 'Image uploaded successfully'
+        accept          : 'image/*',
+        allowedTypes    : ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
+        labels          : {
+            upload  : 'Drop image here or click to upload',
+            button  : 'Upload Image',
+            success : 'Image uploaded successfully'
         },
-        resetAfterUpload: true,
-        validateFileType: true
+        resetAfterUpload    : true,
+        validateFileType    : true
     },
     classes: {
-        accept: undefined,
-        allowedTypes: null,
-        labels: {
-            upload: 'Drop file here or click to upload',
-            button: 'Upload File',
-            success: 'File uploaded successfully'
+        accept          : undefined,
+        allowedTypes    : null,
+        labels          : {
+            upload  : 'Drop file here or click to upload',
+            button  : 'Upload File',
+            success : 'File uploaded successfully'
         },
-        resetAfterUpload: false,
-        validateFileType: false
+        resetAfterUpload    : false,
+        validateFileType    : false
     },
     signup: {
-        accept: '.pdf,.jpg,.jpeg,.png',
-        allowedTypes: ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'],
-        labels: {
-            upload: 'Drop certificate here or click to upload',
-            button: 'Upload Certificate',
-            success: 'Certificate uploaded successfully'
+        accept          : '.pdf,.jpg,.jpeg,.png',
+        allowedTypes    : ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'],
+        labels          : {
+            upload  : 'Drop certificate here or click to upload',
+            button  : 'Upload Certificate',
+            success : 'Certificate uploaded successfully'
         },
-        resetAfterUpload: false,
-        validateFileType: true
+        resetAfterUpload    : false,
+        validateFileType    : true
     }
 };
 
@@ -51,8 +51,8 @@ const validateFileType = (file, allowedTypes) => {
             .map(type => type.split('/')[1]?.toUpperCase() || type)
             .join(', ');
         return {
-            isValid: false,
-            error: `Only ${typeNames} files are allowed`
+            isValid : false,
+            error   : `Only ${typeNames} files are allowed`
         };
     }
 
@@ -82,17 +82,17 @@ const useDragAndDrop = () => {
 
     return {
         dragActive,
-        onDragEnter: (e) => handleDragEvent(e, true),
-        onDragLeave: (e) => handleDragEvent(e, false),
-        onDragOver: (e) => handleDragEvent(e, true),
-        onDrop: handleDrop
+        onDragEnter : (e) => handleDragEvent(e, true),
+        onDragLeave : (e) => handleDragEvent(e, false),
+        onDragOver  : (e) => handleDragEvent(e, true),
+        onDrop      : handleDrop
     };
 };
 
 const useFileUpload = (config, callbacks) => {
-    const [file, setFile] = useState(null);
-    const [isUploading, setIsUploading] = useState(false);
-    const [uploadError, setUploadError] = useState(null);
+    const [file, setFile]                       = useState(null);
+    const [isUploading, setIsUploading]         = useState(false);
+    const [uploadError, setUploadError]         = useState(null);
     const [uploadedFilePath, setUploadedFilePath] = useState('');
 
     const resetFile = useCallback(async () => {
@@ -100,8 +100,8 @@ const useFileUpload = (config, callbacks) => {
         if (uploadedFilePath) {
             try {
                 const response = await fetch('/api/upload', {
-                    method: 'DELETE',
-                    headers: {
+                    method  : 'DELETE',
+                    headers : {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ filePath: uploadedFilePath }),
@@ -165,8 +165,8 @@ const useFileUpload = (config, callbacks) => {
             formData.append('isSignupForm', uploadParams.isSignUpForm.toString());
 
             const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
+                method  : 'POST',
+                body    : formData,
             });
 
             if (!response.ok) {
@@ -291,24 +291,27 @@ export default function FileUpload({
     showUploadActions = true,
     showCancelButton = true
 }) {
-    // Get configuration
+    // Get configuration - now consistent for all paths
     const getConfig = () => {
-        // Handle backward compatibility
+        // Get base preset
+        let preset;
         if (isSignUpForm) {
-            return UPLOAD_PRESETS.signup;
+            preset = UPLOAD_PRESETS.signup;
+        } else {
+            preset = UPLOAD_PRESETS[parentType] || UPLOAD_PRESETS.classes;
         }
 
-        const preset = UPLOAD_PRESETS[parentType] || UPLOAD_PRESETS.classes;
-
-        // Allow custom props to override preset values
+        // Always return consistent structure with nested labels
         return {
-            accept: accept ?? preset.accept,
-            allowedTypes: allowedTypes ?? preset.allowedTypes,
-            uploadLabel: uploadLabel ?? preset.labels.upload,
-            uploadButtonText: uploadButtonText ?? preset.labels.button,
-            successMessage: successMessage ?? preset.labels.success,
-            resetAfterUpload: resetAfterUpload ?? preset.resetAfterUpload,
-            validateFileType: validateFileType ?? preset.validateFileType
+            accept              : accept ?? preset.accept,
+            allowedTypes        : allowedTypes ?? preset.allowedTypes,
+            labels              : {
+                upload  : uploadLabel ?? preset.labels.upload,
+                button  : uploadButtonText ?? preset.labels.button,
+                success : successMessage ?? preset.labels.success
+            },
+            resetAfterUpload    : resetAfterUpload ?? preset.resetAfterUpload,
+            validateFileType    : validateFileType ?? preset.validateFileType
         };
     };
 
@@ -368,7 +371,7 @@ export default function FileUpload({
                 {file ? (
                     <FileInfo file={file} />
                 ) : (
-                    <UploadLabel label={config.uploadLabel} />
+                    <UploadLabel label={config.labels.upload} />
                 )}
             </div>
 
@@ -378,7 +381,7 @@ export default function FileUpload({
                     onUpload={handleUpload}
                     onCancel={resetFile}
                     isUploading={isUploading}
-                    buttonText={config.uploadButtonText}
+                    buttonText={config.labels.button}
                     showCancel={showCancelButton}
                 />
             )}
@@ -388,7 +391,7 @@ export default function FileUpload({
             )}
 
             {uploadedFilePath && (
-                <SuccessMessage message={config.successMessage} />
+                <SuccessMessage message={config.labels.success} />
             )}
         </div>
     );

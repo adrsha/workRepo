@@ -1,5 +1,6 @@
 import HomePageClient from './HomePageClient';
 import { getMetadata } from './seoConfig';
+import { sendEmail } from './lib/email';
 export const metadata = getMetadata('home');
 
 // Feature data configuration

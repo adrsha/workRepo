@@ -94,7 +94,6 @@ const fileService = {
         const serverPath = join(serverDir, fileName);
         const publicPath = pathService.getPublicPath(serverPath);
 
-        console.log(serverDir, serverPath, publicPath);
         await this.createDirectory(serverDir);
         await this.save(file, serverPath);
 

@@ -2,58 +2,6 @@
 import { useState } from 'react';
 import { createOptions } from './fieldRendererFactory';
 
-const ExpandableCell = ({ 
-    id, 
-    count, 
-    items, 
-    countLabel, 
-    renderItem, 
-    onItemClick, 
-    emptyMessage,
-    containerClass,
-    itemClass,
-}) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-
-    return (
-        <div className={containerClass}>
-            <div
-                className="count-display clickable"
-                onClick={() => setIsExpanded(!isExpanded)}
-                title={`Click to view ${countLabel}`}
-            >
-                <span className="count-badge">
-                    {count} {countLabel}{count !== 1 ? 's' : ''}
-                    <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
-                        {isExpanded ? '▼' : '▶'}
-                    </span>
-                </span>
-            </div>
-
-            {isExpanded && (
-                <div className="items-list">
-                    {items.length > 0 ? (
-                        <div className="items-grid">
-                            {items.map(item => (
-                                <div
-                                    key={item.id}
-                                    className={itemClass}
-                                    onClick={(e) => onItemClick(item.id, e)}
-                                    title={item.title}
-                                >
-                                    {renderItem(item)}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className={`no-${countLabel}`}>{emptyMessage}</div>
-                    )}
-                </div>
-            )}
-        </div>
-    );
-};
-
 const TruncatedText = ({ text, maxLength = 50, title }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 

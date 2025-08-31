@@ -96,17 +96,18 @@ const validationService = {
     },
 
     validatePublicAccess(content, isPublicRequest, user) {
-        // If it's a public request, ensure the content is allowed
+        // If it's a public request, ensure the content is actually public
         if (isPublicRequest) {
             return true;
         }
- 
-        if (!content.is_public) {
-            throw new Error(CONFIG.ERRORS.CONTENT_NOT_PUBLIC);
-        }
 
         // If it's not a public request and user is not authenticated, deny access
-        if (!user) {
+        if (!isPublicRequest && !user) {
+            throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
+        }
+
+        // If content is not public and no user, deny access
+        if (!content.is_public && !user) {
             throw new Error(CONFIG.ERRORS.UNAUTHORIZED);
         }
 

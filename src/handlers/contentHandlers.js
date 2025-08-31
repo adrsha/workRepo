@@ -14,21 +14,30 @@ export const createContentHandlers = (
         try {
             // Get the content details to find associated files
             const content = contents.find(item => item.content_id === contentId);
-            if (!content || !content.file_path) {
-                return; // No files to delete
+            if (!content ) {
+                return; 
             }
-
+            
+            if (!JSON.parse(content.content_data).filePath) {
+                return
+            } else {
+                content.filePath = JSON.parse(content.content_data).filePath
+            }
+            
+            if (!content.filePath || !content.content_data){
+                return
+            }
             // Delete file using the same endpoint as FileUpload component
             const response = await fetch('/api/upload', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ filePath: content.file_path }),
+                body: JSON.stringify({ filePath: content.filePath }),
             });
 
             if (!response.ok) {
-                console.warn('Failed to delete file:', content.file_path);
+                console.warn('Failed to delete file:', content.filePath);
             }
         } catch (error) {
             console.warn('Error deleting associated files:', error);
