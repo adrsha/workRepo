@@ -392,6 +392,7 @@ const useSecureFile = (contentId, token, isPublic = false) => {
             }
 
             const url = createFileUrl(blob);
+            console.log(url)
             setFileUrl(url);
         } catch (err) {
             console.error('File loading error:', err);

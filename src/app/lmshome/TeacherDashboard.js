@@ -60,7 +60,7 @@ const TeacherDashboard = ({ userData, setUserData, session, update, router, setI
     const validateClassForm = (data) => {
         const required = ['startTime', 'endTime', 'startDate', 'endDate', 'courseId', 'grade', 'repeatEveryNDay'];
         const missing = required.filter(field => !data[field]);
-
+        console.log(missing, data)
         if (missing.length > 0) {
             throw new Error('Please fill in all required fields');
         }
@@ -71,7 +71,7 @@ const TeacherDashboard = ({ userData, setUserData, session, update, router, setI
         const endLocal = new Date(`${endDate}T${endTime}`);
 
         return {
-            start: startLocal.toISOString(), 
+            start: startLocal.toISOString(),
             end: endLocal.toISOString()
         };
     };
@@ -234,7 +234,13 @@ const TeacherDashboard = ({ userData, setUserData, session, update, router, setI
                         <Input label="End Date" type="date" name="endDate" id="endDate" required />
                     </div>
 
-                    <RepeatScheduleInput />
+                    <RepeatScheduleInput
+                        initialValue={"daily:1"}
+                        onSave={()=>{}}
+                        label={"repeatEveryNDay"}
+                        labelStatic={true}
+                        initialDate={new Date()}
+                    />
 
                     <Input
                         label="Class Description"

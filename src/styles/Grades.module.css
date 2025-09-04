@@ -645,7 +645,6 @@
 @media (max-width: 480px) {
     .sidePanel {
         flex-direction: row;
-        overflow-x: auto;
         white-space: nowrap;
         padding: 1rem 0.5rem;
         gap: 1rem;
@@ -673,5 +672,6 @@
     .gradeCard {
         min-width: 100px;
         text-align: center;
+        overflow-x: auto;
     }
 }

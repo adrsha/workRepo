@@ -21,13 +21,13 @@ const FEATURE_SIDES_DATA = [
         title: 'Language Classes',
         img: '/language.png',
         color: '--tertiary',
-        route: '/languages',
+        route: '/language-classes',
     },
     {
         title: 'Other Classes',
         img: '/others.png',
         color: '--quaternary',
-        route: '/others',
+        route: '/other-classes',
     },
 ];
 

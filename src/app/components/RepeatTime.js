@@ -5,7 +5,15 @@ import { revFormatColName } from '../lib/utils';
 import Input from "./Input";
 import "./innerStyles/EditableField.css"
 
-export const RepeatScheduleInput = ({ initialValue, onSave, label, placeholder, disabled = false, initialDate = new Date() }) => {
+export const RepeatScheduleInput = ({
+    initialValue,
+    onSave,
+    label,
+    labelStatic = false,
+    placeholder,
+    disabled = false,
+    initialDate = new Date(),
+}) => {
     const [repeatType, setRepeatType] = useState('daily');
     const [interval, setInterval] = useState(1);
     const [selectedDays, setSelectedDays] = useState([]);
@@ -283,12 +291,11 @@ export const RepeatScheduleInput = ({ initialValue, onSave, label, placeholder, 
                     </div>
                 )}
             </div>
-            
             {/* Hidden input for form submission */}
             {currentValue && (
                 <input 
                     type="hidden" 
-                    name={revFormatColName(label)} 
+                    name={labelStatic ? label : revFormatColName(label)} 
                     value={currentValue} 
                 />
             )}

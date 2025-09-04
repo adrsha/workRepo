@@ -117,25 +117,74 @@ const validationService = {
 
 // ============== RESPONSE SERVICE ==============
 const responseService = {
+    // Helper function to sanitize header values
+    sanitizeHeaderValue(value) {
+        if (typeof value !== 'string') return value;
+        // Replace any character with code > 255 with a safe alternative
+        return value.replace(/[^\x00-\xFF]/g, '?');
+    },
+
+    // Helper function to create safe filename for headers
+    createSafeFilename(originalName) {
+        if (!originalName) return 'file';
+        
+        // Remove or replace problematic characters for header safety
+        return originalName
+            .replace(/[^\x00-\x7F]/g, '_') // Replace non-ASCII with underscore
+            .replace(/[<>:"/\\|?*]/g, '_') // Replace file system unsafe chars
+            .replace(/["\r\n]/g, '_')      // Replace quotes and newlines
+            .substring(0, 100);            // Limit length
+    },
+
     createFileResponse(fileBuffer, fileType, fileName, isPublic = false) {
-        const headers = {
-            'Content-Type':        fileType || 'application/octet-stream',
-            'Content-Disposition': `inline; filename="${fileName || 'file'}"`,
-            'Cache-Control':       isPublic 
-                                   ? 'public, max-age=3600' 
-                                   : 'private, no-cache, no-store, must-revalidate',
-            'Pragma':              isPublic ? 'cache' : 'no-cache',
-            'Expires':             isPublic ? new Date(Date.now() + 3600000).toUTCString() : '0',
-        };
+        // Use Headers constructor for proper header handling
+        const headers = new Headers();
+        
+        // Set Content-Type with sanitization
+        const safeContentType = this.sanitizeHeaderValue(fileType || 'application/octet-stream');
+        headers.set('Content-Type', safeContentType);
+        
+        // Handle filename with proper encoding for Content-Disposition
+        let dispositionValue = 'inline';
+        if (fileName) {
+            const safeFileName = this.createSafeFilename(fileName);
+            
+            // Use both ASCII fallback and UTF-8 encoded name
+            if (fileName !== safeFileName) {
+                // File has Unicode characters, use RFC 5987 format
+                dispositionValue = `inline; filename="${safeFileName}"; filename*=UTF-8''${encodeURIComponent(fileName)}`;
+            } else {
+                // File is ASCII-safe
+                dispositionValue = `inline; filename="${safeFileName}"`;
+            }
+        }
+        headers.set('Content-Disposition', this.sanitizeHeaderValue(dispositionValue));
+
+        // Set caching headers
+        if (isPublic) {
+            headers.set('Cache-Control', 'public, max-age=3600');
+            headers.set('Pragma', 'cache');
+            headers.set('Expires', new Date(Date.now() + 3600000).toUTCString());
+        } else {
+            headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+            headers.set('Pragma', 'no-cache');
+            headers.set('Expires', '0');
+        }
 
         // Add security headers for private content
         if (!isPublic) {
-            headers['X-Content-Type-Options'] = 'nosniff';
-            headers['X-Frame-Options']        = 'DENY';
-            headers['X-Download-Options']     = 'noopen';
+            headers.set('X-Content-Type-Options', 'nosniff');
+            headers.set('X-Frame-Options', 'DENY');
+            headers.set('X-Download-Options', 'noopen');
         }
 
-        return new NextResponse(fileBuffer, { headers });
+        // Debug logging to check headers
+        console.log('Response headers:', Object.fromEntries(headers.entries()));
+
+        return new NextResponse(fileBuffer, { 
+            status: 200,
+            headers 
+        });
     },
 
     createErrorResponse(message, status = 500) {
