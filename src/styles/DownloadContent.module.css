@@ -1,5 +1,7 @@
 .publicContentContainer {
     flex: 1;
+    max-width: 100%;
+    padding: 1rem;
     background-color: var(--background);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--card-shadow);
@@ -42,7 +44,7 @@
     align-items: flex-start;
     flex-direction: column;
     padding: 1rem;
-    border-radius: var(--border-radius);
+    border-radius: 1rem;
     background-color: var(--background);
     position: relative;
     transition: all 0.2s ease;

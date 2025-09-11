@@ -33,11 +33,11 @@ const FEATURE_SIDES_DATA = [
 
 const FEATURES_DATA = [
     {
-        title: 'Quizes',
+        title: 'Quizzes',
         desc: 'Test your knowledge with our quizzes',
         img: '/course.png',
         color: '--primary',
-        route: '/',
+        route: '/quizzes',
     },
     {
         title: 'Games',

@@ -9,17 +9,17 @@
 /* Side Panel */
 .sidePanel {
     width: 250px;
-    height: calc(100vh - var(--navheight));
+    max-height: calc(100vh - var(--navheight));
     padding: 2rem;
     background-color: var(--lightGray);
     display: flex;
     flex-direction: column;
     box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+    border-radius: 0 1rem 1rem 0;
     position: sticky;
     top: var(--navheight);
     left: 0;
     z-index: 5;
-    border-right: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .header {
@@ -613,65 +613,86 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-    .container {
-        flex-direction: column;
-    }
-
     .sidePanel {
-        width: 100%;
-        height: auto;
-        padding: 1rem;
+        width: 4rem;
+        border-right: 1px solid rgba(0, 0, 0, 0.05);
         position: relative;
-        margin-bottom: 6rem;
+        overflow: hidden;
+        height: 50vh;
+        transition: height 0.4s ease, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-right: 5px solid var(--tertiary );
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
     }
 
-    .gradeCards {
-        flex-direction: row;
-        overflow-x: auto;
-        padding-bottom: 0.5rem;
+    .sidePanel * {
+        opacity: 0;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        transform: translateX(-10px);
     }
 
-    .gradeCard {
-        min-width: 120px;
+    .sidePanel::before {
+        content: "➜";
+        font-size: 1.5rem;
+        background-color: var(--tertiary, teal);
+        color: var(--offWhite);
+        padding: 0.4rem 0.7rem;
+        border-radius: 12px;
+        position: absolute;
+        top: 0%;
+        left: 50%;
+        transform: translate(-50%, 50%);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: opacity 0.3s ease;
+        pointer-events: none;
     }
 
-    .mainSection {
-        grid-template-columns: 1fr;
-        height: auto;
-        padding: 1rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .sidePanel {
-        flex-direction: row;
+    .sidePanel::after {
+        content: "Select Classes";
+        font-size: 1.5rem;
+        color: var(--tertiary);
+        position: absolute;
+        top: 50%;
+        width: fit-content;
         white-space: nowrap;
-        padding: 1rem 0.5rem;
-        gap: 1rem;
-        position: sticky;
-        top: 0;
+        font-size: 2rem;
+        transform: translate(-50%, -50%) rotate(90deg);
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    .sidePanel:hover,
+    .sidePanel:focus-within {
+        width: 260px;
+        height: 100vh;
+    }
+
+    .sidePanel:hover::before,
+    .sidePanel:hover::after,
+    .sidePanel:focus-within::after,
+    .sidePanel:focus-within::before {
+        opacity: 0;
+    }
+
+    .sidePanel:hover * ,
+    .sidePanel:focus-within * {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    /* Example for items inside */
+    .sidePanel .navItem {
         display: flex;
-        flex-direction: column;
-        z-index: 100;
-        background-color: var(--background);
+        align-items: center;
+        gap: 0.8rem;
+        width: 100%;
+        padding: 0.7rem 1rem;
+        border-radius: 8px;
+        color: #333;
+        cursor: pointer;
+        transition: background 0.2s ease;
     }
 
-    .header {
-        font-size: 1.25rem;
-        border: none;
-        margin-bottom: 0;
-    }
-
-    .gradeCards {
-        flex-direction: row;
-        overflow-x: auto;
-        padding: 0;
-        margin: 0;
-    }
-
-    .gradeCard {
-        min-width: 100px;
-        text-align: center;
-        overflow-x: auto;
+    .sidePanel .navItem:hover {
+        background: rgba(0, 128, 128, 0.08);
     }
 }
+

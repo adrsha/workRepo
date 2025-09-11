@@ -6,8 +6,6 @@ import { useState, useEffect, useRef } from 'react';
 import "../global.css";
 import { styles } from '../../styles/NavCss.js';
 
-
-
 // Constants
 const USER_NAV_ITEMS = [
     { name: 'Settings', path: '/settings' }
@@ -108,10 +106,10 @@ const Logo = ({ onNavigate }) => (
     </div>
 );
 
-        // <header className={styles.header}>
-        //     <h1>MeroTuition.com</h1>
-        //     <span>No Cost, Low Cost Tuition.</span>
-        // </header>
+// <header className={styles.header}>
+//     <h1>MeroTuition.com</h1>
+//     <span>No Cost, Low Cost Tuition.</span>
+// </header>
 
 const HamburgerButton = ({ isOpen, onToggle }) => (
     <button

@@ -1,4 +1,3 @@
-import { use } from 'react';
 import NoticeDetailsClient from './NoticeDetailsClient';
 import '../../global.css';
 import styles from '../../../styles/Notices.module.css';
