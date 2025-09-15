@@ -1,139 +1,126 @@
 // /api/quizzes/route.js
-import { NextResponse } from 'next/server';
+import { executeQueryWithRetry } from '../../lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/authOptions';
-import { executeQueryWithRetry } from '@/app/lib/db';
+import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request) {
     try {
-        // Session validation
-        const session = await getServerSession(authOptions);
- 
-        if (!session) {
-            return NextResponse.json(
-                { error: 'Authentication required' }, 
-                { status: 401 }
-            );
-        }
-
-        // Fetch active quizzes with creator information
         const quizzes = await executeQueryWithRetry({
-            query: `SELECT q.*, u.user_name as creator_name, COUNT(qq.question_id) as question_count
-                    FROM quizzes q 
-                    LEFT JOIN users u ON q.created_by = u.user_id
-                    LEFT JOIN quiz_questions qq ON q.quiz_id = qq.quiz_id
-                    ORDER BY q.created_at DESC`,
-            values: []
+            query: `
+                SELECT 
+                    quiz_id,
+                    quiz_title,
+                    quiz_date_time
+                FROM quizzes
+                ORDER BY quiz_date_time DESC
+            `,
+            values: [],
         });
-        
-        if (!quizzes) {
-            throw new Error('Failed to retrieve quizzes');
-        }
-        if ((quizzes?.length === 1 && !quizzes[0].quiz_id) || quizzes.length === 0) {
-            return NextResponse.json(
-                [],
-                { status: 200 }
-            );
-        }
-        
-        return NextResponse.json(
-            quizzes,
-            { status: 200 }
-        );
 
+        return NextResponse.json(quizzes);
     } catch (error) {
-        console.error('Error fetching quizzes:', {
-            error:  error.message,
-            stack:  error.stack,
-            userId: session?.user?.id
-        });
-
-        return NextResponse.json(
-            { error: 'Failed to fetch quizzes' }, 
-            { status: 500 }
-        );
+        console.error('Error fetching quizzes:', error);
+        return NextResponse.json({ error: 'Failed to fetch quizzes' }, { status: 500 });
     }
 }
 
 export async function POST(request) {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (session.user.level < 1) {
+        return NextResponse.json({ error: 'Only admins can create quizzes' }, { status: 403 });
+    }
+
     try {
-        // Session validation
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { error: 'Authentication required' }, 
-                { status: 401 }
-            );
-        }
-        
-        // Authorization check - only teachers and admins can create quizzes
-        if (session.user.level < 1) {
-            return NextResponse.json(
-                { error: 'Insufficient permissions' }, 
-                { status: 403 }
-            );
-        }
-        
-        // Request body validation
-        const body = await request.json();
-        const { quiz_title } = body;
-        
-        if (!quiz_title?.trim()) {
-            return NextResponse.json(
-                { error: 'Quiz title is required' }, 
-                { status: 400 }
-            );
-        }
+        const { quiz_title, quiz_date_time } = await request.json();
 
-        // Check for duplicate quiz titles by same user (optional business rule)
-        const existingQuiz = await executeQueryWithRetry({
-            query: `SELECT quiz_id 
-                    FROM quizzes 
-                    WHERE quiz_title = ? AND created_by = ? AND is_active = true`,
-            values: [quiz_title.trim(), session.user.id]
+        const quizDateTime = quiz_date_time || new Date().toISOString();
+
+        const quizResult = await executeQueryWithRetry({
+            query: `
+                INSERT INTO quizzes (quiz_title, quiz_date_time)
+                VALUES (?, ?)
+            `,
+            values: [quiz_title || null, quizDateTime]
         });
 
-        if (existingQuiz && existingQuiz.length > 0) {
-            return NextResponse.json(
-                { error: 'Quiz with this title already exists' }, 
-                { status: 409 }
-            );
-        }
-        
-        // Create new quiz
-        const result = await executeQueryWithRetry({
-            query: `INSERT INTO quizzes (quiz_title, created_by, is_active, created_at) 
-                    VALUES (?, ?, true, NOW())`,
-            values: [quiz_title.trim(), session.user.id]
+        const quizId = quizResult.insertId;
+
+        const newQuiz = await executeQueryWithRetry({
+            query: `
+                SELECT 
+                    quiz_id,
+                    quiz_title,
+                    quiz_date_time
+                FROM quizzes
+                WHERE quiz_id = ?
+            `,
+            values: [quizId]
         });
 
-        if (!result?.insertId) {
-            throw new Error('Failed to create quiz');
+        return NextResponse.json(newQuiz[0]);
+    } catch (error) {
+        console.error('Error creating quiz:', error);
+        return NextResponse.json({ error: 'Failed to create quiz' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request) {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (session.user.level < 1) {
+        return NextResponse.json({ error: 'Only admins can delete quizzes' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const quizId = searchParams.get('quizId');
+
+    if (!quizId) {
+        return NextResponse.json({ error: 'Quiz ID is required' }, { status: 400 });
+    }
+
+    try {
+        // Check if quiz has associated content
+        const hasContent = await executeQueryWithRetry({
+            query: `
+                SELECT COUNT(*) as count
+                FROM quiz_content qc
+                WHERE qc.quiz_id = ?
+            `,
+            values: [quizId]
+        });
+
+        if (hasContent[0].count > 0) {
+            return NextResponse.json({ 
+                error: 'Cannot delete quiz with associated content. Delete content first.' 
+            }, { status: 400 });
         }
 
-        console.log(`Quiz created with ID: ${result.insertId}`);
-        
-        return NextResponse.json(
-            { 
-                quiz_id:    result.insertId, 
-                quiz_title: quiz_title.trim(), 
-                created_by: session.user.id,
-                message:    'Quiz created successfully'
-            }, 
-            { status: 201 }
-        );
+        const quizResult = await executeQueryWithRetry({
+            query: `DELETE FROM quizzes WHERE quiz_id = ?`,
+            values: [quizId]
+        });
+
+        if (quizResult.affectedRows === 0) {
+            return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: 'Quiz deleted successfully'
+        });
 
     } catch (error) {
-        console.error('Error creating quiz:', {
-            error:     error.message,
-            stack:     error.stack,
-            userId:    session?.user?.id,
-            quizTitle: request?.json?.()?.quiz_title
-        });
-
-        return NextResponse.json(
-            { error: 'Failed to create quiz' }, 
-            { status: 500 }
-        );
+        console.error('Error deleting quiz:', error);
+        return NextResponse.json({ error: 'Failed to delete quiz' }, { status: 500 });
     }
 }

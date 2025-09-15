@@ -430,68 +430,6 @@ export const TeacherVideoPlayer = ({ teacherId, autoPlay = true, className = '' 
     );
 };
 
-// // Wrapper component that shows video with teacher details
-// export const TeacherVideoWithDetails = ({ teacherId, autoPlay = true, className = '' }) => {
-//     const [teacher, setTeacher] = useState(null);
-//     const [loading, setLoading] = useState(false);
-//     const [error, setError] = useState('');
-//
-//     const fetchTeacher = async () => {
-//         setLoading(true);
-//         setError('');
-//
-//         try {
-//             const response = await fetch(`/api/teacherDetails?teacher_id=${teacherId}`);
-//
-//             if (!response.ok) {
-//                 throw new Error(`HTTP ${response.status}: Failed to fetch teacher`);
-//             }
-//
-//             const data = await response.json();
-//             if (data && data.teachers && data.teachers.length > 0) {
-//                 setTeacher(data.teachers[0]);
-//             } else {
-//                 throw new Error('Teacher not found');
-//             }
-//             
-//         } catch (err) {
-//             setError(err.message);
-//             setTeacher(null);
-//         } finally {
-//             setLoading(false);
-//         }
-//     };
-//
-//     useEffect(() => {
-//         if (teacherId) {
-//             fetchTeacher();
-//         }
-//     }, [teacherId]);
-//
-//     if (loading) {
-//         return <LoadingDisplay />;
-//     }
-//
-//     if (error) {
-//         return <ErrorDisplay error={error} />;
-//     }
-//
-//     if (!teacher || !teacher.video_path) {
-//         return <EmptyState search={false} />;
-//     }
-//
-//     return (
-//         <div className={`${styles.inlineVideoContainer} ${className}`}>
-//             <TeacherVideoPlayer teacherId={teacherId} autoPlay={autoPlay} />
-//             <div className={styles.inlineTeacherInfo}>
-//                 <h4>{teacher.user_name}</h4>
-//                 {teacher.qualification && <p>🎓 {teacher.qualification}</p>}
-//                 {teacher.experience && <p>💼 {teacher.experience}</p>}
-//             </div>
-//         </div>
-//     );
-// };
-//
 // Main component for displaying all teacher videos with details
 const TeacherVideoFetch = ({ onTeacherSelect }) => {
     const [search, setSearch] = useState('');

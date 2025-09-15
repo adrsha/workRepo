@@ -142,11 +142,3 @@ export const EditableStartTime = (props) => (
         placeholder={props.placeholder || "No start time set"}
     />
 )
-
-export const EditableEndTime = (props) => (
-    <EditableDateTime
-        {...props}
-        label={props.label || "End Time"}
-        placeholder={props.placeholder || "No end time set"}
-    />
-)

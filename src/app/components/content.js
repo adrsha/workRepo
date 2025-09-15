@@ -117,7 +117,6 @@ export const ContentRenderer = ({ content, allowPublicAccess = false }) => {
     if (!content) return null;
     
     const toggleRaw = () => setShowRaw(!showRaw);
-    
     switch (content.content_type) {
         case 'text':
             const data = parseContentData(content.content_data);

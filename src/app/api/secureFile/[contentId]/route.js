@@ -10,6 +10,8 @@ import { CONFIG } from '../../../../constants/config';
 const CONTENT_TABLES = [
     { table: 'classes_content', idColumn: 'classes_id', parentType: 'classes' },
     { table: 'notices_content', idColumn: 'notices_id', parentType: 'notices' },
+    { table: 'quiz_content', idColumn: 'quiz_id', parentType: 'quizzes' },
+    { table: 'game_content', idColumn: 'game_id', parentType: 'games' },
 ];
 
 // ============== AUTHENTICATION SERVICE ==============
@@ -48,7 +50,6 @@ const dbService = {
                 query, 
                 values: [contentId] 
             });
-            console.log("ROWS", rows)
             if (rows.length > 0) {
                 return rows[0];
             }
@@ -231,12 +232,9 @@ export async function GET(request, { params }) {
         // Validate and extract content ID
         const staticParams = await params;
         const contentId    = validationService.validateContentId(staticParams.contentId);
-        console.log("Content Params", staticParams);
-        console.log("Is Public Request", isPublicRequest);
 
         // Fetch content with parent information
         const content = await dbService.getContentWithParent(contentId);
-        console.log("Content", content);
         
         // Validate file type
         validationService.validateFileContent(content);

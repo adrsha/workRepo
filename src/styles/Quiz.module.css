@@ -1,761 +1,355 @@
-/* Container and Layout */
+/* Quizzes.module.css */
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
-    min-height: calc(100vh - var(--navheight));
-    animation: fadeIn 0.5s ease-out;
+    min-height: 100vh;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.quizListPage {
+    width: 100%;
 }
 
-/* Header Styles */
-.header {
+.pageHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid var(--secondaryBackground);
+    border-bottom: 2px solid var(--tertiaryLight);
 }
 
-.header h1 {
+.pageHeader h1 {
     font-family: var(--font-serif);
-    color: var(--darkforeground);
     font-size: 2.5rem;
+    color: var(--tertiary);
     margin: 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.createToggle {
-    background: var(--primary);
+.createButton {
+    background: linear-gradient(135deg, var(--quaternary), var(--tertiary));
     color: var(--background);
     border: none;
     padding: 0.75rem 1.5rem;
-    border-radius: var(--border-radius-md);
+    border-radius: 8px;
+    font-family: var(--font-sans);
     font-weight: 600;
     font-size: 1rem;
     cursor: pointer;
-    transition: all var(--transition-fast);
-    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 105, 124, 0.3);
 }
 
-.createToggle:hover {
-    background: var(--primaryLight);
+.createButton:hover {
     transform: translateY(-2px);
-    box-shadow: var(--hover-shadow);
+    box-shadow: 0 6px 20px rgba(255, 105, 124, 0.4);
+    background: linear-gradient(135deg, var(--primary), var(--darkRed));
 }
 
-/* Quiz Grid and Cards */
-.quizGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-top: 2rem;
+.createButton:active {
+    transform: translateY(0);
 }
 
-.quizCard {
+.createForm {
     background: var(--background);
-    border-radius: var(--border-radius-lg);
     padding: 1.5rem;
-    box-shadow: var(--card-shadow);
-    transition: all var(--transition-normal);
-    animation: slideUp 0.3s ease-out;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--primaryLighter);
+    min-width: 300px;
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.quizCard:hover {
-    box-shadow: var(--hover-shadow);
-}
-
-.quizHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+.titleInput {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--primaryLight);
+    border-radius: 8px;
+    font-family: var(--font-sans);
+    font-size: 1rem;
     margin-bottom: 1rem;
+    transition: border-color 0.3s ease;
 }
 
-.quizTitle {
-    font-family: var(--font-serif);
-    color: var(--darkforeground);
-    font-size: 1.25rem;
-    margin: 0;
-    flex: 1;
+.titleInput:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 105, 124, 0.1);
 }
 
-.deleteButton {
-    border: 4px solid var(--foreground);
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    line-height: 1;
-    transition: all var(--transition-fast);
-}
-
-.deleteButton:hover {
-    border-color: transparent;
-    background: var(--lightRed);
-    transform: scale(1.1);
-}
-
-.quizMeta {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+.titleInput::placeholder {
     color: var(--gray);
-    font-size: 0.875rem;
 }
 
-.selectButton {
-    background: var(--tertiary);
+.formButtons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.submitButton {
+    background: linear-gradient(135deg, var(--tertiary), var(--quaternary));
     color: var(--background);
     border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--border-radius-md);
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-family: var(--font-sans);
     font-weight: 600;
     cursor: pointer;
-    width: 100%;
-    transition: all var(--transition-fast);
+    transition: all 0.3s ease;
 }
 
-.selectButton:hover {
-    background: var(--lightBlue);
+.submitButton:hover:not(:disabled) {
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(61, 176, 183, 0.3);
 }
 
-/* Forms */
-.createForm,
-.questionForm {
-    background: var(--background);
-    border-radius: var(--border-radius-lg);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: var(--card-shadow);
-    animation: slideDown 0.4s ease-out;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.formHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-}
-
-.formHeader h3 {
-    font-family: var(--font-serif);
-    color: var(--darkforeground);
-    margin: 0;
-    font-size: 1.5rem;
+.submitButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .cancelButton {
     background: var(--gray);
     color: var(--background);
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: var(--border-radius-sm);
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-family: var(--font-sans);
+    font-weight: 600;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.3s ease;
 }
 
-.cancelButton:hover {
+.cancelButton:hover:not(:disabled) {
     background: var(--darkGray);
 }
 
-.inputGroup {
-    margin-bottom: 1.5rem;
-}
-
-.titleInput,
-.questionInput,
-.answerInput,
-.takeAnswerInput {
-    width: 100%;
-    padding: var(--input-padding);
-    border: var(--input-border-width) solid var(--secondaryBackground);
-    border-radius: var(--input-border-radius);
-    font-size: var(--input-font-size);
-    font-family: var(--font-sans);
-    transition: all var(--transition-fast);
-    background: var(--background);
-}
-
-.titleInput:focus,
-.questionInput:focus,
-.answerInput:focus,
-.takeAnswerInput:focus {
-    outline: none;
-    border-color: var(--tertiary);
-    box-shadow: var(--focus-ring) var(--focus-ring-color);
-    background: var(--background);
-}
-
-.questionInput {
-    resize: vertical;
-    min-height: 100px;
-    font-family: var(--font-sans);
-}
-
-.createButton,
-.addButton,
-.submitQuizButton {
-    background: var(--quaternary);
-    color: var(--background);
-    border: none;
-    padding: 0.875rem 2rem;
-    border-radius: var(--border-radius-md);
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    width: 100%;
-}
-
-.createButton:hover,
-.addButton:hover,
-.submitQuizButton:hover {
-    background: var(--lightGreen);
-    transform: translateY(-2px);
-}
-
-.createButton:disabled,
-.addButton:disabled,
-.submitQuizButton:disabled {
-    background: var(--gray);
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* Quiz Details */
-.quizDetails {
-    background: var(--background);
-    border-radius: var(--border-radius-lg);
-    padding: 2rem;
-    box-shadow: var(--card-shadow);
-    animation: fadeIn 0.5s ease-out;
-}
-
-.quizInfo {
+/* Quiz List Styles */
+.entitiesList {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: var(--background);
-    border-radius: var(--border-radius-md);
-}
-
-.quizInfoItem {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.infoLabel {
-    font-weight: 600;
-    color: var(--gray);
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.statusActive {
-    color: var(--lightGreen);
-    font-weight: 600;
-}
-
-.statusInactive {
-    color: var(--lightRed);
-    font-weight: 600;
-}
-
-/* Questions List */
-.questionsList {
     margin-top: 2rem;
 }
 
-.questionsList h4 {
-    font-family: var(--font-serif);
-    color: var(--darkforeground);
-    margin-bottom: 1rem;
-    font-size: 1.25rem;
+.entityContainer {
+    position: relative;
+    background: var(--background);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid var(--tertiaryLighter);
 }
 
-.questionItem,
-.takeQuestionItem {
-    display: flex;
-    gap: 1rem;
+.entityContainer:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.entityLink {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.entityCard {
     padding: 1.5rem;
-    align-items: center;
-    margin-bottom: 1rem;
-    border: 2px solid var(--secondaryBackground);
-    border-radius: var(--border-radius-md);
-    transition: all var(--transition-fast);
+    position: relative;
 }
 
-.questionItem:hover {
-    border-color: var(--tertiaryLighter);
+.entityCard.newEntity {
+    background: linear-gradient(135deg, var(--quaternaryLighter), var(--background));
+    border-left: 4px solid var(--quaternary);
 }
 
-.questionNumber,
-.takeQuestionNumber {
-    background: var(--tertiary);
-    color: var(--background);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+.entityHeader {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.875rem;
-    flex-shrink: 0;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
 }
 
-.questionContent,
-.takeQuestionContent {
+.entityTitle {
+    font-family: var(--font-sans);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--black);
+    margin: 0;
+    line-height: 1.4;
     flex: 1;
 }
 
-.questionText,
-.takeQuestionText {
-    margin: 0.75rem;
-    color: var(--darkforeground);
-    font-weight: 500;
-    line-height: 1.5;
+.newBadge {
+    background: linear-gradient(135deg, var(--quaternary), var(--lightGreen));
+    color: var(--background);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-left: 0.5rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.correctAnswer {
-    margin: 0;
-    color: var(--gray);
+.entityDate {
+    font-family: var(--font-sans);
     font-size: 0.875rem;
+    color: var(--darkGray);
+    font-weight: 500;
+    white-space: nowrap;
 }
 
-.deleteQuestionButton {
+.deleteButton {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
     background: var(--lightRed);
     color: var(--background);
     border: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
     cursor: pointer;
-    font-size: 14px;
-    transition: all var(--transition-fast);
-    flex-shrink: 0;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateX(10px);
 }
 
-.deleteQuestionButton:hover {
+.entityContainer:hover .deleteButton {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.deleteButton:hover {
     background: var(--darkRed);
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
-/* Quiz Taker */
-.quizTaker {
+/* Quiz Details Styles */
+.mainSection {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.entityCard {
     background: var(--background);
-    border-radius: var(--border-radius-lg);
+    border-radius: 12px;
     padding: 2rem;
-    box-shadow: var(--card-shadow);
-    animation: fadeIn 0.5s ease-out;
-}
-
-.quizTakerHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--secondaryBackground);
+    border: 1px solid var(--primaryLighter);
 }
 
-.quizTakerHeader h2 {
+.entityHeader h1 {
     font-family: var(--font-serif);
-    color: var(--darkforeground);
-    margin: 0;
+    font-size: 2rem;
+    color: var(--primary);
+    margin: 0 0 1rem 0;
+    line-height: 1.3;
 }
 
-.cancelTakeButton {
-    background: var(--gray);
-    color: var(--background);
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--border-radius-md);
-    cursor: pointer;
-    transition: all var(--transition-fast);
+.entityMetadata {
+    font-family: var(--font-sans);
+    color: var(--darkGray);
+    font-size: 0.9rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--primaryLighter);
+    margin-bottom: 2rem;
 }
 
-.cancelTakeButton:hover {
-    background: var(--darkGray);
-}
-
-.quizTakeForm {
+.contentList {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
 }
 
-/* Results */
-.quizResults {
-    background: var(--background);
-    border-radius: var(--border-radius-lg);
-    padding: 2rem;
-    box-shadow: var(--card-shadow);
-    animation: fadeIn 0.5s ease-out;
-}
-
-.resultsHeader {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.resultsHeader h2 {
-    font-family: var(--font-serif);
-    color: var(--darkforeground);
-    margin: 0;
-}
-
-.backButton {
-    background: var(--tertiary);
-    color: var(--background);
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--border-radius-md);
-    cursor: pointer;
-    font-weight: 600;
-    transition: all var(--transition-fast);
-}
-
-.backButton:hover {
-    background: var(--lightBlue);
-    transform: translateY(-1px);
-}
-
-.attemptSummary {
-    text-align: center;
-    padding: 2rem;
-    background: var(--background);
-    border-radius: var(--border-radius-md);
-}
-
-.scoreDisplay {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.scoreDisplay h3 {
-    font-family: var(--font-serif);
-    font-size: 2rem;
-    color: var(--darkforeground);
-    margin: 0;
-}
-
-.scorePercentage {
-    font-size: 1.25rem;
-    color: var(--gray);
-    margin-bottom: 1.5rem;
-}
-
-.viewAnswersButton {
-    background: var(--secondary);
-    color: var(--background);
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: var(--border-radius-md);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.viewAnswersButton:hover {
-    background: var(--secondaryLight);
-    transform: translateY(-2px);
-}
-
-/* Attempt Status */
-.attemptStatus {
-    background: var(--background);
-    padding: 2rem;
-    animation: fadeIn 0.5s ease-out;
-}
-
-.attemptStatusHeader {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.detailsHeader h2 {
-    font-family: var(--font-serif);
-    color: var(--darkforeground);
-    margin: 0;
-}
-
-.userScore {
-    text-align: center;
-    padding: 2rem;
-    background: var(--background);
-    border-radius: var(--border-radius-md);
-    margin-bottom: 2rem;
-}
-
-.userScore h3 {
-    font-family: var(--font-serif);
-    color: var(--darkforeground);
-    margin-bottom: 1rem;
-}
-
-.scoreNumber {
-    font-size: 3rem;
-    font-weight: 700;
-    color: var(--quaternary);
-}
-
-.scoreDivider {
-    font-size: 2rem;
-    color: var(--gray);
-    margin: 0 0.5rem;
-}
-
-.totalNumber {
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--darkforeground);
-}
-
-.attemptInfo {
-    margin-top: 1rem;
-    color: var(--gray);
-}
-
-.attemptActions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-}
-
-.viewDetailsButton {
-    background: var(--secondary);
-    color: var(--background);
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: var(--border-radius-md);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.viewDetailsButton:hover {
-    background: var(--secondaryLight);
-    transform: translateY(-2px);
-}
-
-.retakeButton {
-    background: var(--quaternary);
-    color: var(--background);
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: var(--border-radius-md);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.retakeButton:hover {
-    background: var(--lightGreen);
-    transform: translateY(-2px);
-}
-
-/* Detailed Results */
-.quizStatistics {
-    margin-bottom: 2rem;
+.contentItem {
+    background: var(--offWhite);
+    border-radius: 8px;
     padding: 1.5rem;
-    background: var(--background);
-    border-radius: var(--border-radius-md);
+    border: 1px solid var(--tertiaryLighter);
+    position: relative;
 }
 
-.quizStatistics h3 {
-    font-family: var(--font-serif);
-    color: var(--darkforeground);
+.contentBody {
     margin-bottom: 1rem;
 }
 
-.statsGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-}
-
-.statItem {
+.contentActions {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.statLabel {
-    font-weight: 600;
-    color: var(--gray);
-    font-size: 0.875rem;
-}
-
-.statValue {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--darkforeground);
-}
-
-.questionsAndAnswers {
-    margin-top: 2rem;
-}
-
-.questionsAndAnswers h3 {
-    font-family: var(--font-serif);
-    color: var(--darkforeground);
-    margin-bottom: 1.5rem;
-}
-
-.questionAnalysis {
-    margin-bottom: 2rem;
-    border: 2px solid var(--tertiary);
-    padding: 1.5rem;
-    max-height: 30vh;
-    overflow-y: auto;
-    background: var(--background);
-    border-radius: var(--border-radius-md);
-    border-left: 4px solid var(--tertiary);
-}
-
-.questionHeader {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.questionNum {
-    background: var(--tertiary);
-    color: var(--background);
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--border-radius-sm);
-    font-weight: 600;
-    font-size: 0.875rem;
-}
-
-.attemptAnswers {
-    margin-top: 1.5rem;
-}
-
-.attemptAnswers h4 {
-    color: var(--darkforeground);
-    margin-bottom: 1rem;
-    font-size: 1rem;
-}
-
-.attemptItem {
-    margin-bottom: 1rem;
-    border: 2px solid var(--tertiaryLighter);
-    padding: 1rem;
-    background: var(--background);
-    border-radius: var(--border-radius-sm);
-}
-
-.attemptHeader {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
-    font-size: 0.875rem;
-    color: var(--gray);
-}
-
-.userAnswer {
-    display: flex;
+    justify-content: flex-end;
     align-items: center;
     gap: 0.75rem;
 }
 
-.correct {
-    color: var(--lightGreen);
-    font-weight: 600;
-    font-size: 1.25rem;
+.contentActions .deleteButton {
+    background: var(--lightRed);
+    color: var(--background);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: static;
+    opacity: 1;
+    transform: none;
 }
 
-.incorrect {
-    color: var(--lightRed);
-    font-weight: 600;
-    font-size: 1.25rem;
+.contentActions .deleteButton:hover {
+    background: var(--darkRed);
 }
 
-/* Empty States */
-.emptyState,
-.emptyQuestions {
+.noContent {
     text-align: center;
-    padding: 3rem;
+    padding: 3rem 1rem;
     color: var(--gray);
+    font-family: var(--font-sans);
+    font-style: italic;
 }
 
-.emptyState p,
-.emptyQuestions p {
-    font-size: 1.125rem;
-    margin: 0;
-}
-
-/* Error States */
-.error {
-    text-align: center;
-    padding: 2rem;
+.addContentSection {
     background: var(--background);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--card-shadow);
-    border-left: 4px solid var(--lightRed);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--secondaryLighter);
 }
 
-.error p {
-    color: var(--lightRed);
-    margin-bottom: 1rem;
+.actionButtons {
+    text-align: center;
+}
+
+.addButton {
+    background: linear-gradient(135deg, var(--tertiary), var(--quaternary));
+    color: var(--background);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(61, 176, 183, 0.3);
+}
+
+.addButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(61, 176, 183, 0.4);
+}
+
+.error {
+    background: var(--primaryLighter);
+    color: var(--darkRed);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    border: 1px solid var(--lightRed);
 }
 
 /* Responsive Design */
@@ -764,57 +358,68 @@
         padding: 1rem;
     }
 
-    .header {
+    .pageHeader {
         flex-direction: column;
         gap: 1rem;
+        align-items: stretch;
+    }
+
+    .pageHeader h1 {
+        font-size: 2rem;
         text-align: center;
     }
 
-    .header h1 {
-        font-size: 2rem;
+    .createForm {
+        min-width: unset;
     }
 
-    .quizGrid {
-        grid-template-columns: 1fr;
-    }
-
-    .quizHeader {
+    .entityHeader {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
+        align-items: stretch;
+        gap: 0.5rem;
     }
 
-    .formHeader {
+    .entityDate {
+        white-space: normal;
+        font-size: 0.8rem;
+    }
+
+    .deleteButton {
+        position: static;
+        opacity: 1;
+        transform: none;
+        margin-top: 0.5rem;
+        align-self: flex-start;
+    }
+
+    .entityCard {
+        padding: 1rem;
+    }
+
+    .contentItem {
+        padding: 1rem;
+    }
+
+    .addButton {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .pageHeader h1 {
+        font-size: 1.75rem;
+    }
+
+    .entityTitle {
+        font-size: 1.1rem;
+    }
+
+    .formButtons {
         flex-direction: column;
-        gap: 1rem;
     }
 
-    .questionItem,
-    .takeQuestionItem {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .quizTakerHeader {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .resultsHeader {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .attemptActions {
-        flex-direction: column;
-    }
-
-    .scoreDisplay {
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .scoreNumber {
-        font-size: 2.5rem;
+    .submitButton,
+    .cancelButton {
+        width: 100%;
     }
 }

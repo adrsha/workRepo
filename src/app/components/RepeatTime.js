@@ -302,35 +302,3 @@ export const RepeatScheduleInput = ({
         </div>
     );
 };
-
-// Helper function to parse and display the repeat schedule
-export const getRepeatDescription = (repeatValue) => {
-    if (!repeatValue) return 'No repeat';
-    
-    const parts = repeatValue.split(':');
-    if (parts.length < 2) return 'Invalid format';
-    
-    const [type, intervalStr, daysStr] = parts;
-    const interval = parseInt(intervalStr) || 1;
-    
-    switch (type) {
-        case 'daily':
-            return interval === 1 ? 'Every day' : `Every ${interval} days`;
-        case 'weekly':
-            return interval === 1 ? 'Every week' : `Every ${interval} weeks`;
-        case 'monthly':
-            return interval === 1 ? 'Every month' : `Every ${interval} months`;
-        case 'yearly':
-            return interval === 1 ? 'Every year' : `Every ${interval} years`;
-        case 'weekdays':
-            return 'Weekdays only (Mon-Fri)';
-        case 'custom':
-            if (!daysStr) return 'No days selected';
-            const selectedDays = daysStr.split(',').map(Number);
-            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const dayList = selectedDays.map(id => dayNames[id]).join(', ');
-            return `Every ${dayList}`;
-        default:
-            return 'Custom repeat';
-    }
-};

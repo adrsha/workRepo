@@ -1,42 +1,5 @@
 // hooks/useQuizData.js
 import { useState, useEffect, useCallback } from 'react';
-
-export const useQuizzesData = (session) => {
-    const [quizzes, setQuizzes] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    
-    const fetchQuizzes = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const response = await fetch('/api/quizzes', {
-                headers: {
-                    ...(session?.accessToken && { 'Authorization': `Bearer ${session.accessToken}` })
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch quizzes');
-            }
-            
-            const data = await response.json();
-            console.log("Data from API:", data);
-            setQuizzes(data || []);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [session?.accessToken]);
-    
-    useEffect(() => {
-        fetchQuizzes();
-    }, [fetchQuizzes]);
-    
-    return { quizzes, setQuizzes, loading, error, refetch: fetchQuizzes };
-};
-
 export const useQuizData = (quizId) => {
     const [quizDetails, setQuizDetails] = useState(null);
     const [loading, setLoading] = useState(false);

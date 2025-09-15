@@ -111,7 +111,7 @@ export default function HomePageClient({ featureSidesData, featuresData }) {
 
     const renderMainFeature = (feature, index) => {
         // Special handling for fullscreen features (index 2 and 3)
-        if (index === 2 || index === 3) {
+        if (index === 2) {
             return (
                 <button
                     key={index}

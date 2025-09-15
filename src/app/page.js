@@ -1,6 +1,5 @@
 import HomePageClient from './HomePageClient';
 import { getMetadata } from './seoConfig';
-import { sendEmail } from './lib/email';
 export const metadata = getMetadata('home');
 
 // Feature data configuration
@@ -44,7 +43,7 @@ const FEATURES_DATA = [
         desc: 'Try our interactive games to learn faster',
         img: '/preparation.png',
         color: '--secondary',
-        route: '/',
+        route: '/games',
     },
     {
         title: 'Available classes and courses',
@@ -54,11 +53,11 @@ const FEATURES_DATA = [
         route: '/',
     },
     {
-        title: 'Available Teachers',
-        desc: 'Check out all of our available Teachers',
+        title: 'Partners',
+        desc: 'Check out all of our partners',
         img: '/others.png',
         color: '--quaternary',
-        route: '/',
+        route: '/partners',
     },
 ];
 

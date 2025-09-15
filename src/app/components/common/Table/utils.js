@@ -16,10 +16,6 @@ export const getEditableFields = (fields, keyField = null, excludePrimaryKey = f
     return fields.filter(field => !isFilteredField(field, keyField, excludePrimaryKey));
 };
 
-export const getVisibleFields = (fields, keyField = null) => {
-    return fields.filter(field => !isSystemField(field));
-};
-
 export const createEmptyRow = (fields) => 
     fields.reduce((row, field) => ({ ...row, [field]: '' }), {});
 
