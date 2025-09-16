@@ -1,0 +1,315 @@
+/* EntityDetailsClient.module.css */
+
+.mainSection {
+    max-width    : 1200px;
+    margin       : 0 auto;
+    padding      : 2rem;
+    font-family  : var(--font-sans);
+    color        : var(--foreground);
+    background   : var(--background);
+    min-height   : 100vh;
+}
+
+.entityCard {
+    background    : var(--background);
+    border-radius : 16px;
+    border        : 1px solid var(--offWhite);
+    box-shadow    : 0 4px 6px -1px rgba(18, 23, 31, 0.1), 
+                    0 2px 4px -1px rgba(18, 23, 31, 0.06);
+    overflow      : hidden;
+    margin-bottom : 2rem;
+    transition    : all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.entityCard:hover {
+    box-shadow : 0 10px 15px -3px rgba(18, 23, 31, 0.1), 
+                 0 4px 6px -2px rgba(18, 23, 31, 0.05);
+    transform  : translateY(-1px);
+}
+
+.entityHeader {
+    padding    : 2.5rem 2rem;
+    background : linear-gradient(135deg, var(--primaryLighter), var(--tertiaryLighter));
+    border-bottom : 1px solid var(--offWhite);
+    position   : relative;
+}
+
+.entityHeader::before {
+    content    : '';
+    position   : absolute;
+    top        : 0;
+    left       : 0;
+    right      : 0;
+    height     : 4px;
+    background : linear-gradient(90deg, var(--primary), var(--tertiary));
+}
+
+.entityHeader h1 {
+    font-family   : var(--font-serif);
+    font-size     : 2.5rem;
+    font-weight   : 700;
+    margin        : 0 0 1rem 0;
+    color         : var(--darkforeground);
+    line-height   : 1.2;
+    letter-spacing: -0.025em;
+}
+
+.entityMetadata {
+    display     : flex;
+    gap         : 1rem;
+    flex-wrap   : wrap;
+    color       : var(--darkGray);
+    font-size   : 0.95rem;
+    font-weight : 500;
+}
+
+.entityMetadata span {
+    padding       : 0.5rem 1rem;
+    background    : rgba(255, 255, 255, 0.8);
+    border-radius : 24px;
+    border        : 1px solid var(--tertiaryLight);
+    backdrop-filter: blur(4px);
+    transition    : all 0.2s ease;
+}
+
+.entityMetadata span:hover {
+    background    : var(--background);
+    border-color  : var(--tertiary);
+    transform     : translateY(-1px);
+}
+
+.contentList {
+    padding : 2rem;
+    display : flex;
+    flex-direction : column;
+    gap     : 1.5rem;
+}
+
+.contentItem {
+    background    : var(--background);
+    box-shadow    : 0 4px 12px -2px rgba(141, 176, 183, 0.15);
+    border-radius : 12px;
+    overflow      : hidden;
+    transition    : all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position      : relative;
+    display       : flex;
+    flex-direction: row;
+}
+
+
+.contentItem:hover {
+    box-shadow    : 0 4px 12px -2px rgba(141, 176, 183, 0.45);
+    transform     : translateY(-2px);
+}
+
+.contentBody {
+    padding    : 2rem;
+    width: 100%;
+    background : var(--background);
+    transition : background 0.2s ease;
+    display    : flex;
+    gap        : 1.5rem;
+    flex-wrap  : wrap;
+}
+
+.deleteButton {
+    background     : var(--lightRed);
+    color          : var(--background);
+    border         : none;
+    padding        : 1rem 2rem;
+    font-family    : var(--font-sans);
+    font-weight    : 600;
+    font-size      : 0.9rem;
+    cursor         : pointer;
+    transition     : all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius  : 12px 12px;
+    width          : fit-content;
+    letter-spacing : 0.025em;
+    position       : relative;
+    overflow       : hidden;
+    margin         : 0.2rem;
+    margin-left    : auto;
+    height         : fit-content;
+}
+
+.deleteButton::before {
+    content    : '';
+    position   : absolute;
+    top        : 0;
+    left       : -100%;
+    width      : 100%;
+    height     : 100%;
+    background : rgba(255, 255, 255, 0.2);
+    transition : left 0.3s ease;
+}
+
+.deleteButton:hover {
+    color : var(--darkRed);
+    transform  : translateY(-1px);
+    box-shadow : 0 4px 12px rgba(165, 56, 68, 0.3);
+}
+
+.deleteButton:hover::before {
+    left : 0;
+}
+
+.deleteButton:active {
+    transform : translateY(0);
+}
+
+.noContent {
+    text-align    : center;
+    padding       : 4rem 2rem;
+    color         : var(--darkGray);
+    font-size     : 1.1rem;
+    font-weight   : 500;
+    background    : var(--backgroundGreen);
+    border-radius : 12px;
+    border        : 2px dashed var(--quaternaryLight);
+    position      : relative;
+    overflow      : hidden;
+}
+
+.noContent::before {
+    content       : '';
+    position      : absolute;
+    top           : 50%;
+    left          : 50%;
+    width         : 200px;
+    height        : 200px;
+    border-radius : 50%;
+    background    : radial-gradient(circle, var(--quaternaryLighter), transparent);
+    transform     : translate(-50%, -50%);
+    opacity       : 0.3;
+    z-index       : 0;
+}
+
+.addContentSection {
+    background    : var(--background);
+    border-radius : 16px;
+    padding       : 2.5rem;
+    border        : 1px solid var(--offWhite);
+}
+
+.addContentButton {
+    background      : var(--tertiary);
+    color           : var(--background);
+    border          : none;
+    padding         : 1.25rem 2.5rem;
+    border-radius   : 12px;
+    font-family     : var(--font-sans);
+    font-size       : 1rem;
+    font-weight     : 700;
+    cursor          : pointer;
+    transition      : all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow      : 0 4px 12px rgba(0, 184, 125, 0.2);
+    letter-spacing  : 0.025em;
+    position        : relative;
+    overflow        : hidden;
+    transform       : perspective(1px) translateZ(0);
+}
+
+.addContentButton::before {
+    content    : '';
+    position   : absolute;
+    top        : 0;
+    left       : -100%;
+    width      : 100%;
+    height     : 100%;
+    background : linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition : left 0.5s ease;
+}
+
+.addContentButton:hover {
+    transform  : translateY(-3px);
+    box-shadow : 0 8px 20px rgba(0, 184, 125, 0.3);
+    background      : var(--tertiary);
+}
+
+.addContentButton:hover::before {
+    left : 0;
+}
+
+.addContentButton:active {
+    transform : translateY(-1px);
+}
+
+.loadingState {
+    text-align    : center;
+    padding       : 4rem 2rem;
+    font-size     : 1.2rem;
+    font-weight   : 500;
+    color         : var(--darkGray);
+    background    : var(--backgroundBlue);
+    border-radius : 12px;
+}
+
+.errorState {
+    text-align    : center;
+    padding       : 3rem 2rem;
+    color         : var(--darkRed);
+    background    : rgba(255, 90, 115, 0.08);
+    border        : 1px solid var(--primaryLight);
+    border-radius : 12px;
+    font-size     : 1.1rem;
+    font-weight   : 500;
+    position      : relative;
+}
+
+.errorState::before {
+    content    : '';
+    position   : absolute;
+    top        : 0;
+    left       : 0;
+    right      : 0;
+    height     : 3px;
+    background : var(--primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .mainSection {
+        padding : 1rem;
+    }
+    
+    .entityHeader {
+        padding : 2rem 1.5rem;
+    }
+    
+    .entityHeader h1 {
+        font-size : 2rem;
+    }
+    
+    .contentList {
+        padding : 1.5rem;
+        gap     : 1.5rem;
+    }
+    
+    .addContentSection {
+        padding : 2rem 1.5rem;
+    }
+
+    .addContentButton {
+        padding : 1rem 2rem;
+        font-size : 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .entityHeader h1 {
+        font-size : 1.75rem;
+    }
+
+    .contentList {
+        padding : 1rem;
+    }
+
+    .contentBody {
+        padding : 1.5rem;
+    }
+
+    .deleteButton {
+        padding : 0.875rem 1.5rem;
+        font-size : 0.85rem;
+    }
+}

@@ -8,6 +8,7 @@ const ALLOWED_TABLES = [
 ];
 
 const DISALLOWED_FIELDS = {
+    'about_content': [],
     'users': [],
     'pending_teachers': [],
 };
@@ -27,6 +28,7 @@ const TABLE_PRIMARY_KEYS = {
 
 const REQUIRED_FIELDS = {
     'courses': ['course_name'],
+    'about_content': ['content_value'],
     'grade': ['grade_name'],
     'classes': ['course_id', 'teacher_id', 'grade_id', 'start_time', 'end_time'],
     'users': ['user_name', 'user_email'],

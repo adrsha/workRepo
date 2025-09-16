@@ -8,7 +8,8 @@
 
 /* Side Panel */
 .sidePanel {
-    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
     max-height: calc(100vh - var(--navheight));
     padding: 2rem;
     background-color: var(--lightGray);
@@ -66,15 +67,13 @@
 
 /* Main Content Area */
 .mainSection {
-    flex: 1;
     padding: 2rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    overflow-y: auto;
-    height: calc(100vh - var(--navheight));
     scrollbar-width: thin;
     scrollbar-color: var(--secondary) transparent;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    height: fit-content;
 }
 
 /* Class Cards */
@@ -84,17 +83,18 @@
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0 10rem 0 rgba(0, 0, 0, 0.1);
+    justify-content: space-between;
+    flex: 1;
+    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    position: relative;
-    height: fit-content;
-    max-height: 400px;
+    max-width: 25vw;
+    min-width: 25vw;
     overflow: hidden;
 }
 
 .classCards:hover {
     transform: translateY(-5px);
-    box-shadow: 0 0 10rem 0 rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 2rem 0 rgba(0, 0, 0, 0.1);
 }
 
 .classCards h3 {

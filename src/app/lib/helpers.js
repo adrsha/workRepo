@@ -1,3 +1,4 @@
+
 function getBaseUrl() {
     return typeof window !== 'undefined'
         ? window.location.origin
@@ -22,17 +23,18 @@ export async function fetchData(tableName, authToken = null) {
         
         const url = new URL(`/api/general`, baseUrl);
         url.searchParams.append('table', tableName);
-        
+ 
         const response = await fetch(url.toString(), {
             headers: createHeaders(authToken)
         });
-
+        
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to fetch data');
         }
+        const data = await response.json();
 
-        return await response.json();
+        return data;
     } catch (error) {
         console.error('Error in fetchData:', error);
         throw error;
@@ -464,3 +466,81 @@ export const capitalizeFirst = (str) => {
     if (!str) return '';
     return str[0].toUpperCase() + str.slice(1);
 };
+// Add to your helpers.js file
+
+/**
+ * Check if a user has access to a specific class by calling the API
+ * @param {string|number} classId - Class ID to check
+ * @param {string} authToken - Authentication token
+ * @returns {Promise<Object>} Access information object
+ */
+export async function checkClassAccess(classId, authToken) {
+    try {
+        const baseUrl = getBaseUrl();
+        const response = await fetch(`${baseUrl}/api/classAccess/${classId}`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { hasAccess: false, error: errorData.error || 'Access denied' };
+        }
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error checking class access:', error);
+        return { hasAccess: false, error: 'Failed to verify access' };
+    }
+}
+
+/**
+ * Get students for a class using the existing users_view and classes_users data
+ * @param {string|number} classId - Class ID
+ * @param {boolean} isTeacher - Whether user is teacher
+ * @param {boolean} isAdmin - Whether user is admin
+ * @param {string} authToken - Authentication token
+ * @returns {Promise<Array>} Array of student objects
+ */
+export async function getClassStudents(classId, isTeacher, isAdmin, authToken) {
+    if (!isTeacher && !isAdmin) {
+        return [];
+    }
+
+    try {
+        // Use existing helper functions
+        const classesUsersData = await fetchData('classes_users', authToken);
+        const usersViewData = await fetchViewData('users_view', authToken);
+ 
+        const studentIds = classesUsersData
+            .filter(cu => cu.class_id.toString() === classId.toString())
+            .map(cu => cu.user_id);
+ 
+        const students = usersViewData
+            .filter(user => studentIds.includes(user.user_id) && user.user_level === 0);
+
+        return students || [];
+    } catch (error) {
+        console.error('Error fetching class students:', error);
+        return [];
+    }
+}
+
+/**
+ * Get teacher information for a class using existing helper
+ * @param {string|number} teacherId - Teacher ID
+ * @param {string} authToken - Authentication token
+ * @returns {Promise<Object|null>} Teacher object or null
+ */
+export async function getTeacherInfo(teacherId, authToken) {
+    try {
+        const teachersViewData = await fetchViewData('teachers_view', authToken);
+        const teacher = teachersViewData.find(t => t.user_id === teacherId);
+        return teacher || null;
+    } catch (error) {
+        console.error('Error fetching teacher info:', error);
+        return null;
+    }
+}

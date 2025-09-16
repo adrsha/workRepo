@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import styles from "../../styles/ClassContent.module.css";
 
 // Configuration presets with aligned key-value pairs
+
 const UPLOAD_PRESETS = {
     carousel: {
         accept          : 'image/*',
@@ -25,6 +26,17 @@ const UPLOAD_PRESETS = {
         },
         resetAfterUpload    : false,
         validateFileType    : false
+    },
+    advertisements: {
+        accept          : 'image/*',
+        allowedTypes    : ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
+        labels          : {
+            upload  : 'Drop advertisement image here or click to upload',
+            button  : 'Upload Advertisement Image',
+            success : 'Advertisement image uploaded successfully'
+        },
+        resetAfterUpload    : false,
+        validateFileType    : true
     },
     signup: {
         accept          : '.pdf,.jpg,.jpeg,.png',

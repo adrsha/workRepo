@@ -1,0 +1,557 @@
+/* Game.module.css - Fun Kids Game Theme */
+
+.container {
+    max-width:   1200px;
+    margin:      0 auto;
+    padding:     2rem;
+    min-height:  100vh;
+    background:  var(--background);
+    position:    relative;
+}
+
+.container::before {
+    content:     '';
+    position:    absolute;
+    top:         0;
+    left:        0;
+    right:       0;
+    bottom:      0;
+    background:  radial-gradient(circle at 20% 80%, var(--quaternaryLighter) 0%, transparent 50%),
+                 radial-gradient(circle at 80% 20%, var(--primaryLighter) 0%, transparent 50%),
+                 radial-gradient(circle at 40% 40%, var(--tertiaryLighter) 0%, transparent 50%);
+    pointer-events: none;
+    z-index:     -1;
+    opacity:     0.4;
+}
+
+.gameListPage {
+    width:       100%;
+}
+
+.pageHeader {
+    display:         flex;
+    justify-content: space-between;
+    align-items:     center;
+    margin-bottom:   2rem;
+    padding:         2rem;
+    background:      linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    border-radius:   20px;
+    box-shadow:      0 8px 24px rgba(255, 105, 124, 0.2);
+    border:          3px solid var(--primaryLight);
+    position:        relative;
+    overflow:        hidden;
+}
+
+.pageHeader::after {
+    content:     '🎮';
+    position:    absolute;
+    top:         -10px;
+    right:       20px;
+    font-size:   3rem;
+    opacity:     0.2;
+    transform:   rotate(15deg);
+}
+
+.pageHeader h1 {
+    font-family:   'Comic Sans MS', 'Segoe UI', sans-serif;
+    font-size:     2.8rem;
+    font-weight:   800;
+    color:         var(--background);
+    margin:        0;
+    text-shadow:   2px 2px 0px var(--darkRed),
+                   4px 4px 8px rgba(0, 0, 0, 0.2);
+    letter-spacing: 1px;
+}
+
+.createButton {
+    background:    linear-gradient(135deg, var(--quaternary) 0%, var(--lightGreen) 100%);
+    color:         var(--background);
+    border:        3px solid var(--quaternaryLight);
+    padding:       1rem 2rem;
+    border-radius: 25px;
+    font-family:   'Comic Sans MS', 'Segoe UI', sans-serif;
+    font-weight:   700;
+    font-size:     1rem;
+    cursor:        pointer;
+    transition:    all 0.3s ease;
+    box-shadow:    0 6px 0 var(--darkGreen),
+                   0 8px 15px rgba(0, 184, 125, 0.3);
+    position:      relative;
+    text-transform: uppercase;
+}
+
+.createButton:hover {
+    transform:     translateY(-2px);
+    box-shadow:    0 8px 0 var(--darkGreen),
+                   0 12px 20px rgba(0, 184, 125, 0.4);
+}
+
+.createButton:active {
+    transform:     translateY(2px);
+    box-shadow:    0 2px 0 var(--darkGreen),
+                   0 4px 8px rgba(0, 184, 125, 0.3);
+}
+
+.createForm {
+    background:    var(--background);
+    padding:       2rem;
+    border-radius: 20px;
+    box-shadow:    0 10px 30px rgba(0, 0, 0, 0.1);
+    border:        3px solid var(--tertiaryLight);
+    min-width:     350px;
+}
+
+.titleInput {
+    width:         100%;
+    padding:       1rem;
+    border:        3px solid var(--tertiaryLight);
+    border-radius: 15px;
+    font-family:   'Segoe UI', sans-serif;
+    font-size:     1.1rem;
+    font-weight:   600;
+    margin-bottom: 1.5rem;
+    transition:    all 0.3s ease;
+    background:    var(--offWhite);
+    color:         var(--foreground);
+}
+
+.titleInput:focus {
+    outline:       none;
+    border-color:  var(--primary);
+    box-shadow:    0 0 0 4px var(--primaryLighter);
+    background:    var(--background);
+}
+
+.titleInput::placeholder {
+    color:         var(--gray);
+    font-style:    italic;
+}
+
+.formButtons {
+    display:       flex;
+    gap:           1rem;
+    justify-content: flex-end;
+}
+
+.submitButton {
+    background:    linear-gradient(135deg, var(--tertiary) 0%, var(--lightBlue) 100%);
+    color:         var(--background);
+    border:        2px solid var(--tertiaryLight);
+    padding:       0.8rem 1.5rem;
+    border-radius: 15px;
+    font-family:   'Segoe UI', sans-serif;
+    font-weight:   700;
+    cursor:        pointer;
+    transition:    all 0.3s ease;
+    text-transform: uppercase;
+    font-size:     0.9rem;
+    box-shadow:    0 4px 0 var(--darkBlue);
+}
+
+.submitButton:hover:not(:disabled) {
+    transform:     translateY(-2px);
+    box-shadow:    0 6px 0 var(--darkBlue);
+}
+
+.submitButton:active:not(:disabled) {
+    transform:     translateY(0px);
+    box-shadow:    0 2px 0 var(--darkBlue);
+}
+
+.submitButton:disabled {
+    opacity:       0.6;
+    cursor:        not-allowed;
+    filter:        grayscale(0.5);
+}
+
+.cancelButton {
+    background:    var(--gray);
+    color:         var(--background);
+    border:        2px solid var(--darkGray);
+    padding:       0.8rem 1.5rem;
+    border-radius: 15px;
+    font-family:   'Segoe UI', sans-serif;
+    font-weight:   700;
+    cursor:        pointer;
+    transition:    all 0.3s ease;
+    text-transform: uppercase;
+    font-size:     0.9rem;
+}
+
+.cancelButton:hover:not(:disabled) {
+    background:    var(--darkGray);
+}
+
+/* Game List Styles */
+.entitiesList {
+    display:       grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap:           1.5rem;
+    margin-top:    2rem;
+}
+
+.entityContainer {
+    position:      relative;
+    background:    var(--background);
+    border-radius: 20px;
+    overflow:      hidden;
+    box-shadow:    0 8px 0 var(--secondaryBackground),
+                   0 10px 25px rgba(0, 0, 0, 0.1);
+    transition:    all 0.3s ease;
+    border:        3px solid var(--offWhite);
+}
+
+.entityContainer:hover {
+    transform:     translateY(-5px) rotate(1deg);
+    box-shadow:    0 12px 0 var(--secondaryBackground),
+                   0 15px 35px rgba(0, 0, 0, 0.15);
+    border-color:  var(--primaryLight);
+}
+
+.entityLink {
+    text-decoration: none;
+    color:         inherit;
+    display:       block;
+}
+
+.entityCard {
+    padding:       2rem;
+    position:      relative;
+    background:    linear-gradient(135deg, var(--background) 0%, var(--offWhite) 100%);
+}
+
+.entityCard.newEntity {
+    background:    linear-gradient(135deg, var(--quaternaryLighter) 0%, var(--quaternaryLight) 100%);
+    border-left:   6px solid var(--quaternary);
+}
+
+.entityCard.newEntity::before {
+    content:       '✨';
+    position:      absolute;
+    top:           10px;
+    left:          10px;
+    font-size:     1.5rem;
+    animation:     sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50%      { transform: scale(1.2) rotate(180deg); }
+}
+
+.entityHeader {
+    display:       flex;
+    justify-content: space-between;
+    align-items:   flex-start;
+    gap:           1rem;
+}
+
+.entityTitle {
+    font-family:   'Comic Sans MS', 'Segoe UI', sans-serif;
+    font-size:     1.4rem;
+    font-weight:   800;
+    color:         var(--foreground);
+    margin:        0;
+    line-height:   1.4;
+    flex:          1;
+}
+
+.newBadge {
+    background:    linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color:         var(--background);
+    padding:       0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size:     0.8rem;
+    font-weight:   700;
+    margin-left:   0.5rem;
+    text-shadow:   1px 1px 2px rgba(0, 0, 0, 0.2);
+    border:        2px solid var(--primaryLight);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow:    0 3px 0 var(--darkRed);
+}
+
+.entityDate {
+    font-family:   'Segoe UI', sans-serif;
+    font-size:     0.9rem;
+    color:         var(--gray);
+    font-weight:   600;
+    white-space:   nowrap;
+    background:    var(--backgroundBlue);
+    padding:       0.5rem 1rem;
+    border-radius: 15px;
+    border:        2px solid var(--tertiaryLighter);
+}
+
+.deleteButton {
+    position:      absolute;
+    top:           1rem;
+    right:         1rem;
+    background:    var(--lightRed);
+    color:         var(--background);
+    border:        2px solid var(--primaryLight);
+    padding:       0.5rem;
+    border-radius: 10px;
+    font-size:     0.9rem;
+    font-weight:   700;
+    cursor:        pointer;
+    transition:    all 0.3s ease;
+    opacity:       0;
+    transform:     translateX(10px) scale(0.8);
+    box-shadow:    0 3px 0 var(--darkRed);
+}
+
+.entityContainer:hover .deleteButton {
+    opacity:       1;
+    transform:     translateX(0) scale(1);
+}
+
+.deleteButton:hover {
+    background:    var(--darkRed);
+    transform:     scale(1.1);
+    box-shadow:    0 5px 0 var(--darkRed);
+}
+
+/* Game Details Styles */
+.mainSection {
+    max-width:     900px;
+    margin:        0 auto;
+}
+
+.entityMetadata {
+    font-family:   'Segoe UI', sans-serif;
+    color:         var(--foreground);
+    font-size:     1rem;
+    padding:       1.5rem;
+    background:    var(--backgroundGreen);
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    border:        2px solid var(--quaternaryLighter);
+    font-weight:   600;
+}
+
+.contentList {
+    display:       flex;
+    flex-direction: column;
+    gap:           1.5rem;
+}
+
+.contentItem {
+    background:    var(--background);
+    border-radius: 20px;
+    padding:       2rem;
+    border:        3px solid var(--tertiaryLighter);
+    position:      relative;
+    box-shadow:    0 6px 0 var(--tertiaryLight),
+                   0 8px 20px rgba(61, 176, 183, 0.1);
+}
+
+.contentItem::before {
+    content:       '🎯';
+    position:      absolute;
+    top:           -5px;
+    right:         15px;
+    font-size:     2rem;
+    opacity:       0.3;
+}
+
+.contentBody {
+    margin-bottom: 1.5rem;
+    font-family:   'Segoe UI', sans-serif;
+    line-height:   1.6;
+    color:         var(--foreground);
+}
+
+.contentActions {
+    display:       flex;
+    justify-content: flex-end;
+    align-items:   center;
+    gap:           1rem;
+}
+
+.contentActions .deleteButton {
+    background:    var(--lightRed);
+    color:         var(--background);
+    border:        2px solid var(--primaryLight);
+    padding:       0.7rem 1.3rem;
+    border-radius: 15px;
+    font-family:   'Segoe UI', sans-serif;
+    font-size:     0.9rem;
+    font-weight:   700;
+    cursor:        pointer;
+    transition:    all 0.3s ease;
+    position:      static;
+    opacity:       1;
+    transform:     none;
+    text-transform: uppercase;
+    box-shadow:    0 4px 0 var(--darkRed);
+}
+
+.contentActions .deleteButton:hover {
+    background:    var(--darkRed);
+    transform:     translateY(-2px);
+    box-shadow:    0 6px 0 var(--darkRed);
+}
+
+.noContent {
+    text-align:    center;
+    padding:       3rem 2rem;
+    color:         var(--gray);
+    font-family:   'Comic Sans MS', 'Segoe UI', sans-serif;
+    font-style:    italic;
+    font-size:     1.2rem;
+    background:    var(--offWhite);
+    border-radius: 20px;
+    border:        3px dashed var(--gray);
+    position:      relative;
+}
+
+.noContent::before {
+    content:       '🎲';
+    display:       block;
+    font-size:     3rem;
+    margin-bottom: 1rem;
+    opacity:       0.5;
+}
+
+.addContentSection {
+    background:    linear-gradient(135deg, var(--quaternaryLighter) 0%, var(--quaternaryLight) 100%);
+    border-radius: 20px;
+    padding:       2rem;
+    box-shadow:    0 8px 0 var(--quaternaryLight),
+                   0 10px 25px rgba(0, 184, 125, 0.2);
+    border:        3px solid var(--quaternary);
+}
+
+.actionButtons {
+    text-align:    center;
+}
+
+.addButton {
+    background:    linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+    color:         var(--background);
+    border:        3px solid var(--secondaryLight);
+    padding:       1.5rem 3rem;
+    border-radius: 25px;
+    font-family:   'Comic Sans MS', 'Segoe UI', sans-serif;
+    font-weight:   800;
+    font-size:     1.2rem;
+    cursor:        pointer;
+    transition:    all 0.3s ease;
+    box-shadow:    0 6px 0 var(--darkRed),
+                   0 8px 20px rgba(255, 134, 112, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.addButton:hover {
+    transform:     translateY(-3px);
+    box-shadow:    0 9px 0 var(--darkRed),
+                   0 12px 25px rgba(255, 134, 112, 0.4);
+}
+
+.addButton:active {
+    transform:     translateY(0px);
+    box-shadow:    0 3px 0 var(--darkRed),
+                   0 5px 15px rgba(255, 134, 112, 0.3);
+}
+
+.error {
+    background:    var(--lightRed);
+    color:         var(--background);
+    padding:       1.5rem;
+    border-radius: 15px;
+    text-align:    center;
+    font-family:   'Segoe UI', sans-serif;
+    font-weight:   700;
+    border:        3px solid var(--primaryLight);
+    box-shadow:    0 5px 0 var(--darkRed);
+    font-size:     1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding:       1rem;
+    }
+
+    .pageHeader {
+        flex-direction: column;
+        gap:           1.5rem;
+        align-items:   stretch;
+        padding:       1.5rem;
+    }
+
+    .pageHeader h1 {
+        font-size:     2.2rem;
+        text-align:    center;
+    }
+
+    .createForm {
+        min-width:     unset;
+    }
+
+    .entityHeader {
+        flex-direction: column;
+        align-items:   stretch;
+        gap:           1rem;
+    }
+
+    .entityDate {
+        white-space:   normal;
+        font-size:     0.8rem;
+    }
+
+    .deleteButton {
+        position:      static;
+        opacity:       1;
+        transform:     none;
+        margin-top:    1rem;
+        align-self:    flex-start;
+    }
+
+    .entityCard {
+        padding:       1.5rem;
+    }
+
+    .contentItem {
+        padding:       1.5rem;
+    }
+
+    .addButton {
+        width:         100%;
+        padding:       1.2rem 2rem;
+        font-size:     1rem;
+    }
+
+    .entitiesList {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .pageHeader h1 {
+        font-size:     1.8rem;
+    }
+
+    .entityTitle {
+        font-size:     1.2rem;
+    }
+
+    .formButtons {
+        flex-direction: column;
+        gap:           0.8rem;
+    }
+
+    .submitButton,
+    .cancelButton {
+        width:         100%;
+        padding:       1rem;
+    }
+
+    .createButton {
+        width:         100%;
+        padding:       1rem;
+        font-size:     0.9rem;
+    }
+}

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import '../../global.css';
 import styles from '../../../styles/ClassDetails.module.css';
@@ -11,6 +11,7 @@ import { MeetingButton } from '../../components/MeetingButton';
 import { StudentsList } from '../../components/StudentsList';
 import { ClassInfo } from '../../components/ClassInfo';
 import { updateMeetingUrl, regenerateMeetingLink } from '../../../utils/classActions';
+import { checkClassAccess, getClassStudents, getTeacherInfo } from '../../lib/helpers.js';
 import {
     isClassCurrentlyJoinable,
     isClassAvailableToday,
@@ -23,8 +24,8 @@ function handleMeetingJoin(classDetails, repeatPattern, showToast) {
         return;
     }
 
-    const isValidDay = isClassAvailableToday(classDetails.start_time, classDetails.end_time, repeatPattern);
-    const isJoinable = isClassCurrentlyJoinable(classDetails.start_time, classDetails.end_time, repeatPattern);
+    const isValidDay    = isClassAvailableToday(classDetails.start_time, classDetails.end_time, repeatPattern);
+    const isJoinable    = isClassCurrentlyJoinable(classDetails.start_time, classDetails.end_time, repeatPattern);
 
     if (!isValidDay) {
         const pattern = parseRepeatPattern(repeatPattern);
@@ -55,20 +56,26 @@ function handleMeetingJoin(classDetails, repeatPattern, showToast) {
     window.open(classDetails.meeting_url, '_blank');
 }
 
-export default function ClassDetailsClient({ initialData, classId, session }) {
+export default function ClassDetailsClient({ classId, session }) {
     const router = useRouter();
 
-    // State initialized with server data
-    const [classDetails, setClassDetails] = useState(initialData.classDetails);
-    const [teacher] = useState(initialData.teacher);
-    const [students] = useState(initialData.students);
-    const isClassOwner = initialData.isClassOwner;
-    const isAdmin = session?.user?.level === 2;
-
+    // State for data
+    const [classDetails, setClassDetails] = useState(null);
+    const [teacher, setTeacher] = useState(null);
+    const [students, setStudents] = useState([]);
+    const [isClassOwner, setIsClassOwner] = useState(false);
+    
+    // State for UI
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [isUpdatingUrl, setIsUpdatingUrl] = useState(false);
     const [isRegenerating, setIsRegenerating] = useState(false);
     const [toastMessage, setToastMessage] = useState(null);
     const [toastType, setToastType] = useState('error');
+
+    const userId    = session?.user?.id;
+    const userLevel = session?.user?.level;
+    const isAdmin   = userLevel === 2;
 
     const showToast = (message, type = 'error') => {
         setToastMessage(message);
@@ -76,13 +83,77 @@ export default function ClassDetailsClient({ initialData, classId, session }) {
         setTimeout(() => setToastMessage(null), type === 'info' ? 5000 : 3000);
     };
 
+    // Fetch data on mount
+    useEffect(() => {
+        const fetchClassData = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
+
+                // Check class access
+                const accessCheck = await checkClassAccess(classId, session.accessToken);
+                if (!accessCheck.hasAccess) {
+                    setError(accessCheck.error || 'Access denied');
+                    return;
+                }
+
+                // Set class details and ownership
+                setClassDetails(accessCheck.classDetails);
+                setIsClassOwner(accessCheck.isTeacher);
+
+                // Fetch teacher info
+                if (accessCheck.classDetails.teacher_id) {
+                    try {
+                        const teacherData = await getTeacherInfo(
+                            accessCheck.classDetails.teacher_id, 
+                            session.accessToken
+                        );
+                        setTeacher(teacherData);
+                    } catch (teacherError) {
+                        console.warn('Failed to load teacher info:', teacherError);
+                        // Don't set error - teacher info is not critical
+                    }
+                }
+
+                // Fetch students if user is teacher or admin
+                if (accessCheck.isTeacher || isAdmin) {
+                    try {
+                        const studentsData = await getClassStudents(
+                            classId, 
+                            accessCheck.isTeacher, 
+                            isAdmin, 
+                            session.accessToken
+                        );
+                        setStudents(studentsData || []);
+                    } catch (studentsError) {
+                        console.warn('Failed to load students:', studentsError);
+                        // Don't set error - students list is not critical for basic functionality
+                    }
+                }
+
+            } catch (err) {
+                console.error('Error fetching class data:', err);
+                setError('Failed to load class data. Please try again.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (classId && session?.accessToken) {
+            fetchClassData();
+        } else {
+            setError('Missing required data');
+            setIsLoading(false);
+        }
+    }, [classId, session?.accessToken, isAdmin]);
+
     // Handle error state
-    if (initialData.error) {
+    if (error) {
         return (
             <div className={styles.errorContainer}>
                 <div className={styles.errorCard}>
                     <h2>Error</h2>
-                    <p>{initialData.error}</p>
+                    <p>{error}</p>
                     <button onClick={() => router.back()} className={styles.backButton}>
                         Go Back
                     </button>
@@ -91,13 +162,21 @@ export default function ClassDetailsClient({ initialData, classId, session }) {
         );
     }
 
-    if (!classDetails) {
+    if (isLoading || !classDetails) {
         return <Loading />;
     }
 
     const repeatPattern = classDetails?.repeat_every_n_day;
-    const classJoinable = classDetails ? isClassCurrentlyJoinable(classDetails.start_time, classDetails.end_time, repeatPattern) : false;
-    const isValidDay = classDetails ? isClassAvailableToday(classDetails.start_time, classDetails.end_time, repeatPattern) : false;
+    const classJoinable = classDetails ? isClassCurrentlyJoinable(
+        classDetails.start_time, 
+        classDetails.end_time, 
+        repeatPattern
+    ) : false;
+    const isValidDay    = classDetails ? isClassAvailableToday(
+        classDetails.start_time, 
+        classDetails.end_time, 
+        repeatPattern
+    ) : false;
     const hasMeetingLink = classDetails?.meeting_url && classDetails.meeting_url !== '';
 
     const joinMeeting = () => handleMeetingJoin(classDetails, repeatPattern, showToast);
@@ -119,9 +198,15 @@ export default function ClassDetailsClient({ initialData, classId, session }) {
     const handleRegenerateMeetingLink = async () => {
         setIsRegenerating(true);
         try {
-            const data = await regenerateMeetingLink(session, isClassOwner, true, classId, classDetails, false);
+            const data = await regenerateMeetingLink(
+                session, 
+                isClassOwner, 
+                true, 
+                classId, 
+                classDetails, 
+                false
+            );
             return data;
-            // data.meetingUrl;
         } catch (err) {
             console.error('Error generating meeting link:', err);
             showToast(err.message || 'Failed to generate meeting link. Please try again.');
@@ -197,7 +282,11 @@ export default function ClassDetailsClient({ initialData, classId, session }) {
                         <p>{classDetails.course_details}</p>
                     </div>
 
-                    <ClassContent classId={classId} isTeacher={isClassOwner} currentUser={session?.user} />
+                    <ClassContent 
+                        classId={classId} 
+                        isTeacher={isClassOwner} 
+                        currentUser={session?.user} 
+                    />
 
                     {(isClassOwner || isAdmin) && (
                         <StudentsList students={students} />

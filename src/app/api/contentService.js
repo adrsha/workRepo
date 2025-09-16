@@ -1,14 +1,3 @@
-const createFormData = (classId, additionalData = {}) => {
-    const formData = new FormData();
-    formData.append('classId', classId);
-    
-    Object.entries(additionalData).forEach(([key, value]) => {
-        formData.append(key, value);
-    });
-    
-    return formData;
-};
-
 const makeRequest = async (url, options) => {
     const response = await fetch(url, options);
     

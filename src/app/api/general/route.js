@@ -1,4 +1,4 @@
-const publicTables = ['grades', 'classes', 'courses', 'classes_users', 'notices'];
+const publicTables = ['grades', 'classes', 'courses', 'classes_users', 'notices', 'about_content', 'advertisements'];
 const adminOnlyTables = ['users', 'pending_teachers', 'teachers', 'students', 'class_joining_pending'];
 const allTables = [...publicTables, ...adminOnlyTables];
 
@@ -16,6 +16,7 @@ export async function GET(req) {
         await validateAccess(tableName, session);
         
         const results = await fetchData(tableName, session?.user, filters);
+        console.log(results)
         return createResponse(results);
 
     } catch (error) {
@@ -77,7 +78,6 @@ async function fetchData(tableName, user, filters = {}) {
         whereConditions.push('id = ?');
         queryValues.push(userId);
     }
-
     // Add query parameter filters
     for (const [key, value] of Object.entries(filters)) {
         // Sanitize column names
@@ -92,9 +92,6 @@ async function fetchData(tableName, user, filters = {}) {
     if (whereConditions.length > 0) {
         query += ` WHERE ${whereConditions.join(' AND ')}`;
     }
-    
-    console.log(query, queryValues)
-
     return executeQuery(query, queryValues);
 }
 

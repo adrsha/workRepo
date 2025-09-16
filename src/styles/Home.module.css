@@ -7,7 +7,33 @@
     color: var(--foreground);
 }
 
+.mainContent {
+    display: flex;
+    flex-direction: row; /* row instead of column */
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 2rem;
+}
+.mainContent section {
+    flex: 1; /* take remaining space */
+}
+.mainContent aside {
+    flex: 0 0 20rem; /* fixed width for ads */
+}
 
+@media (max-width: 768px) {
+    .mainContent {
+        flex-direction: column;
+    }
+    .mainContent section {
+        max-width: 100%;
+    }
+    .mainContent aside {
+        max-width: 100%;
+        width: 100%;
+        margin-top: 1rem;
+    }
+}
 .features {
     display: flex;
     flex-wrap: wrap;
@@ -223,7 +249,6 @@
 .contentSection {
     display: flex;
     flex-wrap: wrap;
-    margin: 1rem 5vw;
     gap: 1.5rem;
 }
 
@@ -520,6 +545,7 @@
     font-style: italic;
 }
 
+
 /* Add/update these styles in your Home.module.css */
 
 .heroContent {
@@ -531,12 +557,11 @@
 
 .featureSides {
     flex: 1;
-    min-width: 300px;
+    min-width: 25rem;
 }
 
 .noticesSection {
     flex: 1;
-    min-width: 300px;
 }
 
 /* Existing highlight styles */

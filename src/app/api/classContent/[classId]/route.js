@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/authOptions';
 import { marked } from 'marked';
 import { NextResponse } from 'next/server';
+import { checkClassAccess } from '../../../lib/helpers';
+
+// Helper function to check user access to a class
 
 export async function GET(request, { params }) {
     const session = await getServerSession(authOptions);
@@ -17,15 +20,44 @@ export async function GET(request, { params }) {
     }
 
     try {
-        const contents = await executeQueryWithRetry({
-            query: `
+        // Check if user has access to this class using helper function
+        const accessCheck = await checkClassAccess(classId, session.accessToken);
+        
+        if (!accessCheck.hasAccess) {
+            return NextResponse.json({ 
+                error: accessCheck.error || 'You don\'t have access to this class content' 
+            }, { status: 403 });
+        }
+
+        // Get content based on user permissions
+        let contentQuery;
+        let queryValues;
+
+        if (accessCheck.isTeacher || accessCheck.isAdmin) {
+            // Teachers and admins see all content
+            contentQuery = `
                 SELECT content.*
                 FROM content
                 JOIN classes_content ON content.content_id = classes_content.content_id
                 WHERE classes_content.classes_id = ?
                 ORDER BY content.created_at DESC
-            `,
-            values: [classId],
+            `;
+            queryValues = [classId];
+        } else {
+            // Students only see public content
+            contentQuery = `
+                SELECT content.*
+                FROM content
+                JOIN classes_content ON content.content_id = classes_content.content_id
+                WHERE classes_content.classes_id = ? AND content.is_public = 1
+                ORDER BY content.created_at DESC
+            `;
+            queryValues = [classId];
+        }
+
+        const contents = await executeQueryWithRetry({
+            query: contentQuery,
+            values: queryValues,
         });
 
         return NextResponse.json(contents);
@@ -49,27 +81,22 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Check if the user is the teacher of this class
-        const teacherQuery = `
-            SELECT teacher_id
-            FROM classes
-            WHERE classes_id = ?
-        `;
-
-        const classData = await executeQueryWithRetry({
-            query: teacherQuery,
-            values: [classId]
-        });
-
-        if (!classData || classData.length === 0) {
-            return NextResponse.json({ error: 'Class not found' }, { status: 404 });
+        // Check if user has permission to add content using helper function
+        const accessCheck = await checkClassAccess(classId, session.accessToken);
+        
+        if (!accessCheck.hasAccess) {
+            return NextResponse.json({ 
+                error: accessCheck.error || 'Class not found' 
+            }, { status: 404 });
         }
 
-        if (classData[0].teacher_id !== session.user.id) {
-            return NextResponse.json({ error: 'Only the teacher can add content' }, { status: 403 });
+        if (!accessCheck.isTeacher && !accessCheck.isAdmin) {
+            return NextResponse.json({ 
+                error: 'Only teachers and admins can add content' 
+            }, { status: 403 });
         }
 
-        // Insert content and link to class in a single transaction
+        // Insert content and link to class
         const insertContentQuery = `
             INSERT INTO content (content_type, content_data)
             VALUES (?, ?)
@@ -127,18 +154,17 @@ export async function DELETE(request, { params }) {
     }
 
     const { classId } = await params;
-    let contentId = classId; // Note: This seems like it should be contentId from params
+    const contentId = classId; // This should be contentId based on your usage
 
     if (!contentId) {
         return NextResponse.json({ error: 'Content ID is required' }, { status: 400 });
     }
 
     try {
-        // Get the class info to verify teacher permissions
+        // Get the class info and verify user permissions  
         const getClassQuery = `
-            SELECT cc.classes_id, c.teacher_id
+            SELECT cc.classes_id
             FROM classes_content cc
-            JOIN classes c ON cc.classes_id = c.class_id
             WHERE cc.content_id = ?
         `;
 
@@ -150,17 +176,24 @@ export async function DELETE(request, { params }) {
         if (!classData || classData.length === 0) {
             return NextResponse.json({ error: 'Content not found' }, { status: 404 });
         }
-        
-        // Check if user is the teacher of this class
-        // if (classData[0].teacher_id !== session.user.id) {
-        if(!session.user.level>=1){
-            return NextResponse.json({ error: 'Only the teacher or admin can delete content' }, { status: 403 });
+
+        const classId = classData[0].classes_id;
+        const accessCheck = await checkUserAccess(classId, session.user.id, session.user.level);
+
+        if (!accessCheck.hasAccess) {
+            return NextResponse.json({ 
+                error: 'You don\'t have access to this class' 
+            }, { status: 403 });
         }
 
-        // Simply delete the content - cascading rules handle the rest
-        // The trigger will:
-        // 1. Log files for cleanup
-        // 2. Delete from class_content junction table
+        // Only teachers and admins can delete content
+        if (!accessCheck.isTeacher && session.user.level !== 2) {
+            return NextResponse.json({ 
+                error: 'Only teachers and admins can delete content' 
+            }, { status: 403 });
+        }
+
+        // Delete the content
         const deleteContentQuery = `
             DELETE FROM content
             WHERE content_id = ?

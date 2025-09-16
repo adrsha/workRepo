@@ -1,0 +1,396 @@
+/* styles/Partners.module.css */
+.partnersContainer {
+    max-width       : 100%;
+    margin          : 0 auto;
+    padding         : 2rem;
+    background-color: var(--background);
+    color           : var(--foreground);
+    font-family     : var(--font-sans);
+}
+
+.partnersHeader {
+    display         : flex;
+    justify-content : space-between;
+    align-items     : center;
+    margin-bottom   : 2rem;
+}
+
+.partnersTitle {
+    font-size       : 2.5rem;
+    font-weight     : bold;
+    margin          : 0;
+}
+
+.addButton {
+    background-color: var(--primary);
+    color           : var(--background);
+    border          : none;
+    padding         : 0.75rem 1.5rem;
+    border-radius   : 8px;
+    font-size       : 1rem;
+    font-weight     : 500;
+    cursor          : pointer;
+    transition      : background-color 0.2s;
+}
+
+.addButton:hover {
+    background-color: var(--secondary);
+}
+
+.addButton:disabled {
+    background-color: var(--gray);
+    cursor          : not-allowed;
+}
+
+/* Partners Grid */
+.partnersGrid {
+    display             : flex;
+    flex-wrap: wrap;
+    gap                 : 2rem;
+    margin-bottom       : 2rem;
+}
+
+.partnerCard {
+    background-color    : var(--background);
+    border              : 1px solid var(--offWhite);
+    min-width:  200px;
+    max-width:  300px;
+    border-radius       : 12px;
+    padding             : 1.5rem;
+    cursor              : pointer;
+    transition          : all 0.3s ease;
+    box-shadow          : 0 2px 8px rgba(0, 0, 0, 0.1);
+    position            : relative;
+    overflow            : hidden;
+}
+
+.partnerCard:hover {
+    transform           : translateY(-2px);
+    box-shadow          : 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-color        : var(--primary);
+}
+
+.partnerImageContainer {
+    width               : 100%;
+    height              : 120px;
+    display             : flex;
+    align-items         : center;
+    justify-content     : center;
+    margin-bottom       : 1rem;
+    background-color    : var(--secondaryBackground);
+    border-radius       : 8px;
+    overflow            : hidden;
+}
+
+.partnerImage {
+    max-width           : 100%;
+    max-height          : 100%;
+    object-fit          : contain;
+}
+
+.partnerContent {
+    display             : flex;
+    flex-direction      : column;
+    gap                 : 0.75rem;
+}
+
+.partnerName {
+    font-size           : 1.25rem;
+    font-weight         : 600;
+    color               : var(--tertiary);
+    margin              : 0;
+    line-height         : 1.3;
+}
+
+.partnerDescription {
+    line-height         : 1.5;
+    margin              : 0;
+    font-size           : 0.9rem;
+}
+
+.partnerUrl {
+    color               : var(--primary);
+    font-weight         : 500;
+    font-size           : 0.9rem;
+    margin-top          : auto;
+    padding-top         : 0.5rem;
+}
+
+.partnerCard:hover .partnerUrl {
+    text-decoration: underline;
+}
+
+/* Admin Actions */
+.adminActions {
+    position            : absolute;
+    top                 : 1rem;
+    right               : 1rem;
+    display             : flex;
+    gap                 : 0.5rem;
+    opacity             : 0;
+    transition          : opacity 0.2s;
+}
+
+.partnerCard:hover .adminActions {
+    opacity: 1;
+}
+
+.editButton,
+.deleteButton {
+    padding             : 0.25rem 0.5rem;
+    font-size           : 0.75rem;
+    border              : none;
+    border-radius       : 4px;
+    cursor              : pointer;
+    font-weight         : 500;
+    transition          : background-color 0.2s;
+}
+
+.editButton {
+    background-color    : var(--quaternary);
+    color               : var(--background);
+}
+
+.editButton:hover {
+    background-color: var(--darkGreen);
+}
+
+.deleteButton {
+    background-color    : var(--lightRed);
+    color               : var(--background);
+}
+
+.deleteButton:hover {
+    background-color: var(--darkRed);
+}
+
+/* Empty State */
+.emptyState {
+    text-align          : center;
+    padding             : 3rem 2rem;
+    color               : var(--gray);
+}
+
+.emptyState p {
+    font-size           : 1.1rem;
+    margin-bottom       : 1.5rem;
+}
+
+/* Modal Styles */
+.modalOverlay {
+    position            : fixed;
+    top                 : 0;
+    left                : 0;
+    right               : 0;
+    bottom              : 0;
+    background-color    : rgba(0, 0, 0, 0.5);
+    display             : flex;
+    align-items         : center;
+    justify-content     : center;
+    z-index             : 1000;
+    padding             : 2rem;
+}
+
+.modalContent {
+    background-color    : var(--background);
+    border-radius       : 12px;
+    width               : 100%;
+    max-width           : 600px;
+    max-height          : 90vh;
+    overflow-y          : auto;
+    box-shadow          : 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modalHeader {
+    display             : flex;
+    justify-content     : space-between;
+    align-items         : center;
+    padding             : 1.5rem;
+    border-bottom       : 1px solid var(--offWhite);
+}
+
+.modalHeader h2 {
+    margin              : 0;
+    font-size           : 1.5rem;
+    color               : var(--darkforeground);
+}
+
+.closeButton {
+    background          : none;
+    border              : none;
+    font-size           : 2rem;
+    color               : var(--gray);
+    cursor              : pointer;
+    padding             : 0;
+    width               : 2rem;
+    height              : 2rem;
+    display             : flex;
+    align-items         : center;
+    justify-content     : center;
+    border-radius       : 50%;
+    transition          : background-color 0.2s;
+}
+
+.closeButton:hover {
+    background-color: var(--secondaryBackground);
+}
+
+/* Form Styles */
+.partnerForm {
+    padding             : 1.5rem;
+}
+
+.formGroup {
+    margin-bottom       : 1.5rem;
+}
+
+.formLabel {
+    display             : block;
+    margin-bottom       : 0.5rem;
+    font-weight         : 600;
+    color               : var(--foreground);
+    font-size           : 0.9rem;
+}
+
+.formInput,
+.formTextarea {
+    width               : 100%;
+    padding             : 0.75rem;
+    border              : 1px solid var(--offWhite);
+    border-radius       : 6px;
+    font-size           : 1rem;
+    transition          : border-color 0.2s;
+    box-sizing          : border-box;
+    background-color    : var(--background);
+    color               : var(--darkforeground);
+}
+
+.formInput:focus,
+.formTextarea:focus {
+    outline             : none;
+    border-color        : var(--primary);
+    box-shadow          : 0 0 0 3px var(--primaryLighter);
+}
+
+.formTextarea {
+    resize              : vertical;
+    min-height          : 100px;
+    font-family         : inherit;
+}
+
+.currentImagePreview {
+    margin-top          : 1rem;
+    padding             : 1rem;
+    background-color    : var(--secondaryBackground);
+    border-radius       : 6px;
+    text-align          : center;
+}
+
+.previewImage {
+    max-width           : 200px;
+    max-height          : 120px;
+    object-fit          : contain;
+    border-radius       : 4px;
+}
+
+.formActions {
+    display             : flex;
+    gap                 : 1rem;
+    justify-content     : flex-end;
+    margin-top          : 2rem;
+    padding-top         : 1rem;
+    border-top          : 1px solid var(--offWhite);
+}
+
+.cancelButton,
+.submitButton {
+    padding             : 0.75rem 1.5rem;
+    border              : none;
+    border-radius       : 6px;
+    font-size           : 1rem;
+    font-weight         : 500;
+    cursor              : pointer;
+    transition          : background-color 0.2s;
+    min-width           : 120px;
+}
+
+.cancelButton {
+    background-color    : var(--gray);
+    color               : var(--background);
+}
+
+.cancelButton:hover {
+    background-color: var(--darkGray);
+}
+
+.submitButton {
+    background-color    : var(--primary);
+    color               : var(--background);
+}
+
+.submitButton:hover {
+    background-color: var(--secondary);
+}
+
+.cancelButton:disabled,
+.submitButton:disabled {
+    background-color    : var(--offWhite);
+    cursor              : not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .partnersContainer {
+        padding         : 1rem;
+    }
+    
+    .partnersHeader {
+        flex-direction  : column;
+        gap             : 1rem;
+        text-align      : center;
+    }
+    
+    .partnersTitle {
+        font-size       : 2rem;
+    }
+    
+    .modalOverlay {
+        padding         : 1rem;
+    }
+    
+    .modalContent {
+        max-height      : 95vh;
+    }
+    
+    .formActions {
+        flex-direction  : column;
+    }
+    
+    .cancelButton,
+    .submitButton {
+        width           : 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .partnersContainer {
+        padding         : 0.5rem;
+    }
+    
+    .partnersTitle {
+        font-size       : 1.5rem;
+    }
+    
+    .partnerCard {
+        padding         : 1rem;
+    }
+    
+    .adminActions {
+        position        : static;
+        opacity         : 1;
+        justify-content : center;
+        margin-top      : 1rem;
+        padding-top     : 1rem;
+        border-top      : 1px solid var(--offWhite);
+    }
+}

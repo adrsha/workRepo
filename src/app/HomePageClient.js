@@ -6,6 +6,7 @@ import styles from '../styles/Home.module.css';
 import './global.css';
 import Carousel from './components/Carousel/Carousel';
 import DownloadContent from "./components/DownloadContent";
+import Advertisement from './components/Advertisement';
 import NoticesSection from './components/Notices';
 
 export default function HomePageClient({ featureSidesData, featuresData }) {
@@ -196,27 +197,33 @@ export default function HomePageClient({ featureSidesData, featuresData }) {
                         </Link>
                     </div>
                 </nav>
-
-                <NoticesSection />
             </section>
 
-            <section
-                ref={featuresRef}
-                aria-label="Featured services"
-            >
-                <div className={`${styles.features} ${animatedFeatures.visible ? styles.featuresVisible : ''}`}>
-                    {featuresData.map(renderMainFeature)}
-                </div>
+            <section className={styles.mainContent}>
+                <section>
+                    <NoticesSection />
+                    <section
+                        ref={featuresRef}
+                        aria-label="Featured services"
+                    >
+                        <div className={`${styles.features} ${animatedFeatures.visible ? styles.featuresVisible : ''}`}>
+                            {featuresData.map(renderMainFeature)}
+                        </div>
+                    </section>
+
+                    <div
+                        className={`${styles.contentSection} ${animatedFeatures.noticesVisible ? styles.noticesVisible : ''}`}
+                        ref={noticesRef}
+                    >
+                        <div></div>
+                        <DownloadContent />
+                    </div>
+
+                </section>
+                <aside className={styles.adsWrapper}>
+                    <Advertisement isAdmin={isAdmin} />
+                </aside>
             </section>
-
-            <div
-                className={`${styles.contentSection} ${animatedFeatures.noticesVisible ? styles.noticesVisible : ''}`}
-                ref={noticesRef}
-            >
-                <div></div>
-                <DownloadContent />
-            </div>
-
             {renderFullscreenOverlay()}
         </div>
     );

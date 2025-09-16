@@ -1,6 +1,5 @@
 .carouselContainer {
     flex: 1;
-    min-width: 700px;
     margin: 0 auto;
     overflow: hidden;
     font-family: var(--font-sans);

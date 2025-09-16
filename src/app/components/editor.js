@@ -187,7 +187,7 @@ const insertMarkdownSyntax = (content, syntax, start, end, selectedText) => {
     return { newContent: content, newCursor: start };
 };
 
-const EnhancedTextEditor = ({ content, onChange, onSave }) => {
+const EnhancedTextEditor = ({ content, onChange, onSave, saveButtonText = "Save Text Content" }) => {
     const [showPreview, setShowPreview] = useState(false);
     const [splitView, setSplitView] = useState(true);
 
@@ -280,7 +280,7 @@ const EnhancedTextEditor = ({ content, onChange, onSave }) => {
                     onClick={onSave}
                     disabled={!content?.trim()}
                 >
-                    Save Text Content
+                    {saveButtonText}
                 </button>
             </div>
         </div>
@@ -324,15 +324,16 @@ const VisibilityToggle = ({ is_public, onToggle }) => (
     </div>
 );
 
-const EditorHeader = ({ onCancel }) => (
+const EditorHeader = ({ onCancel, title = "Add Content" }) => (
     <div className={styles.editorHeader}>
-        <h4>Add Content</h4>
+        <h4>{title}</h4>
         <button className={styles.cancelButton} onClick={onCancel}>
             Cancel
         </button>
     </div>
 );
 
+// Full ContentEditor with type selection
 export const ContentEditor = ({
     parentId,
     parentType,
@@ -341,10 +342,12 @@ export const ContentEditor = ({
     onUpdateForm,
     onSaveText,
     onFileSave,
-    onCancel
+    onCancel,
+    title,
+    saveButtonText
 }) => (
     <div className={styles.contentEditor}>
-        <EditorHeader onCancel={onCancel} />
+        <EditorHeader onCancel={onCancel} title={title} />
 
         <ContentTypeSelector
             selectedType={contentForm.content_type}
@@ -363,6 +366,7 @@ export const ContentEditor = ({
                 content={contentForm.content_data}
                 onChange={(data) => onUpdateForm('content_data', data)}
                 onSave={onSaveText}
+                saveButtonText={saveButtonText}
             />
         ) : (
             <FileUploadSection
@@ -372,5 +376,37 @@ export const ContentEditor = ({
                 isPublic={contentForm.is_public}
             />
         )}
+    </div>
+);
+
+// Text-only editor (no file upload, no type selection)
+export const TextOnlyEditor = ({
+    content,
+    onChange,
+    onSave,
+    onCancel,
+    title = "Edit Content",
+    saveButtonText = "Save Content",
+    showVisibilityToggle = false,
+    is_public,
+    onToggleVisibility,
+    isAdmin = false
+}) => (
+    <div className={styles.contentEditor}>
+        <EditorHeader onCancel={onCancel} title={title} />
+
+        {showVisibilityToggle && isAdmin && (
+            <VisibilityToggle
+                is_public={is_public}
+                onToggle={onToggleVisibility}
+            />
+        )}
+
+        <EnhancedTextEditor
+            content={content}
+            onChange={onChange}
+            onSave={onSave}
+            saveButtonText={saveButtonText}
+        />
     </div>
 );

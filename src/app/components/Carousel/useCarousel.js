@@ -38,7 +38,7 @@ const useCarousel = (isAdmin = false) => {
         if (isPlaying && !isAdminMode && images.length > 1) {
             intervalRef.current = setInterval(() => {
                 setCurrentIndex((prev) => (prev + 1) % images.length);
-            }, 4000);
+            }, 6000);
         } else {
             clearInterval(intervalRef.current);
         }
