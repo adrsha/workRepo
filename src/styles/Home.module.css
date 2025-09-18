@@ -21,7 +21,7 @@
     flex: 0 0 20rem; /* fixed width for ads */
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     .mainContent {
         flex-direction: column;
     }
@@ -38,8 +38,12 @@
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    margin: 5rem 5vw;
+    margin: 1rem;
     perspective: 1000px;
+}
+
+.featureLink {
+    
 }
 
 .featureSides {
@@ -901,20 +905,5 @@
 @keyframes loadingSpin {
     to {
         transform: rotate(360deg);
-    }
-}
-
-/* ========= Media Queries ========= */
-@media (max-width: 768px) {
-    .noticesAndDownloads {
-        flex-direction: column;
-    }
-
-    .heroContent {
-        padding: 2rem;
-    }
-
-    .logo {
-        width: 150px;
     }
 }
