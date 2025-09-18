@@ -1,4 +1,5 @@
-// /app/components/Advertisement.js
+// Enhanced Advertisement Component with styled sharing UI
+
 'use client';
 import { useState, useEffect } from 'react';
 import styles from '@/styles/Advertisements.module.css';
@@ -70,14 +71,10 @@ const AdvertisementModal = ({
             submitFormData.append('description', formData.description.trim());
             submitFormData.append('link', formData.link.trim());
 
-            // Handle image - if it's a string (file path), send as imagePath
-            // If it's a File object, send as image
             if (formData.image) {
                 if (typeof formData.image === 'string') {
-                    // This is a file path from previous upload
                     submitFormData.append('imagePath', formData.image);
                 } else {
-                    // This is a File object for new upload
                     submitFormData.append('image', formData.image);
                 }
             }
@@ -224,15 +221,383 @@ const AdvertisementModal = ({
     );
 };
 
+
+const ShareModal = ({ isOpen, onClose, advertisement }) => {
+    const [copyStatus, setCopyStatus] = useState('');
+    const [isNativeSupported, setIsNativeSupported] = useState(false);
+
+    useEffect(() => {
+        // Check native share support on mount and when advertisement changes
+        if (advertisement && typeof navigator !== 'undefined' && navigator.share) {
+            const shareData = {
+                title: advertisement.title,
+                text: advertisement.description || `Check out this advertisement: ${advertisement.title}`,
+                url: advertisement.link
+            };
+
+            if (navigator.canShare) {
+                setIsNativeSupported(navigator.canShare(shareData));
+            } else {
+                setIsNativeSupported(true); // Assume supported if canShare not available
+            }
+        } else {
+            setIsNativeSupported(false);
+        }
+    }, [advertisement]);
+
+    // Reset copy status when modal closes
+    useEffect(() => {
+        if (!isOpen) {
+            setCopyStatus('');
+        }
+    }, [isOpen]);
+
+    // Handle escape key press
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === 'Escape' && isOpen) {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen, onClose]);
+
+    if (!isOpen || !advertisement) return null;
+
+    // Enhanced share data with proper error handling
+    const shareData = {
+        title: advertisement.title,
+        text: advertisement.description || `Check out this advertisement: ${advertisement.title}`,
+        url: advertisement.link
+    };
+
+    const handleNativeShare = async () => {
+        if (!navigator.share) {
+            console.warn('Native sharing not supported');
+            return;
+        }
+
+        try {
+            await navigator.share(shareData);
+            onClose();
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Error sharing:', err);
+                // Fallback to copy link
+                handleCopyLink();
+            }
+        }
+    };
+
+    const handleSocialShare = (platform) => {
+        const encodedTitle = encodeURIComponent(advertisement.title);
+        const encodedDescription = encodeURIComponent(advertisement.description || '');
+        const encodedUrl = encodeURIComponent(advertisement.link);
+        const shareText = encodeURIComponent(`${advertisement.title}${advertisement.description ? ' - ' + advertisement.description : ''}`);
+
+        // Get the full image URL for sharing
+        const imageUrl = advertisement.image ? encodeURIComponent(
+            advertisement.image.startsWith('http')
+                ? advertisement.image
+                : `${window.location.origin}${advertisement.image}`
+        ) : '';
+
+        let shareUrl = '';
+
+        switch (platform) {
+            case 'whatsapp':
+                shareUrl = `https://api.whatsapp.com/send?text=${shareText}%20${encodedUrl}`;
+                break;
+            case 'facebook':
+                shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${shareText}`;
+                break;
+            case 'twitter':
+                shareUrl = `https://twitter.com/intent/tweet?text=${shareText}&url=${encodedUrl}`;
+                break;
+            case 'telegram':
+                shareUrl = `https://t.me/share/url?url=${encodedUrl}&text=${shareText}`;
+                break;
+            case 'viber':
+                shareUrl = `viber://forward?text=${shareText}%20${encodedUrl}`;
+                break;
+            case 'linkedin':
+                shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+                break;
+            case 'pinterest':
+                if (imageUrl) {
+                    shareUrl = `https://pinterest.com/pin/create/button/?url=${encodedUrl}&media=${imageUrl}&description=${shareText}`;
+                } else {
+                    shareUrl = `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${shareText}`;
+                }
+                break;
+            case 'email':
+                const emailSubject = encodeURIComponent(`Check out: ${advertisement.title}`);
+                const emailBody = encodeURIComponent(
+                    `${advertisement.title}\n\n` +
+                    `${advertisement.description || ''}\n\n` +
+                    `Link: ${advertisement.link}\n\n` +
+                    (advertisement.image ? `Image: ${window.location.origin}${advertisement.image}\n\n` : '') +
+                    `Shared from ${window.location.origin}`
+                );
+                shareUrl = `mailto:?subject=${emailSubject}&body=${emailBody}`;
+                break;
+            default:
+                console.warn(`Unsupported platform: ${platform}`);
+                return;
+        }
+
+        try {
+            if (platform === 'email' || platform === 'viber') {
+                window.location.href = shareUrl;
+            } else {
+                window.open(shareUrl, '_blank', 'noopener,noreferrer,width=600,height=400');
+            }
+            onClose();
+        } catch (err) {
+            console.error(`Error sharing to ${platform}:`, err);
+        }
+    };
+
+    const handleCopyLink = async () => {
+        setCopyStatus('copying');
+
+        try {
+            // Try to copy rich content first
+            const richContent = `${advertisement.title}\n${advertisement.description || ''}\nLink: ${advertisement.link}${advertisement.image ? `\nImage: ${window.location.origin}${advertisement.image}` : ''}`;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(richContent);
+                setCopyStatus('copied');
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = richContent;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+
+                if (document.execCommand('copy')) {
+                    setCopyStatus('copied');
+                } else {
+                    throw new Error('Copy command failed');
+                }
+
+                document.body.removeChild(textArea);
+            }
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            // Final fallback - try to copy just the URL
+            try {
+                if (navigator.clipboard) {
+                    await navigator.clipboard.writeText(advertisement.link);
+                    setCopyStatus('copied');
+                } else {
+                    setCopyStatus('error');
+                }
+            } catch (fallbackErr) {
+                console.error('All copy attempts failed:', fallbackErr);
+                setCopyStatus('error');
+            }
+        }
+
+        // Reset status after 3 seconds
+        setTimeout(() => {
+            setCopyStatus('');
+        }, 3000);
+    };
+
+    const handleModalClick = (e) => {
+        // Close modal if clicking on overlay
+        if (e.target === e.currentTarget) {
+            onClose();
+        }
+    };
+
+    const getCopyButtonText = () => {
+        switch (copyStatus) {
+            case 'copying':
+                return 'Copying...';
+            case 'copied':
+                return 'Link & Details Copied!';
+            case 'error':
+                return 'Failed to copy';
+            default:
+                return 'Copy Link & Details';
+        }
+    };
+
+    const getCopyButtonClass = () => {
+        const baseClass = styles.copyLinkButton;
+        switch (copyStatus) {
+            case 'copying':
+                return `${baseClass} ${styles.copying}`;
+            case 'copied':
+                return `${baseClass} ${styles.copied}`;
+            case 'error':
+                return `${baseClass} ${styles.error}`;
+            default:
+                return baseClass;
+        }
+    };
+
+    return (
+        <div className={styles.modalOverlay} onClick={handleModalClick}>
+            <div className={styles.shareModalContent}>
+                <div className={styles.modalHeader}>
+                    <h3>Share Advertisement</h3>
+                    <button
+                        className={styles.closeButton}
+                        onClick={onClose}
+                        aria-label="Close share modal"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div className={styles.shareContent}>
+                    <div className={styles.sharePreview}>
+                        <h4>{advertisement.title}</h4>
+                        {advertisement.description && (
+                            <p>{advertisement.description}</p>
+                        )}
+                        {advertisement.image && (
+                            <div className={styles.shareImagePreview}>
+                                <img
+                                    src={advertisement.image}
+                                    alt={advertisement.title}
+                                    className={styles.sharePreviewImage}
+                                    loading="lazy"
+                                />
+                                <span className={styles.imageLabel}>Image will be included in share if its compatible</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {isNativeSupported && (
+                        <div className={styles.nativeShareSection}>
+                            <button
+                                className={styles.nativeShareButton}
+                                onClick={handleNativeShare}
+                                aria-label="Share using device's native sharing"
+                            >
+                                Share using device
+                            </button>
+                        </div>
+                    )}
+
+                    <div className={styles.socialShareGrid}>
+                        <button
+                            className={`${styles.shareButton} ${styles.whatsapp}`}
+                            onClick={() => handleSocialShare('whatsapp')}
+                            aria-label="Share on WhatsApp"
+                        >
+                            <span className={styles.shareIcon} aria-hidden="true"></span>
+                            WhatsApp
+                        </button>
+
+                        <button
+                            className={`${styles.shareButton} ${styles.facebook}`}
+                            onClick={() => handleSocialShare('facebook')}
+                            aria-label="Share on Facebook"
+                        >
+                            <span className={styles.shareIcon} aria-hidden="true"></span>
+                            Facebook
+                        </button>
+
+                        <button
+                            className={`${styles.shareButton} ${styles.twitter}`}
+                            onClick={() => handleSocialShare('twitter')}
+                            aria-label="Share on Twitter"
+                        >
+                            <span className={styles.shareIcon} aria-hidden="true"></span>
+                            Twitter
+                        </button>
+
+                        <button
+                            className={`${styles.shareButton} ${styles.telegram}`}
+                            onClick={() => handleSocialShare('telegram')}
+                            aria-label="Share on Telegram"
+                        >
+                            <span className={styles.shareIcon} aria-hidden="true"></span>
+                            Telegram
+                        </button>
+
+                        <button
+                            className={`${styles.shareButton} ${styles.viber}`}
+                            onClick={() => handleSocialShare('viber')}
+                            aria-label="Share on Viber"
+                        >
+                            <span className={styles.shareIcon} aria-hidden="true"></span>
+                            Viber
+                        </button>
+
+                        <button
+                            className={`${styles.shareButton} ${styles.linkedin}`}
+                            onClick={() => handleSocialShare('linkedin')}
+                            aria-label="Share on LinkedIn"
+                        >
+                            <span className={styles.shareIcon} aria-hidden="true"></span>
+                            LinkedIn
+                        </button>
+
+                        <button
+                            className={`${styles.shareButton} ${styles.pinterest}`}
+                            onClick={() => handleSocialShare('pinterest')}
+                            aria-label="Share on Pinterest"
+                        >
+                            <span className={styles.shareIcon} aria-hidden="true"></span>
+                            Pinterest
+                        </button>
+
+                        <button
+                            className={`${styles.shareButton} ${styles.email}`}
+                            onClick={() => handleSocialShare('email')}
+                            aria-label="Share via Email"
+                        >
+                            <span className={styles.shareIcon} aria-hidden="true"></span>
+                            Email
+                        </button>
+                    </div>
+
+                    <div className={styles.copyLinkSection}>
+                        <button
+                            className={getCopyButtonClass()}
+                            onClick={handleCopyLink}
+                            disabled={copyStatus === 'copying'}
+                            aria-label="Copy link and details to clipboard"
+                        >
+                            {getCopyButtonText()}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const AdvertisementCard = ({
     advertisement,
     isAdmin = false,
     onEdit,
     onDelete
 }) => {
+    const [showShareModal, setShowShareModal] = useState(false);
+
     const handleCardClick = (e) => {
-        // Don't navigate if clicking edit/delete buttons
-        if (e.target.closest('.admin-actions')) {
+        // Don't navigate if clicking admin actions or share button
+        if (e.target.closest('.admin-actions') || e.target.closest('.share-button')) {
             e.preventDefault();
             return;
         }
@@ -259,57 +624,79 @@ const AdvertisementCard = ({
         }
     };
 
+    const handleShare = (e) => {
+        e.stopPropagation();
+        setShowShareModal(true);
+    };
+
     return (
-        <div
-            className={styles.advertisementCard}
-            onClick={handleCardClick}
-            role="button"
-            tabIndex={0}
-        >
-            {advertisement.image && (
-                <div className={styles.advertisementImageContainer}>
-                    <img
-                        src={advertisement.image}
-                        alt={advertisement.title || 'Advertisement'}
-                        className={styles.advertisementImage}
-                        loading="lazy"
-                    />
-                </div>
-            )}
-
-            <div className={styles.advertisementContent}>
-                <h3 className={styles.advertisementName}>
-                    {advertisement.title}
-                </h3>
-
-                {advertisement.description && (
-                    <p className={styles.advertisementDescription}>
-                        {advertisement.description}
-                    </p>
+        <>
+            <div
+                className={styles.advertisementCard}
+                onClick={handleCardClick}
+                role="button"
+                tabIndex={0}
+            >
+                {advertisement.image && (
+                    <div className={styles.advertisementImageContainer}>
+                        <img
+                            src={advertisement.image}
+                            alt={advertisement.title || 'Advertisement'}
+                            className={styles.advertisementImage}
+                            loading="lazy"
+                        />
+                    </div>
                 )}
 
-                <div className={styles.advertisementUrl}>
-                    View Details ( पूरा विवरण हेर्नुहोस् )  →
+                <div className={styles.advertisementContent}>
+                    <h3 className={styles.advertisementName}>
+                        {advertisement.title}
+                    </h3>
+
+                    {advertisement.description && (
+                        <p className={styles.advertisementDescription}>
+                            {advertisement.description}
+                        </p>
+                    )}
+
+                    <div className={styles.advertisementActions}>
+                        <div className={styles.advertisementUrl}>
+                            View Details ( पूरा विवरण हेर्नुहोस् )  →
+                        </div>
+
+                        <button
+                            className={`${styles.shareButton} share-button`}
+                            onClick={handleShare}
+                            title="Share this advertisement"
+                        >
+                        </button>
+                    </div>
                 </div>
+
+                {isAdmin && (
+                    <div className={`${styles.adminActions} admin-actions`}>
+                        <button
+                            className={styles.editButton}
+                            onClick={handleEdit}
+                        >
+                            Edit
+                        </button>
+                        <button
+                            className={styles.deleteButton}
+                            onClick={handleDelete}
+                        >
+                            Delete
+                        </button>
+                    </div>
+                )}
             </div>
 
-            {isAdmin && (
-                <div className={`${styles.adminActions} admin-actions`}>
-                    <button
-                        className={styles.editButton}
-                        onClick={handleEdit}
-                    >
-                        Edit
-                    </button>
-                    <button
-                        className={styles.deleteButton}
-                        onClick={handleDelete}
-                    >
-                        Delete
-                    </button>
-                </div>
-            )}
-        </div>
+            <ShareModal
+                isOpen={showShareModal}
+                onClose={() => setShowShareModal(false)}
+                advertisement={advertisement}
+            />
+        </>
     );
 };
 
@@ -447,7 +834,7 @@ const AdvertisementManager = ({ isAdmin = false }) => {
 };
 
 // Export individual components for flexible usage
-export { AdvertisementCard, AdvertisementModal };
+export { AdvertisementCard, AdvertisementModal, ShareModal };
 
 // Export the main manager component as default
 export default AdvertisementManager;

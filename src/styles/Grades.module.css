@@ -3,12 +3,11 @@
     min-height: calc(100vh - var(--navheight));
     display: flex;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* Side Panel */
 .sidePanel {
-    min-width: 250px;
     max-width: 250px;
     max-height: calc(100vh - var(--navheight));
     padding: 2rem;
@@ -67,10 +66,10 @@
 
 /* Main Content Area */
 .mainSection {
-    padding: 2rem;
-    scrollbar-width: thin;
-    scrollbar-color: var(--secondary) transparent;
+    padding-left: 2rem;
+    padding-top: 2rem;
     display: flex;
+    overflow: visible;
     flex-wrap: wrap;
     gap: 1.5rem;
     height: fit-content;
@@ -88,7 +87,7 @@
     box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     max-width: 25vw;
-    min-width: 25vw;
+    min-width: 20rem;
     overflow: hidden;
 }
 
@@ -614,9 +613,10 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .sidePanel {
-        width: 4rem;
+        width: 3rem;
+        background-color: var(--background);
         border-right: 1px solid rgba(0, 0, 0, 0.05);
-        position: relative;
+        position: absolute;
         overflow: hidden;
         height: 50vh;
         transition: height 0.4s ease, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -661,8 +661,8 @@
     }
     .sidePanel:hover,
     .sidePanel:focus-within {
-        width: 260px;
-        height: 100vh;
+        width: 100%;
+        height: fit-content;
     }
 
     .sidePanel:hover::before,
