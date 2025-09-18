@@ -785,7 +785,7 @@ const AdvertisementManager = ({ isAdmin = false }) => {
 
     return (
         <section className={styles.advertisementsContainer}>
-            <h1 className={styles.advertisementsTitle}>Advertisements</h1>
+            <h1 className={styles.advertisementsTitle}>विज्ञापन</h1>
             <div className={styles.advertisementsHeader}>
                 {isAdmin && (
                     <button
