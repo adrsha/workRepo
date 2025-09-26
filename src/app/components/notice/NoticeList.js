@@ -81,8 +81,8 @@ export const NoticeList = ({ notices, isAdmin, onDelete }) => {
 
     // Sort notices by date (newest first)
     const sortedNotices = Array.from(notices).sort((a, b) => {
-        const dateA = new Date(a.notices_date_time);
-        const dateB = new Date(b.notices_date_time);
+        const dateA = new Date(a.notice_date_time);
+        const dateB = new Date(b.notice_date_time);
         return dateB - dateA; // Newest first
     });
 
@@ -90,23 +90,23 @@ export const NoticeList = ({ notices, isAdmin, onDelete }) => {
         <div className={styles.noticesList}>
             {
                 sortedNotices.map((notice) => (
-                    <div className={styles.noticeContainer} key={notice.notices_id}>
+                    <div className={styles.noticeContainer} key={notice.notice_id}>
                         <a 
                             className={styles.noticeLink} 
-                            href={`/notices/${notice.notices_id}`}
-                            onClick={() => handleNoticeClick(notice.notices_id)}
+                            href={`/notices/${notice.notice_id}`}
+                            onClick={() => handleNoticeClick(notice.notice_id)}
                         >
-                            <div className={`${styles.noticeCard} ${isNoticeNew(notice.notices_id) ? styles.newNotice : ''}`}>
+                            <div className={`${styles.noticeCard} ${isNoticeNew(notice.notice_id) ? styles.newNotice : ''}`}>
                                 <div className={styles.noticeHeader}>
                                     <h3 className={styles.noticeTitle}>
-                                        {notice.notices_title}
-                                        {isNoticeNew(notice.notices_id) && (
+                                        {notice.notice_title}
+                                        {isNoticeNew(notice.notice_id) && (
                                             <span className={styles.newBadge}>NEW</span>
                                         )}
                                     </h3>
                                     <div className={styles.noticeActions}>
                                         <span className={styles.noticeDate}>
-                                            {formatDate(notice.notices_date_time)}
+                                            {formatDate(notice.notice_date_time)}
                                         </span>
                                     </div>
                                 </div>
@@ -115,7 +115,7 @@ export const NoticeList = ({ notices, isAdmin, onDelete }) => {
                         {isAdmin && (
                             <button
                                 className={styles.deleteButton}
-                                onClick={() => onDelete(notice.notices_id)}
+                                onClick={() => onDelete(notice.notice_id)}
                             >
                                 Delete
                             </button>

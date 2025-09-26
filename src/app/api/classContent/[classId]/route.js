@@ -3,10 +3,94 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/authOptions';
 import { marked } from 'marked';
 import { NextResponse } from 'next/server';
-import { checkClassAccess } from '../../../lib/helpers';
 
-// Helper function to check user access to a class
+export async function checkClassAccess(classId, userId, userLevel) {
+    try {
+        // Check if class exists and get basic info
+        const classQuery = `
+            SELECT class_id, teacher_id, course_name, grade_name, course_details, start_time, end_time, repeat_every_n_day, meeting_url
+            FROM classes_view 
+            WHERE class_id = ?
+        `;
+        
+        const classData = await executeQueryWithRetry({
+            query: classQuery,
+            values: [classId]
+        });
 
+        if (!classData || classData.length === 0) {
+            return { 
+                hasAccess: false, 
+                error: 'Class not found' 
+            };
+        }
+
+        const classInfo = classData[0];
+
+        // Admin has access to everything
+        if (userLevel === 2) {
+            return {
+                hasAccess: true,
+                accessReason: 'admin',
+                isTeacher: false,
+                isAdmin: true,
+                classDetails: classInfo
+            };
+        }
+
+        // Check if user is the teacher
+        if (classInfo.teacher_id === userId) {
+            return {
+                hasAccess: true,
+                accessReason: 'teacher',
+                isTeacher: true,
+                isAdmin: false,
+                classDetails: classInfo
+            };
+        }
+
+        // Check if user is enrolled as a student
+        const enrollmentQuery = `
+            SELECT user_id 
+            FROM classes_users 
+            WHERE class_id = ? AND user_id = ?
+        `;
+        console.log(classId, userId)
+        const enrollmentData = await executeQueryWithRetry({
+            query: enrollmentQuery,
+            values: [classId, userId]
+        });
+        console.log(enrollmentData)
+
+        const isEnrolled = enrollmentData && enrollmentData.length > 0;
+ 
+        if (isEnrolled) {
+            return {
+                hasAccess: true,
+                accessReason: 'enrolled',
+                isTeacher: false,
+                isAdmin: false,
+                classDetails: classInfo
+            };
+        }
+
+        // No access
+        return {
+            hasAccess: false,
+            accessReason: 'not_enrolled',
+            isTeacher: false,
+            isAdmin: false,
+            error: 'You don\'t have access to this class'
+        };
+
+    } catch (error) {
+        console.error('Error checking class access:', error);
+        return { 
+            hasAccess: false,
+            error: 'Failed to check class access' 
+        };
+    }
+}
 export async function GET(request, { params }) {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -21,8 +105,8 @@ export async function GET(request, { params }) {
 
     try {
         // Check if user has access to this class using helper function
-        const accessCheck = await checkClassAccess(classId, session.accessToken);
-        
+        const accessCheck = await checkClassAccess(classId, session.user.id, session.user.level);
+ 
         if (!accessCheck.hasAccess) {
             return NextResponse.json({ 
                 error: accessCheck.error || 'You don\'t have access to this class content' 
@@ -59,7 +143,6 @@ export async function GET(request, { params }) {
             query: contentQuery,
             values: queryValues,
         });
-
         return NextResponse.json(contents);
     } catch (error) {
         console.error('Error fetching class content:', error);
@@ -178,7 +261,7 @@ export async function DELETE(request, { params }) {
         }
 
         const classId = classData[0].classes_id;
-        const accessCheck = await checkUserAccess(classId, session.user.id, session.user.level);
+        const accessCheck = await checkClassAccess(classId, session.user.id, session.user.level);
 
         if (!accessCheck.hasAccess) {
             return NextResponse.json({ 

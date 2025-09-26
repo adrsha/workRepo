@@ -2,6 +2,9 @@
     font-size: 2rem;
     font-weight: bold;
     font-family: var(--font-serif);
+    background-color: var(--tertiaryLighter);
+    padding: 1rem;
+    border-radius: 0.5rem;
 }
 
 /* Main container */
@@ -62,13 +65,12 @@
 }
 
 .noticesSection {
-    max-height: 50vh;
     overflow-y: auto;
     position: relative;
-    border-left: 1px solid rgba(0,0,0,0.1);
+    margin: auto;
     padding: 2rem;
     min-width: 300px;
-    flex: 1;
+    max-height: 30rem;
 }
 
 .backButton:focus {
@@ -483,29 +485,6 @@
     color: var(--foreground);
     margin-bottom: 1.5rem;
     line-height: 1.5;
-}
-
-/* Responsive styles */
-@media (max-width: 768px) {
-    .addButton {
-        font-size: 0.8rem;
-        padding: 0.4rem 0.8rem;
-    }
-
-    .noticeContent h3,
-    .attachments h3 {
-        font-size: 1.1rem;
-    }
-
-    .contentText {
-        font-size: 0.9rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .contentText {
-        font-size: 0.85rem;
-    }
 }
 
 /* Print styles */

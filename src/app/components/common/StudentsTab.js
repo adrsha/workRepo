@@ -216,7 +216,7 @@ const ApprovedStudentsTable = ({
     const additionalColumns = [{
         key: 'student_profile',
         title: 'Profile',
-        render: (student) => <a href={`/profile/${student.user_id}`}>View Profile</a>
+        render: (student) => <a className="profile-link-btn" href={`/profile/${student.user_id}`}>View Profile</a>
     }];
 
     return (

@@ -330,7 +330,7 @@
 
 @media (max-width: 768px) {
     .carouselContainer {
-        min-width: auto;
+        min-width: 100%;
     }
     
     .carouselMain {

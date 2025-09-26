@@ -11,15 +11,12 @@ import { ClassesTab } from './common/ClassesTab';
 import { StudentsTab } from './common/StudentsTab';
 import { CoursesTab } from './common/CoursesTab';
 import { GradesTab } from './common/GradesTab';
+import { PaymentRequestsTab } from './PaymentRequestsTab';
+import Loading from './Loading';
 import { TABS } from '../lib/utils';
 import { getSchema } from '../lib/schema';
 
-const TAB_NAMES = ['teachers', 'classes', 'students', 'courses', 'grades'];
 const TAB_ENTRIES = Object.entries(TABS);
-
-const LoadingSpinner = ({ tabIndex }) => (
-    <div className="loading-spinner">Loading {TAB_NAMES[tabIndex]} data...</div>
-);
 
 const ErrorMessage = ({ error, onRetry }) => (
     <div className="error-message">
@@ -49,6 +46,7 @@ const TabContent = ({ activeTab, props }) => {
         [TABS.STUDENTS]: <StudentsTab {...props.students} />,
         [TABS.COURSES]:  <CoursesTab {...props.courses} />,
         [TABS.GRADES]:   <GradesTab {...props.grades} />,
+        [TABS.PAYMENTS]: <PaymentRequestsTab />
     };
 
     return <div className="table-content">{tabs[activeTab]}</div>;
@@ -112,7 +110,7 @@ export default function AdminControl({ pendingTeachersData = [] }) {
 
     // Show loading while either data or schemas are loading
     if (state.isLoading || schemasLoading) {
-        return <LoadingSpinner tabIndex={activeTab} />;
+        return <Loading/>;
     }
 
     if (state.error) {
@@ -179,3 +177,48 @@ export default function AdminControl({ pendingTeachersData = [] }) {
         </div>
     );
 }
+
+
+// Helper hook for fetching content requests
+export const useContentRequests = (session) => {
+    const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(false);
+    
+    const fetchRequests = async (status = 'pending') => {
+        if (!session?.user || session.user.level < 1) return;
+        
+        setLoading(true);
+        try {
+            const response = await fetch(`/api/contentRequests?status=${status}`);
+            if (response.ok) {
+                const data = await response.json();
+                setRequests(data);
+            }
+        } catch (error) {
+            console.error('Error fetching content requests:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const processRequest = async (requestId, action, adminNotes = '') => {
+        const response = await fetch('/api/contentRequests/process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requestId, action, adminNotes })
+        });
+
+        if (response.ok) {
+            await fetchRequests(); // Refresh
+            return true;
+        }
+        return false;
+    };
+
+    return {
+        requests,
+        loading,
+        fetchRequests,
+        processRequest
+    };
+};

@@ -11,8 +11,6 @@ export async function GET(request) {
             values: [],
         });
         
-        console.log('About content fetched:', aboutContent);
-        
         return NextResponse.json({
             content: aboutContent,
         });

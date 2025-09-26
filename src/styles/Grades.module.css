@@ -616,7 +616,6 @@
         width: 3rem;
         background-color: var(--background);
         border-right: 1px solid rgba(0, 0, 0, 0.05);
-        position: absolute;
         overflow: hidden;
         height: 50vh;
         transition: height 0.4s ease, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -661,6 +660,7 @@
     }
     .sidePanel:hover,
     .sidePanel:focus-within {
+        position: absolute;
         width: 100%;
         height: fit-content;
     }

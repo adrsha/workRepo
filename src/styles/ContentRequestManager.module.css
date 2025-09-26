@@ -1,0 +1,686 @@
+/* ContentRequestManager.module.css */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(18, 23, 31, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modalContent {
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 20, 0.3);
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid var(--offWhite);
+    background: var(--background);
+}
+
+.modalHeader h3 {
+    margin: 0;
+    color: var(--darkforeground);
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--gray);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition-fast);
+    line-height: 1;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.closeButton:hover {
+    background: var(--secondaryBackground);
+    color: var(--darkforeground);
+}
+
+.closeButton:focus {
+    outline: none;
+    box-shadow: var(--focus-ring) var(--focus-ring-color);
+}
+
+.tabButtons {
+    display: flex;
+    background: var(--offWhite);
+    border-bottom: 1px solid var(--secondaryBackground);
+}
+
+.tab,
+.activeTab {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    color: var(--foreground);
+    border-bottom: 3px solid transparent;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.tab:hover {
+    background: var(--secondaryBackground);
+    color: var(--darkforeground);
+}
+
+.activeTab {
+    background: var(--white);
+    color: var(--darkforeground);
+    border-bottom-color: var(--tertiary);
+    font-weight: 600;
+}
+
+.tab:focus,
+.activeTab:focus {
+    outline: none;
+    box-shadow: inset var(--focus-ring) var(--focus-ring-color);
+}
+
+.pendingCount {
+    background: var(--primary);
+    color: var(--white);
+    border-radius: 50%;
+    width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* Main content area */
+.newRequestSection,
+.requestsSection {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.requestTypeSection,
+.individualRequestSection {
+    background: var(--background);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 2px solid var(--offWhite);
+}
+
+.requestTypeSection h4,
+.individualRequestSection h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--darkforeground);
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.requestDescription {
+    color: var(--foreground);
+    margin: 0 0 1rem 0;
+    line-height: 1.5;
+}
+
+.requestTypeButton {
+    background: var(--tertiary);
+    color: var(--white);
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--border-radius-md);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    width: 100%;
+}
+
+.requestTypeButton:hover:not(:disabled) {
+    background: var(--darkBlue);
+    transform: translateY(-1px);
+    box-shadow: var(--hover-shadow);
+}
+
+.requestTypeButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.requestTypeButton:focus {
+    outline: none;
+    box-shadow: var(--focus-ring) var(--focus-ring-color);
+}
+
+.contentSelect {
+    width: 100%;
+    padding: 0.875rem;
+    border: 2px solid var(--secondaryBackground);
+    border-radius: var(--border-radius-md);
+    background: var(--white);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    transition: var(--transition-fast);
+}
+
+.contentSelect:focus {
+    outline: none;
+    border-color: var(--tertiary);
+    box-shadow: var(--focus-ring) var(--focus-ring-color);
+}
+
+.requestButton {
+    background: var(--secondary);
+    color: var(--white);
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--border-radius-md);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.requestButton:hover:not(:disabled) {
+    background: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--hover-shadow);
+}
+
+.requestButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.messageSection {
+    background: var(--white);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem;
+    border: 2px solid var(--offWhite);
+}
+
+.messageSection label {
+    display: block;
+    color: var(--darkforeground);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.messageTextarea,
+.adminNotesTextarea {
+    width: 100%;
+    padding: 0.875rem;
+    border: 2px solid var(--secondaryBackground);
+    border-radius: var(--border-radius-md);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    color: var(--foreground);
+    background: var(--background);
+    resize: vertical;
+    transition: var(--transition-fast);
+}
+
+.messageTextarea:focus,
+.adminNotesTextarea:focus {
+    outline: none;
+    border-color: var(--tertiary);
+    box-shadow: var(--focus-ring) var(--focus-ring-color);
+}
+
+.characterCount {
+    display: block;
+    text-align: right;
+    color: var(--gray);
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+}
+
+/* Requests section */
+.requestsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--offWhite);
+}
+
+.requestsHeader h4 {
+    margin: 0;
+    color: var(--darkforeground);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.statusFilter {
+    padding: 0.5rem 0.75rem;
+    border: 2px solid var(--secondaryBackground);
+    border-radius: var(--border-radius-sm);
+    background: var(--white);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.statusFilter:focus {
+    outline: none;
+    border-color: var(--tertiary);
+    box-shadow: var(--focus-ring) var(--focus-ring-color);
+}
+
+.requestsList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.requestsList::-webkit-scrollbar {
+    width: 6px;
+}
+
+.requestsList::-webkit-scrollbar-track {
+    background: var(--offWhite);
+    border-radius: 3px;
+}
+
+.requestsList::-webkit-scrollbar-thumb {
+    background: var(--gray);
+    border-radius: 3px;
+}
+
+.requestsList::-webkit-scrollbar-thumb:hover {
+    background: var(--darkGray);
+}
+
+.noRequests {
+    text-align: center;
+    padding: 2rem;
+    color: var(--gray);
+    font-style: italic;
+    background: var(--offWhite);
+    border-radius: var(--border-radius-md);
+}
+
+.requestItem {
+    background: var(--background);
+    border-radius: var(--border-radius-md);
+    border: 2px solid var(--offWhite);
+    padding: 1.25rem;
+    transition: var(--transition-fast);
+}
+
+.requestItem:hover {
+    border-color: var(--tertiaryLight);
+    box-shadow: var(--card-shadow);
+}
+
+.requestHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.requestInfo {
+    flex: 1;
+}
+
+.userInfo {
+    margin-bottom: 0.5rem;
+}
+
+.userInfo strong {
+    color: var(--darkforeground);
+    font-size: 1.0625rem;
+}
+
+.userEmail {
+    color: var(--gray);
+    font-size: 0.875rem;
+    margin-left: 0.5rem;
+}
+
+.requestDetails {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.requestType {
+    background: var(--tertiaryLighter);
+    color: var(--darkBlue);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.requestDate {
+    color: var(--gray);
+    font-size: 0.875rem;
+}
+
+.entityInfo {
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Status badges */
+.pendingBadge {
+    background: var(--backgroundBlue);
+    color: var(--darkBlue);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: 1px solid var(--lightBlue);
+    white-space: nowrap;
+}
+
+.approvedBadge {
+    background: var(--backgroundGreen);
+    color: var(--darkGreen);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: 1px solid var(--lightGreen);
+    white-space: nowrap;
+}
+
+.rejectedBadge {
+    background: rgba(255, 90, 115, 0.1);
+    color: var(--darkRed);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: 1px solid var(--lightRed);
+    white-space: nowrap;
+}
+
+.requestMessage,
+.adminNotesDisplay {
+    margin: 1rem 0;
+    padding: 1rem;
+    border-radius: var(--border-radius-sm);
+    border-left: 4px solid var(--tertiary);
+}
+
+.requestMessage {
+    background: var(--tertiaryLighter);
+}
+
+.adminNotesDisplay {
+    background: var(--primaryLighter);
+    border-left-color: var(--primary);
+}
+
+.requestMessage strong,
+.adminNotesDisplay strong {
+    color: var(--darkforeground);
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.requestMessage p,
+.adminNotesDisplay p {
+    margin: 0;
+    color: var(--foreground);
+    line-height: 1.5;
+}
+
+.processedInfo {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--offWhite);
+}
+
+.processedInfo small {
+    color: var(--gray);
+    font-size: 0.8125rem;
+}
+
+/* Admin actions */
+.adminActions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--offWhite);
+}
+
+.adminProcessForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: var(--white);
+    padding: 1rem;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid var(--offWhite);
+}
+
+.actionButtons,
+.quickActions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* Button styles */
+.actionButtons button,
+.quickActions button {
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--border-radius-sm);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+}
+
+.actionButtons button:disabled,
+.quickActions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.actionButtons button:focus,
+.quickActions button:focus {
+    outline: none;
+    box-shadow: var(--focus-ring) var(--focus-ring-color);
+}
+
+.approveButton,
+.quickApprove {
+    background: var(--quaternary);
+    color: var(--white);
+}
+
+.approveButton:hover:not(:disabled),
+.quickApprove:hover:not(:disabled) {
+    background: var(--darkGreen);
+    transform: translateY(-1px);
+    box-shadow: var(--hover-shadow);
+}
+
+.rejectButton,
+.quickReject {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.rejectButton:hover:not(:disabled),
+.quickReject:hover:not(:disabled) {
+    background: var(--darkRed);
+    transform: translateY(-1px);
+    box-shadow: var(--hover-shadow);
+}
+
+.detailedProcess {
+    background: var(--tertiary);
+    color: var(--white);
+}
+
+.detailedProcess:hover {
+    background: var(--darkBlue);
+    transform: translateY(-1px);
+    box-shadow: var(--hover-shadow);
+}
+
+.cancelButton {
+    background: var(--white);
+    color: var(--foreground);
+    border: 2px solid var(--secondaryBackground);
+}
+
+.cancelButton:hover:not(:disabled) {
+    background: var(--offWhite);
+    border-color: var(--gray);
+}
+
+/* Modal actions */
+.modalActions {
+    padding: 1rem 2rem;
+    border-top: 2px solid var(--offWhite);
+    background: var(--background);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.closeModalButton {
+    background: var(--gray);
+    color: var(--white);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-md);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.closeModalButton:hover {
+    background: var(--darkGray);
+    transform: translateY(-1px);
+}
+
+.closeModalButton:focus {
+    outline: none;
+    box-shadow: var(--focus-ring) var(--focus-ring-color);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .modal {
+        padding: 0.5rem;
+        align-items: flex-start;
+        padding-top: 2rem;
+    }
+
+    .modalContent {
+        max-height: 95vh;
+    }
+
+    .modalHeader {
+        padding: 1rem 1.5rem;
+    }
+
+    .newRequestSection,
+    .requestsSection {
+        padding: 1.5rem;
+    }
+
+    .requestTypeSection,
+    .individualRequestSection,
+    .messageSection {
+        padding: 1rem;
+    }
+
+    .requestHeader {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .requestDetails {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .actionButtons,
+    .quickActions {
+        flex-direction: column;
+    }
+
+    .actionButtons button,
+    .quickActions button {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .tabButtons {
+        flex-direction: column;
+    }
+
+    .tab,
+    .activeTab {
+        border-bottom: none;
+        border-left: 3px solid transparent;
+    }
+
+    .activeTab {
+        border-left-color: var(--tertiary);
+    }
+}

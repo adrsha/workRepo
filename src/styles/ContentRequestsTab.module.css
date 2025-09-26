@@ -1,0 +1,390 @@
+/* ContentRequestsTab.module.css */
+
+.contentRequestsTab {
+    padding: 2rem;
+    background: var(--background);
+    min-height: 100vh;
+    font-family: var(--font-sans);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--secondaryBackground);
+}
+
+.header h2 {
+    color: var(--darkforeground);
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.filterControls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.filterSelect {
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--secondaryBackground);
+    border-radius: var(--border-radius-md);
+    background: var(--white);
+    color: var(--foreground);
+    font-size: 1rem;
+    font-family: var(--font-sans);
+    transition: var(--transition-fast);
+    cursor: pointer;
+}
+
+.filterSelect:focus {
+    outline: none;
+    border-color: var(--tertiary);
+    box-shadow: var(--focus-ring) var(--focus-ring-color);
+}
+
+.filterSelect:hover {
+    border-color: var(--tertiary);
+}
+
+.loading {
+    text-align: center;
+    padding: 3rem;
+    color: var(--foreground);
+    font-size: 1.125rem;
+}
+
+.noRequests {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray);
+    font-size: 1.125rem;
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.requestsList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.requestCard {
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--card-shadow);
+    padding: 1.5rem;
+    transition: var(--transition-normal);
+    border: 1px solid transparent;
+}
+
+.requestCard:hover {
+    box-shadow: var(--hover-shadow);
+    border-color: var(--tertiaryLight);
+    transform: translateY(-2px);
+}
+
+.requestHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--offWhite);
+}
+
+.requestInfo h3 {
+    color: var(--darkforeground);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+}
+
+.requestInfo p {
+    color: var(--foreground);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.pendingBadge {
+    background: var(--backgroundBlue);
+    color: var(--darkBlue);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid var(--lightBlue);
+}
+
+.approvedBadge {
+    background: var(--backgroundGreen);
+    color: var(--darkGreen);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid var(--lightGreen);
+}
+
+.rejectedBadge {
+    background: rgba(255, 90, 115, 0.1);
+    color: var(--darkRed);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid var(--lightRed);
+}
+
+.requestDetails {
+    margin-bottom: 1rem;
+}
+
+.detailRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--foreground);
+    font-size: 0.9375rem;
+}
+
+.detailRow strong {
+    color: var(--darkforeground);
+    font-weight: 600;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.requestMessage {
+    background: var(--offWhite);
+    padding: 1rem;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--tertiary);
+}
+
+.requestMessage strong {
+    color: var(--darkforeground);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.requestMessage p {
+    color: var(--foreground);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.adminNotesDisplay {
+    background: var(--primaryLighter);
+    padding: 1rem;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--primary);
+}
+
+.adminNotesDisplay strong {
+    color: var(--darkRed);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.adminNotesDisplay p {
+    color: var(--darkforeground);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.actionSection {
+    border-top: 1px solid var(--offWhite);
+    padding-top: 1rem;
+}
+
+.processForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.adminNotesInput {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--secondaryBackground);
+    border-radius: var(--border-radius-md);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    color: var(--foreground);
+    background: var(--white);
+    resize: vertical;
+    min-height: 80px;
+    transition: var(--transition-fast);
+}
+
+.adminNotesInput:focus {
+    outline: none;
+    border-color: var(--tertiary);
+    box-shadow: var(--focus-ring) var(--focus-ring-color);
+}
+
+.processButtons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.quickActions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* Base button styles */
+.processButtons button,
+.quickActions button {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-md);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    border: 2px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+}
+
+.processButtons button:disabled,
+.quickActions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.processButtons button:focus,
+.quickActions button:focus {
+    outline: none;
+    box-shadow: var(--focus-ring) var(--focus-ring-color);
+}
+
+/* Approve buttons */
+.approveButton,
+.quickApprove {
+    background: var(--quaternary);
+    color: var(--white);
+    border-color: var(--quaternary);
+}
+
+.approveButton:hover:not(:disabled),
+.quickApprove:hover:not(:disabled) {
+    background: var(--darkGreen);
+    border-color: var(--darkGreen);
+    transform: translateY(-1px);
+    box-shadow: var(--hover-shadow);
+}
+
+/* Reject buttons */
+.rejectButton,
+.quickReject {
+    background: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
+}
+
+.rejectButton:hover:not(:disabled),
+.quickReject:hover:not(:disabled) {
+    background: var(--darkRed);
+    border-color: var(--darkRed);
+    transform: translateY(-1px);
+    box-shadow: var(--hover-shadow);
+}
+
+/* Process with notes button */
+.detailedProcess {
+    background: var(--tertiary);
+    color: var(--white);
+    border-color: var(--tertiary);
+}
+
+.detailedProcess:hover {
+    background: var(--darkBlue);
+    border-color: var(--darkBlue);
+    transform: translateY(-1px);
+    box-shadow: var(--hover-shadow);
+}
+
+/* Cancel button */
+.cancelButton {
+    background: var(--white);
+    color: var(--foreground);
+    border-color: var(--secondaryBackground);
+}
+
+.cancelButton:hover {
+    background: var(--offWhite);
+    border-color: var(--gray);
+    transform: translateY(-1px);
+}
+
+.unauthorized {
+    text-align: center;
+    padding: 3rem;
+    color: var(--darkRed);
+    font-size: 1.125rem;
+    font-weight: 600;
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--card-shadow);
+    border: 2px solid var(--lightRed);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .contentRequestsTab {
+        padding: 1rem;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .requestCard {
+        padding: 1rem;
+    }
+    
+    .requestHeader {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .processButtons,
+    .quickActions {
+        flex-direction: column;
+    }
+    
+    .processButtons button,
+    .quickActions button {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .detailRow {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .detailRow strong {
+        min-width: auto;
+    }
+}

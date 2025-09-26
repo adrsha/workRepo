@@ -221,11 +221,11 @@ export default function NoticeDetailsClient({ noticeId }) {
                 {firstNotice && (
                     <>
                         <NoticeHeader 
-                            title={firstNotice.notices_title} 
+                            title={firstNotice.notice_title} 
                         />
                         
                         <NoticeMetadata 
-                            publishedDate={firstNotice.notices_date_time}
+                            publishedDate={firstNotice.notice_date_time}
                         />
                     </>
                 )}

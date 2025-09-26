@@ -61,7 +61,6 @@ export async function GET(req) {
         `;
         // Execute the query
         const results = await executeQueryWithRetry({ query, values });
-        console.log("Final", results)
         return new Response(JSON.stringify(results), { status: 200 });
     } catch (error) {
         console.error('Database query failed:', error);

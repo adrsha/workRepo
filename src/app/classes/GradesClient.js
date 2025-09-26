@@ -409,7 +409,8 @@ export default function GradesClient() {
                         ))
                     ) : (
                         <div>
-                            <p>No classes available for this grade. Please select another grade.</p>
+                            <p>The new class for this group will start soon. Please check the website. Thank you.</p>
+                            <p>यस समूहको लागि नयाँ कक्षा चाँडै सुरु हुनेछ। कृपया वेबसाइट हेर्नुहोस्। धन्यवाद।</p>
                         </div>
                     )
                 ) : (

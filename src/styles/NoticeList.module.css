@@ -9,6 +9,7 @@
 
 /* Notice container wrapper */
 .noticeContainer {
+    background-color: var(--pureWhite);
     position: relative;
 }
 
@@ -21,7 +22,6 @@
 
 /* Individual notice card */
 .noticeCard {
-    background: white;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     padding: 1rem;
@@ -51,6 +51,7 @@
 .noticeHeader {
     display: flex;
     justify-content: space-between;
+    flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
 }
@@ -168,12 +169,6 @@
     
     .noticeTitle {
         font-size: 1rem;
-    }
-    
-    .noticeHeader {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
     }
     
     .noticeActions {

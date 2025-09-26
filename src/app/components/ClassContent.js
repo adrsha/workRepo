@@ -47,6 +47,12 @@ const AddContentSection = ({ isTeacher, currentUser, formControls, contentHandle
                     onSaveText={() => contentHandlers.handleAddTextContent(formControls.contentForm)}
                     onFileSave={contentHandlers.handleFileSave}
                     onCancel={formControls.resetForm}
+                    title="Add Class Content"
+                    saveButtonText="Save Content"
+                    showTitle={true}
+                    titleRequired={false}
+                    showAccessControls={true}
+                    limitedAccessControls={true}
                 />
             ) : (
                 <div className={styles.actionButtons}>

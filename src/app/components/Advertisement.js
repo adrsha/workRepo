@@ -1,5 +1,3 @@
-// Enhanced Advertisement Component with styled sharing UI
-
 'use client';
 import { useState, useEffect } from 'react';
 import styles from '@/styles/Advertisements.module.css';
@@ -262,12 +260,12 @@ const ShareModal = ({ isOpen, onClose, advertisement }) => {
 
         if (isOpen) {
             document.addEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'hidden'; // Prevent background scroll
+            // document.body.style.overflow = 'hidden'; // Prevent background scroll
         }
 
         return () => {
             document.removeEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'unset';
+            // document.body.style.overflow = 'unset';
         };
     }, [isOpen, onClose]);
 
@@ -659,18 +657,14 @@ const AdvertisementCard = ({
                         </p>
                     )}
 
-                    <div className={styles.advertisementActions}>
-                        <div className={styles.advertisementUrl}>
-                            View Details ( पूरा विवरण हेर्नुहोस् )  →
-                        </div>
-
-                        <button
-                            className={`${styles.shareButton} share-button`}
-                            onClick={handleShare}
-                            title="Share this advertisement"
-                        >
-                        </button>
+                    <div className={styles.advertisementUrl}>
+                        View Details ( पूरा विवरण हेर्नुहोस् )  →
                     </div>
+                    <button
+                        className={`${styles.mainShareButton} share-button`}
+                        onClick={handleShare}
+                        title="Share this advertisement"
+                    > </button>
                 </div>
 
                 {isAdmin && (
@@ -719,7 +713,15 @@ const AdvertisementManager = ({ isAdmin = false }) => {
             }
 
             const data = await response.json();
-            setAdvertisements(data);
+            console.log("ADDS", data.sort((a, b) => {
+                console.log(a.id, b.id, a.id <= b.id);
+                return (a.id - b.id)
+            }))
+
+            setAdvertisements(data.sort((a, b) => {
+                return (a.id <= b.id)
+            })
+            );
         } catch (err) {
             setError(err.message);
             console.error('Error fetching advertisements:', err);

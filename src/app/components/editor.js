@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { UserSelector } from './UserSelector'; // Import the new enhanced component
 import FileUpload from './FileUpload';
-import Input from "./Input";
+import Input from './Input';
 import styles from "../../styles/ClassContent.module.css";
-import { parseMarkdown, MarkdownContent } from '../../utils/markdown';
+import { MarkdownContent } from '../../utils/markdown';
 
 const UploadSuccess = ({ file, onSave, isUploading }) => (
     <div className={styles.uploadSuccess}>
@@ -17,14 +18,11 @@ const UploadSuccess = ({ file, onSave, isUploading }) => (
     </div>
 );
 
-export const FileUploadSection = ({ parentId, parentType, onFileSave, isPublic }) => {
+export const FileUploadSection = ({ parentId, parentType, onFileSave, isPublic, price = 0, authorizedUsers = null }) => {
     const [uploadedFile, setUploadedFile] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
 
     const handleSave = async () => {
-        console.log('handleSave called, uploadedFile:', uploadedFile);
-        console.log(isPublic);
-
         if (!uploadedFile) {
             console.log('No uploaded file found');
             return;
@@ -32,8 +30,7 @@ export const FileUploadSection = ({ parentId, parentType, onFileSave, isPublic }
 
         setIsUploading(true);
         try {
-            console.log('Calling onFileSave with:', uploadedFile, isPublic);
-            await onFileSave(uploadedFile, isPublic);
+            await onFileSave(uploadedFile, isPublic, authorizedUsers, price);
             setUploadedFile(null);
         } catch (error) {
             console.error('Error saving file:', error);
@@ -109,7 +106,7 @@ const MarkdownPreview = ({ content }) => (
     </div>
 );
 
-// Text insertion utility functions
+
 const findLineStart = (content, position) => {
     return content.lastIndexOf('\n', position - 1) + 1;
 };
@@ -324,6 +321,233 @@ const VisibilityToggle = ({ is_public, onToggle }) => (
     </div>
 );
 
+const ContentTitleSection = ({ contentForm, onUpdateForm, required = false }) => {
+    return (
+        <div className={styles.contentTitleSection}>
+            <label className={styles.titleLabel}>
+                <strong>Content Title{required ? ' *' : ''}:</strong>
+                <input
+                    type="text"
+                    value={contentForm.content_title || ''}
+                    onChange={(e) => onUpdateForm('content_title', e.target.value)}
+                    placeholder="Enter a descriptive title for this content"
+                    className={styles.titleField}
+                    required={required}
+                />
+            </label>
+            {required && !contentForm.content_title?.trim() && (
+                <p className={styles.titleError}>Title is required</p>
+            )}
+        </div>
+    );
+};
+
+const ContentAccessSection = ({ 
+    contentForm, 
+    onUpdateForm, 
+    isAdmin, 
+    showTitle = false, 
+    titleRequired = false,
+    entityType,
+    entityId,
+    showAccessControls = true,
+    limitedAccessControls = false
+}) => {
+    const [selectedUsers, setSelectedUsers] = useState([]);
+    const [viewSelectedUsers, setViewSelectedUsers] = useState(false);
+
+    // Initialize selected users from contentForm
+    useEffect(() => {
+        if (contentForm.authorized_users && Array.isArray(contentForm.authorized_users)) {
+            setSelectedUsers(contentForm.authorized_users);
+        }
+    }, [contentForm.authorized_users]);
+
+    // Handle access type changes
+    const handleAccessTypeChange = (e) => {
+        const accessType = e.target.value;
+        
+        switch (accessType) {
+            case 'public':
+                onUpdateForm('is_public', true);
+                onUpdateForm('authorized_users', null);
+                onUpdateForm('price', 0);
+                setSelectedUsers([]);
+                break;
+                
+            case 'private':
+                onUpdateForm('is_public', false);
+                onUpdateForm('authorized_users', null);
+                onUpdateForm('price', 0);
+                setSelectedUsers([]);
+                break;
+                
+            case 'paid':
+                onUpdateForm('is_public', false);
+                onUpdateForm('authorized_users', null);
+                onUpdateForm('price', contentForm.price || 1.00);
+                setSelectedUsers([]);
+                break;
+                
+            case 'restricted':
+                onUpdateForm('is_public', false);
+                setViewSelectedUsers(true)
+                onUpdateForm('authorized_users', selectedUsers);
+                onUpdateForm('price', 0);
+                break;
+                
+            default:
+                break;
+        }
+    };
+
+    // Determine current access type based on form state
+    const getAccessType = () => {
+        if (contentForm.is_public) return 'public';
+        if (parseFloat(contentForm.price || 0) > 0) return 'paid';
+        if (selectedUsers.length > 0 || (contentForm.authorized_users && contentForm.authorized_users.length > 0)) {
+            return 'restricted';
+        }
+        return 'private';
+    };
+
+    // Handle price changes
+    const handlePriceChange = (e) => {
+        const price = parseFloat(e.target.value) || 0;
+        onUpdateForm('price', price);
+    };
+
+    // Handle user selection changes
+    const handleUserSelectionChange = (users) => {
+        setSelectedUsers(users);
+        onUpdateForm('authorized_users', users);
+    };
+
+    // Access type configurations for easier maintenance
+    const accessTypeOptions = [
+        { value: 'public',     label: 'Public (Free for everyone)' , important: true},
+        { value: 'private',    label: 'Private (Only for students)', important: true},
+        { value: 'paid',       label: 'Paid Content'               , important: false},
+        { value: 'restricted', label: 'Restricted (Specific users)', important: false}
+    ];
+
+    const accessStatusMessages = {
+        public     : { text: 'Everyone can access this content for free',                     className: 'statusPublic' },
+        private    : { text: 'Only admins can access this content',                         className: 'statusPrivate' },
+        paid       : { text: `Users need to pay Rs. ${(contentForm.price || 0).toFixed(2)} to access`, className: 'statusPaid' },
+        restricted : { text: `${selectedUsers.length} specific user(s) can access this content for free`, className: 'statusRestricted' }
+    };
+
+    const currentAccessType = getAccessType();
+
+    return (
+        <div className={styles.contentAccessSection}>
+            {/* Title Section */}
+            {showTitle && (
+                <ContentTitleSection 
+                    contentForm={contentForm} 
+                    onUpdateForm={onUpdateForm}
+                    required={titleRequired}
+                />
+            )}
+
+            {/* Access Controls */}
+            {showAccessControls && isAdmin && (
+                <>
+                    <h4 className={styles.accessSectionTitle}>Content Access Settings</h4>
+                    
+                    {/* Access Type Selector */}
+                    <div className={styles.accessTypeSelector}>
+                        <label className={styles.accessLabel}>
+                            <strong>Access Type:</strong>
+                            <select 
+                                value={currentAccessType} 
+                                onChange={handleAccessTypeChange}
+                                className={styles.accessSelect}
+                            >
+                                {accessTypeOptions.map(option => {
+                                    if (limitedAccessControls){
+                                        if (option.important) {
+                                            return <option key={option.value} value={option.value}>{option.label}</option>
+                                        }
+                                    } else {
+                                        return <option key={option.value} value={option.value}>{option.label}</option>
+                                    }
+                                })}
+                            </select>
+                        </label>
+                    </div>
+
+                    {/* Price Input for Paid Content */}
+                    {currentAccessType === 'paid' && (
+                        <div className={styles.priceInput}>
+                            <label className={styles.priceLabel}>
+                                <strong>Price (Rs.):</strong>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={contentForm.price || ''}
+                                    onChange={handlePriceChange}
+                                    placeholder="0.00"
+                                    className={styles.priceField}
+                                />
+                            </label>
+                            <p className={styles.priceHelp}>
+                                Set a price for users to purchase access to this content
+                            </p>
+                        </div>
+                    )}
+
+                    {/* User Selector for Restricted Access */}
+                    {viewSelectedUsers && entityType && entityId && (
+                        <div className={styles.restrictedUsersInput}>
+                            <label className={styles.usersLabel}>
+                                <strong>Authorized Users:</strong>
+                            </label>
+                            <UserSelector
+                                selectedUsers={selectedUsers}
+                                onSelectionChange={handleUserSelectionChange}
+                                entityType={entityType}
+                                entityId={entityId}
+                                showSelectedPreview={true}
+                                maxHeight="250px"
+                                placeholder="Search users..."
+                                className={styles.userSelectorInEditor}
+                            />
+                            <p className={styles.usersHelp}>
+                                Select users who can access this content for free
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Access Status Display */}
+                    <div className={styles.accessStatus}>
+                        {accessStatusMessages[currentAccessType] && (
+                            <span className={styles[accessStatusMessages[currentAccessType].className]}>
+                                {currentAccessType === 'public' && '✅ '}
+                                {currentAccessType === 'private' && '🔒 '}
+                                {currentAccessType === 'paid' && '💰 '}
+                                {currentAccessType === 'restricted' && '👥 '}
+                                {accessStatusMessages[currentAccessType].text}
+                            </span>
+                        )}
+                    </div>
+                </>
+            )}
+
+            {/* Price Display for Non-Admin Users */}
+            {!isAdmin && parseFloat(contentForm.price || 0) > 0 && (
+                <div className={styles.priceDisplay}>
+                    <p><strong>Price:</strong> Rs. {parseFloat(contentForm.price).toFixed(2)}</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default ContentAccessSection;
+
 const EditorHeader = ({ onCancel, title = "Add Content" }) => (
     <div className={styles.editorHeader}>
         <h4>{title}</h4>
@@ -333,7 +557,7 @@ const EditorHeader = ({ onCancel, title = "Add Content" }) => (
     </div>
 );
 
-// Full ContentEditor with type selection
+
 export const ContentEditor = ({
     parentId,
     parentType,
@@ -344,42 +568,89 @@ export const ContentEditor = ({
     onFileSave,
     onCancel,
     title,
-    saveButtonText
-}) => (
-    <div className={styles.contentEditor}>
-        <EditorHeader onCancel={onCancel} title={title} />
+    saveButtonText,
+    showTitle = false,
+    titleRequired = false,
+    showAccessControls = true, 
+    limitedAccessControls = false 
+}) => {
+    const handleUpdateForm = (field, value) => {
+        if (typeof onUpdateForm === 'function') {
+            onUpdateForm(field, value);
+        } else {
+            // Fallback for object-style updates
+            onUpdateForm({
+                ...contentForm,
+                [field]: value
+            });
+        }
+    };
 
-        <ContentTypeSelector
-            selectedType={contentForm.content_type}
-            onSelectType={(type) => onUpdateForm('content_type', type)}
-        />
+    const validateForm = () => {
+        if (titleRequired && !contentForm.content_title?.trim()) {
+            return false;
+        }
+        if (contentForm.content_type === 'text' && !contentForm.content_data?.trim()) {
+            return false;
+        }
+        return true;
+    };
 
-        {isAdmin && (
-            <VisibilityToggle
-                is_public={contentForm.is_public}
-                onToggle={(is_public) => onUpdateForm('is_public', is_public)}
+    const handleSaveText = () => {
+        if (!validateForm()) {
+            return; // Form validation will show error messages
+        }
+        onSaveText();
+    };
+
+    const handleFileSaveWithPermissions = (file, isPublic, authorizedUsers, price) => {
+        // Pass the selected users to the file save handler
+        return onFileSave(file, isPublic, authorizedUsers, price);
+    };
+
+    return (
+        <div className={styles.contentEditor}>
+            <EditorHeader onCancel={onCancel} title={title} />
+
+            <ContentTypeSelector
+                selectedType={contentForm.content_type}
+                onSelectType={(type) => handleUpdateForm('content_type', type)}
             />
-        )}
 
-        {contentForm.content_type === 'text' ? (
-            <EnhancedTextEditor
-                content={contentForm.content_data}
-                onChange={(data) => onUpdateForm('content_data', data)}
-                onSave={onSaveText}
-                saveButtonText={saveButtonText}
+            <ContentAccessSection
+                contentForm={contentForm}
+                onUpdateForm={handleUpdateForm}
+                isAdmin={isAdmin}
+                showTitle={showTitle}
+                titleRequired={titleRequired}
+                entityType={parentType}
+                entityId={parentId}
+                showAccessControls={showAccessControls}
+                limitedAccessControls={limitedAccessControls}
             />
-        ) : (
-            <FileUploadSection
-                parentId={parentId}
-                parentType={parentType}
-                onFileSave={onFileSave}
-                isPublic={contentForm.is_public}
-            />
-        )}
-    </div>
-);
 
-// Text-only editor (no file upload, no type selection)
+            {contentForm.content_type === 'text' ? (
+                <EnhancedTextEditor
+                    content={contentForm.content_data}
+                    onChange={(data) => handleUpdateForm('content_data', data)}
+                    onSave={handleSaveText}
+                    saveButtonText={saveButtonText}
+                    disabled={titleRequired && !contentForm.content_title?.trim()}
+                />
+            ) : (
+                <FileUploadSection
+                    parentId={parentId}
+                    parentType={parentType}
+                    onFileSave={handleFileSaveWithPermissions}
+                    isPublic={contentForm.is_public}
+                    price={contentForm.price || 0}
+                    authorizedUsers={contentForm.authorized_users}
+                />
+            )}
+        </div>
+    );
+};
+
 export const TextOnlyEditor = ({
     content,
     onChange,
@@ -390,23 +661,54 @@ export const TextOnlyEditor = ({
     showVisibilityToggle = false,
     is_public,
     onToggleVisibility,
-    isAdmin = false
-}) => (
-    <div className={styles.contentEditor}>
-        <EditorHeader onCancel={onCancel} title={title} />
+    isAdmin = false,
+    contentForm,
+    onUpdateForm,
+    showTitle = false,
+    titleRequired = false,
+    entityType,
+    entityId,
+    showAccessControls = true
+}) => {
+    const validateAndSave = () => {
+        if (titleRequired && contentForm && !contentForm.content_title?.trim()) {
+            return; // Validation error will be shown
+        }
+        onSave();
+    };
 
-        {showVisibilityToggle && isAdmin && (
-            <VisibilityToggle
-                is_public={is_public}
-                onToggle={onToggleVisibility}
+    return (
+        <div className={styles.contentEditor}>
+            <EditorHeader onCancel={onCancel} title={title} />
+
+            {(showTitle && contentForm && onUpdateForm) && (
+                <ContentAccessSection
+                    contentForm={contentForm}
+                    onUpdateForm={onUpdateForm}
+                    isAdmin={isAdmin}
+                    showTitle={showTitle}
+                    titleRequired={titleRequired}
+                    entityType={entityType}
+                    entityId={entityId}
+                    showAccessControls={showAccessControls}
+                />
+            )}
+
+            {showVisibilityToggle && isAdmin && !showTitle && (
+                <VisibilityToggle
+                    is_public={is_public}
+                    onToggle={onToggleVisibility}
+                />
+            )}
+
+            <EnhancedTextEditor
+                content={content}
+                onChange={onChange}
+                onSave={contentForm && onUpdateForm ? validateAndSave : onSave}
+                saveButtonText={saveButtonText}
+                disabled={titleRequired && contentForm && !contentForm.content_title?.trim()}
             />
-        )}
+        </div>
+    );
+};
 
-        <EnhancedTextEditor
-            content={content}
-            onChange={onChange}
-            onSave={onSave}
-            saveButtonText={saveButtonText}
-        />
-    </div>
-);

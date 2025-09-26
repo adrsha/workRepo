@@ -101,13 +101,6 @@ export const TableRow = ({
                     </td>
                 )}
 
-                {/* Only render visible columns */}
-                {columns.map(col => (
-                    <td key={`${index}-${col}`}>
-                        {renderCellContent(col)}
-                    </td>
-                ))}
-
                 {additionalColumns.map(col => (
                     <td key={`${index}-${col.key}`}>
                         {/* Pass full item data and helper functions to additional columns */}
@@ -119,6 +112,14 @@ export const TableRow = ({
                         })}
                     </td>
                 ))}
+                
+                {/* Only render visible columns */}
+                {columns.map(col => (
+                    <td key={`${index}-${col}`}>
+                        {renderCellContent(col)}
+                    </td>
+                ))}
+
 
                 {allowDelete && (
                     <td>

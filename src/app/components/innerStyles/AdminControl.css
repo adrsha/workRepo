@@ -1,6 +1,6 @@
 /* Admin Control Styles */
 .profile-link-btn {
-    background: var(--background);
+    background: var(--pureWhite);
     border: 1px solid var(--offWhite);
     color: var(--foreground);
     padding: 1rem;
@@ -123,10 +123,10 @@
 }
 
 .approve-btn,
-.reject-btn,
+.deny-btn,
 .classDetailsButton {
     background-color: var(--secondary);
-    color: var(--white);
+    color: var(--background);
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 5px;

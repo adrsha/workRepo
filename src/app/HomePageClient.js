@@ -8,6 +8,7 @@ import Carousel from './components/Carousel/Carousel';
 import DownloadContent from "./components/DownloadContent";
 import Advertisement from './components/Advertisement';
 import NoticesSection from './components/Notices';
+import Loading from './components/Loading';
 
 export default function HomePageClient({ featureSidesData, featuresData }) {
     const [animatedFeatures, setAnimatedFeatures] = useState({});
@@ -84,11 +85,7 @@ export default function HomePageClient({ featureSidesData, featuresData }) {
 
     if (status === 'loading') {
         return (
-            <div className={styles.container}>
-                <div className={styles.loadingState}>
-                    <p>Loading...</p>
-                </div>
-            </div>
+            <Loading/>
         );
     }
 
@@ -200,30 +197,25 @@ export default function HomePageClient({ featureSidesData, featuresData }) {
             </section>
 
             <section className={styles.mainContent}>
-                <section>
-                    <NoticesSection />
-                    <section
-                        ref={featuresRef}
-                        aria-label="Featured services"
-                    >
-                        <div className={`${styles.features} ${animatedFeatures.visible ? styles.featuresVisible : ''}`}>
-                            {featuresData.map(renderMainFeature)}
-                        </div>
-                    </section>
-
-                    <div
-                        className={`${styles.contentSection} ${animatedFeatures.noticesVisible ? styles.noticesVisible : ''}`}
-                        ref={noticesRef}
-                    >
-                        <div></div>
-                        <DownloadContent />
+                <NoticesSection />
+                    <div className={`${styles.features} ${animatedFeatures.visible ? styles.featuresVisible : ''}`}>
+                        {featuresData.map(renderMainFeature)}
                     </div>
 
-                </section>
-                <aside className={styles.adsWrapper}>
-                    <Advertisement isAdmin={isAdmin} />
-                </aside>
+                <div
+                    className={`${styles.contentSection} ${animatedFeatures.noticesVisible ? styles.noticesVisible : ''}`}
+                    ref={noticesRef}
+                >
+                </div>
+ 
+                <Advertisement isAdmin={isAdmin} />
+
+                <div className={styles.downloadContent}>
+                    <DownloadContent />
+                </div>
+
             </section>
+
             {renderFullscreenOverlay()}
         </div>
     );

@@ -61,7 +61,8 @@ const ErrorState = ({ error }) => (
                     border: '1px solid #ddd',
                     borderRadius: '4px',
                     cursor: 'pointer',
-                    marginTop: '10px'
+                    marginTop: '10px',
+                    fontSize: '0.9rem'
                 }}
             >
                 🔄 Refresh
@@ -83,54 +84,76 @@ const EmptyState = () => (
 );
 
 // Component for content item
-const ContentItem = ({ item }) => (
-    <li key={item.content_id} className={styles.contentItem}>
-        <div className={styles.contentItemInner}>
+const ContentItem = ({ item }) => {
+    const [isMobile, setIsMobile] = useState(false);
 
-            <div className={styles.contentIcon}>
-                {item.isFile ? getFileIcon(item.fileType) : '📝'}
-            </div>
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+        
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
-            <div className={styles.contentDetails}>
-                <h3 className={styles.contentTitle}>
-                    {item.isFile ? item.originalName : 'Text Note'}
-                </h3>
-                <div className={styles.contentMeta}>
-                    <span className={styles.contentDate}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-8h4v2h-6V7h2v5z" fill="currentColor" />
-                        </svg>
-                        {formatDate(item.created_at)}
-                    </span>
-                    {item.isFile && (
-                        <span className={styles.contentSize}>
-                            {formatFileSize(item.fileSize)}
+    return (
+        <li className={styles.contentItem}>
+            <div className={styles.contentItemInner}>
+                {!isMobile && (
+                    <div className={styles.contentIcon}>
+                        {item.isFile ? getFileIcon(item.fileType) : '📝'}
+                    </div>
+                )}
+
+                {!item.isFile && item.text && (
+                    <div className={styles.contentTextPreview}>
+                        <MarkdownContent 
+                            content={
+                                typeof item.text === 'string' 
+                                    ? JSON.parse(item.text).text 
+                                    : item.text.text || ''
+                            } 
+                        />
+                    </div>
+                )}
+                    <h3 className={styles.contentTitle}>
+                        {item.isFile ? item.originalName : item.title}
+                    </h3>
+                <div className={styles.contentDetails}>
+                    <div className={styles.contentMeta}>
+                        <span className={styles.contentDate}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-8h4v2h-6V7h2v5z" fill="currentColor" />
+                            </svg>
+                            {formatDate(item.created_at)}
                         </span>
-                    )}
+                        {item.isFile && (
+                            <span className={styles.contentSize}>
+                                {formatFileSize(item.fileSize)}
+                            </span>
+                        )}
+                    </div>
                 </div>
+
+                {item.isFile && item.url && (
+                    <a
+                        href={item.url}
+                        download
+                        className={styles.downloadLink}
+                        title="Download file"
+                        aria-label={`Download ${item.originalName}`}
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13 10h5l-6 6-6-6h5V3h2v7zm-9 9h16v2H4v-2z" fill="currentColor" />
+                        </svg>
+                    </a>
+                )}
+
             </div>
-
-            {!item.isFile && item.text && (
-                <div className={styles.contentTextPreview}>
-                    <MarkdownContent content={JSON.parse(item.text).text} />
-                </div>
-            )}
-            {item.isFile && item.url && (
-                <a
-                    href={item.url}
-                    download
-                    className={styles.downloadLink}
-                    title="Download file"
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13 10h5l-6 6-6-6h5V3h2v7zm-9 9h16v2H4v-2z" fill="currentColor" />
-                    </svg>
-                </a>
-            )}
-        </div>
-
-    </li>
-);
+        </li>
+    );
+};
 
 // Custom hook for fetching content
 const usePublicContent = () => {

@@ -42,6 +42,12 @@ const PartnerCard = ({ partner, isAdmin, onEdit, onDelete }) => {
             <div className={styles.partnerContent}>
                 <h3 className={styles.partnerName}>{partner.partner_name}</h3>
                 
+                {partner.partner_category && (
+                    <span className={styles.partnerCategory}>
+                        Category: {partner.partner_category}
+                    </span>
+                )}
+                
                 {partner.partner_description && (
                     <p className={styles.partnerDescription}>
                         {partner.partner_description}
@@ -79,6 +85,25 @@ const PartnerCard = ({ partner, isAdmin, onEdit, onDelete }) => {
     );
 };
 
+const CategorySection = ({ category, partners, isAdmin, onEdit, onDelete }) => {
+    return (
+        <div className={styles.categorySection}>
+            <h2 className={styles.categoryTitle}>{category}</h2>
+            <div className={styles.partnersGrid}>
+                {partners.map((partner) => (
+                    <PartnerCard
+                        key={partner.partner_id}
+                        partner={partner}
+                        isAdmin={isAdmin}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const PartnersList = () => {
     const { data: session }                     = useSession();
     const { error, success, showSuccess, showError, clearNotifications } = useNotifications();
@@ -86,8 +111,30 @@ const PartnersList = () => {
     
     const [showForm, setShowForm]               = useState(false);
     const [editingPartner, setEditingPartner]   = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [viewMode, setViewMode]               = useState('categorized'); // 'categorized' or 'list'
     
     const isAdmin = session?.user?.level >= 1;
+
+    // Group partners by category
+    const categorizedPartners = partners.reduce((acc, partner) => {
+        const category = partner.partner_category || 'Uncategorized';
+        if (!acc[category]) {
+            acc[category] = [];
+        }
+        acc[category].push(partner);
+        return acc;
+    }, {});
+
+    // Get all unique categories
+    const allCategories = Object.keys(categorizedPartners).sort();
+    
+    // Get filtered partners based on selected category
+    const filteredPartners = selectedCategory === 'all' 
+        ? partners 
+        : partners.filter(partner => 
+            (partner.partner_category || 'Uncategorized') === selectedCategory
+          );
 
     useEffect(() => {
         if (success) {
@@ -139,14 +186,48 @@ const PartnersList = () => {
             <div className={styles.partnersHeader}>
                 <h1 className={styles.partnersTitle}>Our Partners & Sponsors</h1>
                 
-                {isAdmin && (
-                    <button
-                        className={styles.addButton}
-                        onClick={handleAddPartner}
-                    >
-                        Add Partner
-                    </button>
-                )}
+                <div className={styles.headerControls}>
+                    {/* View Mode Toggle */}
+                    <div className={styles.viewModeToggle}>
+                        <button
+                            className={`${styles.toggleButton} ${viewMode === 'categorized' ? styles.active : ''}`}
+                            onClick={() => setViewMode('categorized')}
+                        >
+                            By Category
+                        </button>
+                        <button
+                            className={`${styles.toggleButton} ${viewMode === 'list' ? styles.active : ''}`}
+                            onClick={() => setViewMode('list')}
+                        >
+                            List View
+                        </button>
+                    </div>
+
+                    {/* Category Filter (only shown in list view) */}
+                    {viewMode === 'list' && allCategories.length > 0 && (
+                        <select
+                            className={styles.categoryFilter}
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                        >
+                            <option value="all">All Categories</option>
+                            {allCategories.map(category => (
+                                <option key={category} value={category}>
+                                    {category} ({categorizedPartners[category].length})
+                                </option>
+                            ))}
+                        </select>
+                    )}
+
+                    {isAdmin && (
+                        <button
+                            className={styles.addButton}
+                            onClick={handleAddPartner}
+                        >
+                            Add Partner
+                        </button>
+                    )}
+                </div>
             </div>
 
             {partners.length === 0 ? (
@@ -162,17 +243,43 @@ const PartnersList = () => {
                     )}
                 </div>
             ) : (
-                <div className={styles.partnersGrid}>
-                    {partners.map((partner) => (
-                        <PartnerCard
-                            key={partner.partner_id}
-                            partner={partner}
-                            isAdmin={isAdmin}
-                            onEdit={handleEditPartner}
-                            onDelete={handleDeletePartner}
-                        />
-                    ))}
-                </div>
+                <>
+                    {viewMode === 'categorized' ? (
+                        // Categorized view - show partners grouped by category
+                        <div className={styles.categorizedView}>
+                            {allCategories.map(category => (
+                                <CategorySection
+                                    key={category}
+                                    category={category}
+                                    partners={categorizedPartners[category]}
+                                    isAdmin={isAdmin}
+                                    onEdit={handleEditPartner}
+                                    onDelete={handleDeletePartner}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        // List view - show filtered partners in a grid
+                        <div className={styles.listView}>
+                            {selectedCategory !== 'all' && (
+                                <h2 className={styles.filterTitle}>
+                                    {selectedCategory} ({filteredPartners.length})
+                                </h2>
+                            )}
+                            <div className={styles.partnersGrid}>
+                                {filteredPartners.map((partner) => (
+                                    <PartnerCard
+                                        key={partner.partner_id}
+                                        partner={partner}
+                                        isAdmin={isAdmin}
+                                        onEdit={handleEditPartner}
+                                        onDelete={handleDeletePartner}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
 
             {showForm && (

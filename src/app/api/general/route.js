@@ -16,7 +16,6 @@ export async function GET(req) {
         await validateAccess(tableName, session);
         
         const results = await fetchData(tableName, session?.user, filters);
-        console.log(results)
         return createResponse(results);
 
     } catch (error) {

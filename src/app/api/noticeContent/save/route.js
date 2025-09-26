@@ -30,7 +30,7 @@ const db = {
         
         // Link to notice
         await executeQueryWithRetry({
-            query: 'INSERT INTO notices_content (notices_id, content_id) VALUES (?, ?)',
+            query: 'INSERT INTO notices_content (notice_id, content_id) VALUES (?, ?)',
             values: [noticeId, contentId]
         });
         
@@ -43,7 +43,7 @@ const db = {
                 SELECT c.content_id, c.content_type, c.content_data, c.created_at, c.is_public
                 FROM content c
                 JOIN notices_content nc ON c.content_id = nc.content_id
-                WHERE c.content_id = ? AND nc.notices_id = ?
+                WHERE c.content_id = ? AND nc.notice_id = ?
             `,
             values: [contentId, noticeId]
         });

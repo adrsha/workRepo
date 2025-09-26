@@ -18,6 +18,7 @@ export const usePartners = () => {
             }
             
             const data = await response.json();
+            console.log("PARTNERs", data);
             setPartners(data);
         } catch (err) {
             setError(err.message);
@@ -45,6 +46,7 @@ export const usePartners = () => {
             }
             
             const newPartner = await response.json();
+            console.log("PARTNER", newPartner);
             setPartners(prev => [newPartner, ...prev]);
             return newPartner;
         } catch (err) {

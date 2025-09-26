@@ -50,7 +50,6 @@ export async function GET(req) {
             query: query,
             values: values,
         });
-        console.log(results)
 
         return new Response(JSON.stringify(results), { status: 200 });
     } catch (error) {

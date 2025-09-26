@@ -12,17 +12,17 @@ export async function GET(request, { params }) {
         const noticeContent = await executeQueryWithRetry({
             query: `
                 SELECT 
-                    n.notices_id,
-                    n.notices_title,
-                    n.notices_date_time,
+                    n.notice_id,
+                    n.notice_title,
+                    n.notice_date_time,
                     c.content_id,
                     c.content_type,
                     c.content_data,
                     c.created_at
                 FROM notices n
-                LEFT JOIN notices_content nc ON n.notices_id = nc.notices_id
+                LEFT JOIN notices_content nc ON n.notice_id = nc.notice_id
                 LEFT JOIN content c ON nc.content_id = c.content_id
-                WHERE n.notices_id = ?
+                WHERE n.notice_id = ?
                 ORDER BY c.created_at DESC
             `,
             values: [noticeId],
@@ -77,7 +77,7 @@ export async function POST(request, { params }) {
         // Then, create the connection in notices_content table
         await executeQueryWithRetry({
             query: `
-                INSERT INTO notices_content (notices_id, content_id)
+                INSERT INTO notices_content (notice_id, content_id)
                 VALUES (?, ?)
             `,
             values: [noticeId, newContentId]
@@ -87,15 +87,15 @@ export async function POST(request, { params }) {
         const newContent = await executeQueryWithRetry({
             query: `
                 SELECT 
-                    n.notices_id,
-                    n.notices_title,
-                    n.notices_date_time,
+                    n.notice_id,
+                    n.notice_title,
+                    n.notice_date_time,
                     c.content_id,
                     c.content_type,
                     c.content_data,
                     c.created_at
                 FROM notices n
-                JOIN notices_content nc ON n.notices_id = nc.notices_id
+                JOIN notices_content nc ON n.notice_id = nc.notice_id
                 JOIN content c ON nc.content_id = c.content_id
                 WHERE c.content_id = ?
             `,
@@ -141,7 +141,7 @@ export async function DELETE(request, { params }) {
                 SELECT c.content_id
                 FROM content c
                 JOIN notices_content nc ON c.content_id = nc.content_id
-                WHERE c.content_id = ? AND nc.notices_id = ?
+                WHERE c.content_id = ? AND nc.notice_id = ?
             `,
             values: [contentId, noticeId]
         });
@@ -152,7 +152,7 @@ export async function DELETE(request, { params }) {
 
         // Delete the connection first
         await executeQueryWithRetry({
-            query: `DELETE FROM notices_content WHERE content_id = ? AND notices_id = ?`,
+            query: `DELETE FROM notices_content WHERE content_id = ? AND notice_id = ?`,
             values: [contentId, noticeId]
         });
 

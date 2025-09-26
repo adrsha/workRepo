@@ -120,28 +120,28 @@ export async function POST(request) {
         const durationMs = endDateTime.getTime() - startDateTime.getTime();
         const durationHours = Math.round((durationMs / (1000 * 60 * 60)) * 100) / 100; // Round to 2 decimal places
 
-        console.log({
-            name: className || `Class ${classId} Meeting`,
-            room_type: 'webinar',
-            permanent_room: false, // Use boolean as per docs
-            starts_at: startDateTime.toISOString(),
-            duration: durationHours,
-            timezone: 'UTC',
-            access_type: 1,
-            lobby_enabled: true, // Use boolean as per docs
-            lobby_description: `Welcome to ${className || 'Class'} meeting! Please wait for the instructor to start the session.`,
-            settings: {
-                show_on_personal_page: false,
-                thank_you_emails_enabled: true,
-                connection_tester_enabled: true,
-                phonegateway_enabled: false,
-                recorder_autostart_enabled: false,
-                room_invite_button_enabled: true,
-                social_media_sharing_enabled: false,
-                connection_status_enabled: true,
-                encryption_enabled: true
-            }
-        })
+        // console.log({
+        //     name: className || `Class ${classId} Meeting`,
+        //     room_type: 'webinar',
+        //     permanent_room: false, // Use boolean as per docs
+        //     starts_at: startDateTime.toISOString(),
+        //     duration: durationHours,
+        //     timezone: 'UTC',
+        //     access_type: 1,
+        //     lobby_enabled: true, // Use boolean as per docs
+        //     lobby_description: `Welcome to ${className || 'Class'} meeting! Please wait for the instructor to start the session.`,
+        //     settings: {
+        //         show_on_personal_page: false,
+        //         thank_you_emails_enabled: true,
+        //         connection_tester_enabled: true,
+        //         phonegateway_enabled: false,
+        //         recorder_autostart_enabled: false,
+        //         room_invite_button_enabled: true,
+        //         social_media_sharing_enabled: false,
+        //         connection_status_enabled: true,
+        //         encryption_enabled: true
+        //     }
+        // })
         
          // Prepare the conference data
         const conferenceData = {

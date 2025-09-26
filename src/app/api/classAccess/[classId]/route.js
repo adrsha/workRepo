@@ -7,16 +7,16 @@ import { NextResponse } from 'next/server';
 export async function GET(request, { params }) {
     const session = await getServerSession(authOptions);
     if (!session) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return NextResponse.json({
+            error: 'Session not found',
+        }, { status: 401 });
     }
     const { classId } = await params;
     const userId = session.user.id;
     const userLevel = session.user.level;
-
     if (!classId) {
         return NextResponse.json({ error: 'Class ID is required' }, { status: 400 });
     }
-
     try {
         // Check if class exists and get basic info
         const classQuery = `
@@ -84,7 +84,6 @@ export async function GET(request, { params }) {
                 classDetails: classInfo
             });
         }
-
         // No access
         return NextResponse.json({
             hasAccess: false,

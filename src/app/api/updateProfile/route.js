@@ -18,7 +18,6 @@ export async function POST(req) {
         }
 
         // Validate that the user can only update their own profile
-        console.log(conditions)
         if (conditions.user_id !== session.user.id) {
             return new Response(JSON.stringify({ error: 'Unauthorized operation' }), { status: 403 });
         }

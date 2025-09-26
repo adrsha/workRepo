@@ -1,0 +1,767 @@
+/* UserPermissionManager.module.css */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.selectionInfo{
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+}
+
+.selectAllButton{
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    background: #F5F5F5;
+}
+
+.modalContent {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modalHeader h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.searchSection {
+    margin-bottom: 16px;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.usersList {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.userItem {
+    border-bottom: 1px solid #eee;
+}
+
+.userItem:last-child {
+    border-bottom: none;
+}
+
+.userLabel {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.userLabel:hover {
+    background-color: #f8f9fa;
+}
+
+.userCheckbox {
+    margin-right: 12px;
+}
+
+.userInfo {
+    flex: 1;
+}
+
+.userName {
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.userEmail {
+    font-size: 12px;
+    color: #666;
+}
+
+.noUsers {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+}
+
+.modalActions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.cancelButton, .saveButton {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.saveButton {
+    background: var(--tertiary);
+    color: white;
+}
+
+.saveButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.selectedUsersList{
+    display: flex;
+    gap: 1rem;
+}
+.selectedUserTag{
+    border: 2px solid var(--offWhite);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    color: var(--foreground);
+    width: fit-content;
+    align-items: center;
+    overflow: hidden;
+}
+.selectedUserTag .removeUserButton{
+    margin-left: 1rem;
+    height: fit-content;
+    width: fit-content;
+    border-radius: 0.3rem;
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--lightRed);
+    transition: 0.4s ease;
+}
+
+.selectedUserTag:hover .removeUserButton{
+    background-color: var(--lightRed);
+    color: var(--pureWhite);
+}
+
+/* ContentRequestManager.module.css */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 700px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modalHeader h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tabButtons {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.tab, .activeTab {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    border-bottom: 2px solid transparent;
+}
+
+.activeTab {
+    border-bottom-color: #007bff;
+    color: #007bff;
+    font-weight: 500;
+}
+
+.newRequestSection {
+    padding: 20px 0;
+}
+
+.requestTypeSection, .individualRequestSection, .messageSection {
+    margin-bottom: 20px;
+}
+
+.requestTypeSection h4, .individualRequestSection h4 {
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.requestTypeButton, .requestButton {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.requestTypeButton:disabled, .requestButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.contentSelect {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 12px;
+}
+
+.messageSection label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.messageTextarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.requestsList {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.requestItem {
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.requestHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.requestInfo {
+    flex: 1;
+}
+
+.pendingBadge, .approvedBadge, .rejectedBadge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.pendingBadge {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.approvedBadge {
+    background: #d4edda;
+    color: #155724;
+}
+
+.rejectedBadge {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.requestMessage, .adminNotes {
+    margin: 12px 0;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.adminActions {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+}
+
+.adminNotesSection {
+    margin-bottom: 12px;
+}
+
+.adminNotesTextarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    resize: vertical;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 8px;
+}
+
+.approveButton, .rejectButton, .cancelButton, .processButton {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.approveButton {
+    background: #28a745;
+    color: white;
+}
+
+.rejectButton {
+    background: #dc3545;
+    color: white;
+}
+
+.cancelButton {
+    background: #6c757d;
+    color: white;
+}
+
+.processButton {
+    background: #007bff;
+    color: white;
+}
+
+.noRequests {
+    padding: 40px;
+    text-align: center;
+    color: #666;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+}
+
+.closeModalButton {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* ContentRequestsTab.module.css */
+.contentRequestsTab {
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.filterControls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.filterSelect {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.loading {
+    padding: 40px;
+    text-align: center;
+    color: #666;
+}
+
+.noRequests {
+    padding: 40px;
+    text-align: center;
+    color: #666;
+}
+
+.unauthorized {
+    padding: 40px;
+    text-align: center;
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.requestsList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.requestCard {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.requestHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.requestInfo h3 {
+    margin: 0 0 4px 0;
+    font-size: 1.1rem;
+}
+
+.requestInfo p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.requestDetails {
+    margin-bottom: 16px;
+}
+
+.detailRow {
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.detailRow strong {
+    margin-right: 8px;
+}
+
+.requestMessage {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+
+.requestMessage p {
+    margin: 4px 0 0 0;
+}
+
+.adminNotesDisplay {
+    background: #e9ecef;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+
+.adminNotesDisplay p {
+    margin: 4px 0 0 0;
+}
+
+.actionSection {
+    border-top: 1px solid #eee;
+    padding-top: 16px;
+}
+
+.processForm {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.adminNotesInput {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.processButtons {
+    display: flex;
+    gap: 8px;
+}
+
+.processButtons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.quickActions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.quickActions button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.quickApprove, .approveButton {
+    background: #28a745;
+    color: white;
+}
+
+.quickReject, .rejectButton {
+    background: #dc3545;
+    color: white;
+}
+
+.detailedProcess {
+    background: #007bff;
+    color: white;
+}
+
+.cancelButton {
+    background: #6c757d;
+    color: white;
+}
+
+.quickActions button:disabled, 
+.processButtons button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Updated EntityDetails.module.css additions */
+.requestSection {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.restrictedNotice {
+    margin: 0 0 12px 0;
+    color: #856404;
+    font-weight: 500;
+}
+
+.requestActions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.requestButton {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.adminRequestSection {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 6px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.adminRequestSection h3 {
+    margin: 0 0 12px 0;
+    color: #155724;
+}
+
+.requestsList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.requestItem {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.requestInfo {
+    flex: 1;
+}
+
+.requestMessage {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+.requestActions {
+    display: flex;
+    gap: 8px;
+}
+
+.approveButton, .rejectButton {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.approveButton {
+    background: #28a745;
+    color: white;
+}
+
+.rejectButton {
+    background: #dc3545;
+    color: white;
+}
+
+.viewMoreButton {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.permissionButton {
+    background: #17a2b8;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.accessInfo {
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+.publicTag {
+    background: #d4edda;
+    color: #155724;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.privateTag {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.authorizedUsers {
+    margin-top: 4px;
+}
+
+.contentRestricted {
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    padding: 20px;
+    text-align: center;
+    border-radius: 6px;
+}
+
+.contentRestricted p {
+    margin: 0 0 12px 0;
+    color: #6c757d;
+}

@@ -1,327 +1,531 @@
-/* EntityList.module.css */
+/* EntityDetails.module.css - Complete Styles */
 
-.entitiesList {
-    display        : flex;
-    flex-direction : column;
-    gap            : 1.5rem;
-    max-width      : 1200px;
-    margin         : 0 auto;
-    padding        : 2rem 1rem;
-    background     : var(--background);
-    min-height     : 100vh;
+/* Main Layout */
+.mainSection {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    background: var(--background);
+    min-height: 100vh;
 }
 
-.entityContainer {
-    background    : var(--background);
-    border-radius : 16px;
-    border        : 1px solid var(--offWhite);
-    box-shadow    : 0 2px 4px -1px rgba(18, 23, 31, 0.06), 
-                    0 1px 2px -1px rgba(18, 23, 31, 0.06);
-    overflow      : hidden;
-    transition    : all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position      : relative;
-    display       : flex;
-    flex-direction: row;
-    align-items   : stretch;
-}
-
-.entityContainer:hover {
-    transform     : translateY(-4px);
-    box-shadow    : 0 10px 25px -5px rgba(18, 23, 31, 0.1), 
-                    0 8px 10px -6px rgba(18, 23, 31, 0.1);
-}
-
-.entityLink {
-    display         : block;
-    text-decoration : none;
-    color           : inherit;
-    transition      : all 0.2s ease;
-    flex: 1;
-}
-
-.entityLink:hover {
-    text-decoration : none;
-    color           : inherit;
-}
-
+/* Entity Card */
 .entityCard {
-    padding    : 2rem;
-    background : var(--background);
-    transition : all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position   : relative;
-    overflow   : hidden;
+    border-radius: 16px;
+    border: 1px solid var(--offWhite);
+    box-shadow: 0 4px 12px rgba(18, 23, 31, 0.08);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.entityCard::after {
-    content    : '';
-    position   : absolute;
-    top        : 0;
-    left       : -100%;
-    width      : 100%;
-    height     : 100%;
-    background : linear-gradient(135deg, 
-                 rgba(255, 105, 124, 0.02), 
-                 rgba(61, 176, 183, 0.02));
-    transition : left 0.5s ease;
-    pointer-events : none;
+.entityCard:hover {
+    box-shadow: 0 8px 24px rgba(18, 23, 31, 0.12);
+    transform: translateY(-2px);
 }
 
-.entityCard:hover::after {
-    left : 0;
-}
-
-.newEntity {
-    position   : relative;
-    overflow   : hidden;
-}
-
-.newEntity::before {
-    content    : '';
-    position   : absolute;
-    top        : 0;
-    left       : 0;
-    right      : 0;
-    height     : 3px;
-    background : linear-gradient(90deg, var(--quaternary), var(--tertiary));
-    animation  : shimmer 2s ease-in-out infinite alternate;
-}
-
-@keyframes shimmer {
-    0%   { opacity: 0.5; transform: scaleX(0.8); }
-    100% { opacity: 1; transform: scaleX(1); }
-}
-
+/* Entity Header */
 .entityHeader {
-    display     : flex;
-    justify-content : space-between;
-    align-items : flex-start;
-    gap         : 1.5rem;
-    margin-bottom : 0.5rem;
+    padding: 2rem;
+    border-bottom: 1px solid var(--offWhite);
 }
 
-.entityTitle {
-    font-family    : var(--font-serif);
-    font-size      : 1.5rem;
-    font-weight    : 700;
-    color          : var(--darkforeground);
-    margin         : 0;
-    flex           : 1;
-    display        : flex;
-    align-items    : center;
-    gap            : 1rem;
-    line-height    : 1.3;
-    letter-spacing : -0.015em;
-    transition     : color 0.2s ease;
+.entityHeader h3 {
+    font-family: var(--font-serif);
+    font-size: 2.25rem;
+    font-weight: 900;
+    color: var(--darkforeground);
+    margin: 0 0 1rem 0;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
 }
 
-.newBadge {
-    background      : linear-gradient(135deg, var(--quaternary), var(--tertiary));
-    color           : var(--background);
-    font-family     : var(--font-sans);
-    font-size       : 0.75rem;
-    font-weight     : 800;
-    padding         : 0.375rem 1rem;
-    border-radius   : 24px;
-    letter-spacing  : 0.075em;
-    text-transform  : uppercase;
-    flex-shrink     : 0;
-    box-shadow      : 0 2px 4px rgba(0, 184, 125, 0.2);
-    position        : relative;
-    overflow        : hidden;
+.entityMetadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
 }
 
-.newBadge::before {
-    content    : '';
-    position   : absolute;
-    top        : 0;
-    left       : -100%;
-    width      : 100%;
-    height     : 100%;
-    background : linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    animation  : badgeShine 3s ease-in-out infinite;
+.entityMetadata span {
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: var(--pureWhite);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
 }
 
-@keyframes badgeShine {
-    0%, 100% { left: -100%; }
-    50%      { left: 100%; }
+/* Bulk Purchase Section */
+.bulkPurchaseSection {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0 0 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
 }
 
-.entityDate {
-    color         : var(--darkGray);
-    font-family   : var(--font-sans);
-    font-size     : 0.875rem;
-    font-weight   : 600;
-    background    : rgba(255, 255, 255, 0.8);
-    padding       : 0.625rem 1.25rem;
-    border-radius : 24px;
-    white-space   : nowrap;
-    flex-shrink   : 0;
-    backdrop-filter : blur(4px);
-    transition    : all 0.2s ease;
+.bulkPurchaseSection::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--quaternary), var(--tertiary));
+    animation: shimmer 2s ease-in-out infinite alternate;
+}
+
+.restrictedNotice {
+    color: #6c757d;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin: 0 0 1rem 0;
+    line-height: 1.4;
+}
+
+.bulkPurchaseInfo {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    color: #856404;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.bulkPurchaseButton {
+    background: linear-gradient(135deg, var(--quaternary) 0%, var(--tertiary) 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 184, 125, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bulkPurchaseButton:hover {
+    background: linear-gradient(135deg, var(--darkGreen) 0%, var(--darkBlue) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 184, 125, 0.3);
+}
+
+.bulkPurchaseButton:active {
+    transform: translateY(0);
+}
+
+.entityContainer{
+    position: relative
+}
+
+/* Content List */
+.contentList {
+    padding: 2rem;
+}
+
+.contentItem {
+    background: var(--pureWhite);
+    border: 1px solid var(--offWhite);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.contentItem:last-child {
+    margin-bottom: 0;
+}
+
+.contentItem:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    border-color: var(--tertiary);
+}
+
+.contentBody {
+    padding: 1.5rem;
+}
+
+/* Content Actions */
+.contentActions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--offWhite);
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
 }
 
 .deleteButton {
-    background     : var(--primary);
-    color          : var(--background);
-    border         : none;
-    padding        : 1rem 2rem;
-    font-family    : var(--font-sans);
-    font-weight    : 700;
-    font-size      : 0.875rem;
-    cursor         : pointer;
-    transition     : all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius  : 1rem;
-    width          : fit-content;
-    text-transform : uppercase;
-    position       : relative;
-    overflow       : hidden;
-    margin         : 0.2rem;
-    height         : fit-content;
-}
-
-.deleteButton::before {
-    content    : '';
-    position   : absolute;
-    top        : 0;
-    left       : -100%;
-    width      : 100%;
-    height     : 100%;
-    background : rgba(255, 255, 255, 0.2);
-    transition : left 0.3s ease;
-}
-
-.deleteButton:hover {
-    color : var(--darkRed);
-    transform  : translateY(-2px);
-    box-shadow : 0 8px 16px rgba(165, 56, 68, 0.3);
-}
-
-.deleteButton:hover::before {
-    left : 0;
+    position: absolute;
+    background: linear-gradient(135deg, var(--primary) 0%, #dc3545 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
 }
 
 .deleteButton:active {
-    transform : translateY(0);
+    transform: translateY(0);
 }
 
-.emptyState {
-    text-align    : center;
-    padding       : 5rem 3rem;
-    color         : var(--darkGray);
-    font-size     : 1.25rem;
-    font-weight   : 500;
-    background    : var(--backgroundGreen);
-    border-radius : 16px;
-    border        : 2px dashed var(--quaternaryLight);
-    position      : relative;
-    overflow      : hidden;
+.permissionButton {
+    background: linear-gradient(135deg, var(--tertiary) 0%, var(--darkBlue) 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(61, 176, 183, 0.2);
 }
 
-.emptyState::before {
-    content       : '';
-    position      : absolute;
-    top           : 50%;
-    left          : 50%;
-    width         : 300px;
-    height        : 300px;
-    border-radius : 50%;
-    background    : radial-gradient(circle, 
-                    rgba(0, 184, 125, 0.1), 
-                    transparent 60%);
-    transform     : translate(-50%, -50%);
-    animation     : pulse 4s ease-in-out infinite;
+.permissionButton:hover {
+    background: linear-gradient(135deg, var(--darkBlue) 0%, #0056b3 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(61, 176, 183, 0.3);
+}
+
+.permissionButton:active {
+    transform: translateY(0);
+}
+
+/* Access Info */
+.accessInfo {
+    background: rgba(108, 117, 125, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--tertiary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.accessInfo small {
+    color: var(--foreground);
+    font-weight: 500;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.publicTag {
+    background: linear-gradient(135deg, var(--quaternary) 0%, var(--tertiary) 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(0, 184, 125, 0.2);
+}
+
+.privateTag {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
+}
+
+.priceTag {
+    background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+    color: #000;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.authorizedUsers {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 6px;
+}
+
+.authorizedUsers small {
+    color: var(--darkforeground);
+    font-weight: 600;
+}
+
+/* Add Content Section */
+.addContentSection {
+    background: var(--pureWhite);
+    border: 2px dashed var(--offWhite);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.addContentSection:hover {
+    border-color: var(--tertiary);
+    background: var(--backgroundGreen);
+}
+
+.addContentButton {
+    background: linear-gradient(135deg, var(--quaternary) 0%, var(--tertiary) 100%);
+    color: white;
+    border: none;
+    padding: 1.25rem 2.5rem;
+    border-radius: 12px;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 16px rgba(0, 184, 125, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.addContentButton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.addContentButton:hover {
+    background: linear-gradient(135deg, var(--darkGreen) 0%, var(--darkBlue) 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 184, 125, 0.3);
+}
+
+.addContentButton:hover::before {
+    left: 100%;
+}
+
+.addContentButton:active {
+    transform: translateY(-1px);
+}
+
+/* No Content State */
+.noContent {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--gray);
+    font-family: var(--font-sans);
+    font-size: 1.25rem;
+    font-weight: 500;
+    background: linear-gradient(135deg, var(--backgroundGreen) 0%, var(--background) 100%);
+    border-radius: 12px;
+    border: 2px dashed var(--offWhite);
+    position: relative;
+    overflow: hidden;
+}
+
+.noContent::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(61, 176, 183, 0.1), transparent 60%);
+    transform: translate(-50%, -50%);
+    animation: pulse 3s ease-in-out infinite;
+}
+
+/* Loading and Error States */
+.loadingState {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    background: var(--backgroundGreen);
+    border-radius: 12px;
+}
+
+.errorState {
+    padding: 2rem;
+    background: rgba(255, 90, 115, 0.1);
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    border-radius: 12px;
+    text-align: center;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Animations */
+@keyframes shimmer {
+    0% { opacity: 0.5; transform: scaleX(0.8); }
+    100% { opacity: 1; transform: scaleX(1); }
 }
 
 @keyframes pulse {
     0%, 100% { 
-        opacity   : 0.3; 
-        transform : translate(-50%, -50%) scale(0.8);
+        opacity: 0.3; 
+        transform: translate(-50%, -50%) scale(0.8);
     }
     50% { 
-        opacity   : 0.6; 
-        transform : translate(-50%, -50%) scale(1.1);
+        opacity: 0.6; 
+        transform: translate(-50%, -50%) scale(1.1);
     }
-}
-
-.emptyState::after {
-    content         : '';
-    position        : absolute;
-    top             : 1rem;
-    right           : 1rem;
-    width           : 60px;
-    height          : 60px;
-    border-radius   : 50%;
-    background      : linear-gradient(45deg, var(--quaternaryLight), var(--tertiaryLight));
-    opacity         : 0.4;
-    animation       : float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    33%      { transform: translateY(-10px) rotate(120deg); }
-    66%      { transform: translateY(5px) rotate(240deg); }
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .entitiesList {
-        padding : 1rem 0.75rem;
-        gap     : 1rem;
-    }
-
-    .entityCard {
-        padding : 1.5rem;
+    .mainSection {
+        padding: 1rem 0.5rem;
+        gap: 1.5rem;
     }
 
     .entityHeader {
-        flex-direction : column;
-        align-items    : flex-start;
-        gap            : 1rem;
+        padding: 1.5rem;
     }
 
-    .entityTitle {
-        font-size      : 1.25rem;
-        flex-direction : column;
-        align-items    : flex-start;
-        gap            : 0.75rem;
+    .entityHeader h1 {
+        font-size: 1.75rem;
     }
 
-    .entityDate {
-        font-size : 0.8rem;
-        padding   : 0.5rem 1rem;
+    .entityMetadata {
+        flex-direction: column;
+        gap: 0.75rem;
     }
 
-    .newBadge {
-        font-size : 0.7rem;
-        padding   : 0.3rem 0.8rem;
+    .entityMetadata span {
+        text-align: center;
     }
 
-    .deleteButton {
-        padding   : 0.875rem 1.5rem;
-        font-size : 0.8rem;
+    .bulkPurchaseSection {
+        padding: 1rem;
+    }
+
+    .bulkPurchaseButton {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .contentList {
+        padding: 1rem;
+    }
+
+    .contentBody {
+        padding: 1rem;
+    }
+
+    .contentActions {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .deleteButton,
+    .permissionButton {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.85rem;
+    }
+
+    .addContentSection {
+        padding: 1.5rem;
+    }
+
+    .addContentButton {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+    }
+
+    .noContent {
+        padding: 3rem 1.5rem;
+        font-size: 1.125rem;
     }
 }
 
 @media (max-width: 480px) {
-    .entitiesList {
-        padding : 0.5rem;
+    .mainSection {
+        padding: 0.5rem;
     }
 
-    .entityTitle {
-        font-size : 1.125rem;
+    .entityHeader {
+        padding: 1rem;
     }
 
-    .entityCard {
-        padding : 1.25rem;
+    .entityHeader h1 {
+        font-size: 1.5rem;
     }
 
-    .deleteButton {
-        padding   : 0.75rem 1.25rem;
-        font-size : 0.75rem;
+    .bulkPurchaseSection {
+        padding: 0.75rem;
     }
 
-    .emptyState {
-        padding   : 3rem 1.5rem;
-        font-size : 1.125rem;
+    .contentList {
+        padding: 0.75rem;
+    }
+
+    .contentBody {
+        padding: 0.75rem;
+    }
+
+    .contentActions {
+        padding: 0.75rem;
+    }
+
+    .deleteButton,
+    .permissionButton {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .addContentSection {
+        padding: 1rem;
+    }
+
+    .addContentButton {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
     }
 }

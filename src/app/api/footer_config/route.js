@@ -59,7 +59,6 @@ async function updateConfig(configData) {
                 sanitizedData.copyright_text
             ]
         });
-        console.log("RESPONSE", respose)
         return { success: true };
     } catch (error) {
         console.error('Error updating footer config:', error);

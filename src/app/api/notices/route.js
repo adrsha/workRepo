@@ -8,11 +8,11 @@ export async function GET(request) {
         const notices = await executeQueryWithRetry({
             query: `
                 SELECT 
-                    notices_id,
-                    notices_title,
-                    notices_date_time
+                    notice_id,
+                    notice_title,
+                    notice_date_time
                 FROM notices
-                ORDER BY notices_date_time DESC
+                ORDER BY notice_date_time DESC
             `,
             values: [],
         });
@@ -44,7 +44,7 @@ export async function POST(request) {
         // Create notice only (no content)
         const noticeResult = await executeQueryWithRetry({
             query: `
-                INSERT INTO notices (notices_title, notices_date_time)
+                INSERT INTO notices (notice_title, notice_date_time)
                 VALUES (?, ?)
             `,
             values: [notice_title || null, noticeDateTime]
@@ -56,11 +56,11 @@ export async function POST(request) {
         const newNotice = await executeQueryWithRetry({
             query: `
                 SELECT 
-                    notices_id,
-                    notices_title,
-                    notices_date_time
+                    notice_id,
+                    notice_title,
+                    notice_date_time
                 FROM notices
-                WHERE notices_id = ?
+                WHERE notice_id = ?
             `,
             values: [noticeId]
         });
@@ -95,9 +95,9 @@ export async function PUT(request) {
         // Get current notice info
         const currentNotice = await executeQueryWithRetry({
             query: `
-                SELECT notices_id, notices_title, notices_date_time
+                SELECT notice_id, notice_title, notice_date_time
                 FROM notices
-                WHERE notices_id = ?
+                WHERE notice_id = ?
             `,
             values: [noticeId]
         });
@@ -113,8 +113,8 @@ export async function PUT(request) {
         await executeQueryWithRetry({
             query: `
                 UPDATE notices 
-                SET notices_title = ?, notices_date_time = ?
-                WHERE notices_id = ?
+                SET notice_title = ?, notice_date_time = ?
+                WHERE notice_id = ?
             `,
             values: [noticeTitleToUse, noticeDateTime, noticeId]
         });
@@ -123,11 +123,11 @@ export async function PUT(request) {
         const updatedNotice = await executeQueryWithRetry({
             query: `
                 SELECT 
-                    notices_id,
-                    notices_title,
-                    notices_date_time
+                    notice_id,
+                    notice_title,
+                    notice_date_time
                 FROM notices
-                WHERE notices_id = ?
+                WHERE notice_id = ?
             `,
             values: [noticeId]
         });
@@ -163,7 +163,7 @@ export async function DELETE(request) {
             query: `
                 SELECT COUNT(*) as count
                 FROM notices_content nc
-                WHERE nc.notices_id = ?
+                WHERE nc.notice_id = ?
             `,
             values: [noticeId]
         });
@@ -176,7 +176,7 @@ export async function DELETE(request) {
 
         // Delete the notice (only if no content is associated)
         const noticeResult = await executeQueryWithRetry({
-            query: `DELETE FROM notices WHERE notices_id = ?`,
+            query: `DELETE FROM notices WHERE notice_id = ?`,
             values: [noticeId]
         });
 

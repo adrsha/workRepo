@@ -14,10 +14,11 @@ export const formatColName = (colName) =>
 
 export const TABS = {
     TEACHERS: 0,
-    CLASSES:  1,
+    CLASSES: 1,
     STUDENTS: 2,
-    COURSES:  3,
-    GRADES:   4
+    COURSES: 3,
+    GRADES: 4,
+    PAYMENTS: 5
 };
 export const STORAGE_KEY = 'adminActiveTab';
 

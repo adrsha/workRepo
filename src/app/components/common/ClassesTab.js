@@ -72,7 +72,7 @@ const ApprovedClassesTable = ({
     const additionalColumns = [{
         key: 'class_link',
         title: 'Class Link',
-        render: (classEl) => <a href={`/classes/${classEl.class_id}`}>Visit Class</a>
+        render: (classEl) => <a className="profile-link-btn" href={`/classes/${classEl.class_id}`}>Visit Class</a>
     }];
 
     return (

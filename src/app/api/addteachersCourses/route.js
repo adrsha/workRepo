@@ -26,7 +26,6 @@ export async function POST(req) {
         if (!session.accessToken) {
             return new Response(JSON.stringify({ error: 'Unauthorized: Token not valid' }), { status: 401 });
         }
-        console.log("INP", repeatEveryNDay);
 
         const response = await insertClasses(teacherId, courseId, gradeId, startTime, endTime, repeatEveryNDay, classDescription);
         return new Response(JSON.stringify(response), { status: 200 });

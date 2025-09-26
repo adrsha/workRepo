@@ -9,9 +9,7 @@ export async function GET(request) {
         const quizzes = await executeQueryWithRetry({
             query: `
                 SELECT 
-                    quiz_id,
-                    quiz_title,
-                    quiz_date_time
+                *
                 FROM quizzes
                 ORDER BY quiz_date_time DESC
             `,
@@ -54,9 +52,7 @@ export async function POST(request) {
         const newQuiz = await executeQueryWithRetry({
             query: `
                 SELECT 
-                    quiz_id,
-                    quiz_title,
-                    quiz_date_time
+                *
                 FROM quizzes
                 WHERE quiz_id = ?
             `,

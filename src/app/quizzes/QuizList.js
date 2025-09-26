@@ -13,7 +13,7 @@ const QuizList = () => {
     const { data: session } = useSession();
     const [viewedQuizzes, setViewedQuizzes] = useState(new Set());
     const notifications = useNotifications();
-    
+
     const {
         entities: quizzes,
         loading,
@@ -29,11 +29,11 @@ const QuizList = () => {
     useEffect(() => {
         const loadViewedQuizzes = () => {
             if (typeof document === 'undefined') return new Set();
-            
+
             const cookieValue = document.cookie
                 .split('; ')
                 .find(row => row.startsWith('viewedQuizzes='));
-                
+
             if (cookieValue) {
                 try {
                     const parsed = JSON.parse(decodeURIComponent(cookieValue.split('=')[1]));

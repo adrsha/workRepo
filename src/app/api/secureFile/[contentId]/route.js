@@ -9,7 +9,7 @@ import { CONFIG } from '../../../../constants/config';
 // ============== CONFIGURATION ==============
 const CONTENT_TABLES = [
     { table: 'classes_content', idColumn: 'classes_id', parentType: 'classes' },
-    { table: 'notices_content', idColumn: 'notices_id', parentType: 'notices' },
+    { table: 'notices_content', idColumn: 'notice_id', parentType: 'notices' },
     { table: 'quiz_content', idColumn: 'quiz_id', parentType: 'quizzes' },
     { table: 'game_content', idColumn: 'game_id', parentType: 'games' },
 ];
@@ -178,9 +178,6 @@ const responseService = {
             headers.set('X-Frame-Options', 'DENY');
             headers.set('X-Download-Options', 'noopen');
         }
-
-        // Debug logging to check headers
-        console.log('Response headers:', Object.fromEntries(headers.entries()));
 
         return new NextResponse(fileBuffer, { 
             status: 200,

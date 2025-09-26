@@ -477,13 +477,8 @@ export const capitalizeFirst = (str) => {
 export async function checkClassAccess(classId, authToken) {
     try {
         const baseUrl = getBaseUrl();
-        const response = await fetch(`${baseUrl}/api/classAccess/${classId}`, {
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
+        const response = await fetch(`${baseUrl}/api/classAccess/${classId}`);
+ 
         if (!response.ok) {
             const errorData = await response.json();
             return { hasAccess: false, error: errorData.error || 'Access denied' };

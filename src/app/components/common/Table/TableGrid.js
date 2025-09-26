@@ -31,11 +31,11 @@ export const TableGrid = ({
                             />
                         </th>
                     )}
-                    {columns.map(col => (
-                        <th key={col}>{formatColName(col)}</th>
-                    ))}
                     {additionalColumns.map(col => (
                         <th key={col.key}>{col.title}</th>
+                    ))}
+                    {columns.map(col => (
+                        <th key={col}>{formatColName(col)}</th>
                     ))}
                     {allowDelete && <th>Actions</th>}
                 </tr>
