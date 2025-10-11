@@ -13,7 +13,8 @@ export const EntityDetailsClient = ({
     entityId,
     session,
     notifications,
-    formControls
+    formControls,
+    limitedAccessControls
 }) => {
     const [showPermissionManager, setShowPermissionManager] = useState(false);
     const [selectedContentId, setSelectedContentId] = useState(null);
@@ -76,9 +77,7 @@ export const EntityDetailsClient = ({
                 ...(contentForm.authorized_users && {
                     authorizedUsers: contentForm.authorized_users
                 }),
-                ...(contentForm.price !== undefined && {
-                    price: parseFloat(contentForm.price || 10)
-                }),
+                price: parseFloat(contentForm.price || 0)
             });
 
             notifications?.setSuccess?.('Content added successfully');
@@ -323,6 +322,7 @@ export const EntityDetailsClient = ({
                             onCancel={formControls.resetForm}
                             title="Add Content"
                             saveButtonText="Save Content"
+                            limitedAccessControls = {limitedAccessControls}
                         />
                     ) : (
                         <button

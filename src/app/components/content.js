@@ -92,14 +92,14 @@ const RestrictedContentPreview = ({ data, contentType, onPurchase, price, paymen
                     This {originalType} content requires payment to access.
                 </p>
                 
-                {isPaidContent && (
+                {isPaidContent ? (
                     <div className={styles.priceInfo}>
                         <span className={styles.priceTag}>Price: Rs. {parseFloat(price).toFixed(2)}</span>
                     </div>
-                )}
+                ) : null}
                 
                 {/* Payment status display */}
-                {paymentStatus && paymentStatus.hasPayment && (
+                {paymentStatus && paymentStatus.hasPayment ? (
                     <div className={styles.paymentStatus}>
                         <span className={`${styles.statusBadge} ${styles[paymentStatus.payment.status]}`}>
                             Payment {paymentStatus.payment.status.toUpperCase()}
@@ -111,17 +111,17 @@ const RestrictedContentPreview = ({ data, contentType, onPurchase, price, paymen
                             </p>
                         )}
                     </div>
-                )}
+                ) : null}
                 
                 <div className={styles.previewActions}>
-                    {isPaidContent && (!paymentStatus?.hasPayment || paymentStatus.payment.status === 'rejected') && (
+                    {isPaidContent && (!paymentStatus?.hasPayment || paymentStatus.payment.status === 'rejected') ? (
                         <button 
                             className={styles.purchaseButton}
                             onClick={onPurchase}
                         >
                             Purchase Access - Rs. {parseFloat(price).toFixed(2)}
                         </button>
-                    )}
+                    ) : null}
                 </div>
             </div>
         </div>
@@ -139,12 +139,13 @@ const TextContent = ({ data, showRaw, onToggleRaw, isPreview, onPurchase, price,
         />;
     }
     
-    const textContent = typeof data === 'string' ? data : data.title || data.text ;
+    const textContent = typeof data === 'string' ? data : data.text ;
     
     return (
         <div className={styles.textContentContainer}>
             <div className={styles.textContentHeader}>
                 <RawViewToggle showRaw={showRaw} onToggle={onToggleRaw} />
+                {data.title ? <h1> {data.title } </h1> : null }
             </div>
             <MarkdownContent 
                 content={textContent}

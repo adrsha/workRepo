@@ -19,5 +19,5 @@ export const CONFIG = {
 export const INITIAL_CONTENT_FORM = {
     content_type: 'text',
     content_data: '',
-    is_public: false
+    is_public: true,
 };

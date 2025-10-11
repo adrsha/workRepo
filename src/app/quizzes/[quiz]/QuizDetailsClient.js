@@ -20,6 +20,7 @@ const QuizDetailsClient = ({ quizId }) => {
                 session={session}
                 notifications={notifications}
                 formControls={formControls}
+                limitedAccessControls={true}
             />
             
             {notifications.error && (

@@ -48,7 +48,7 @@ export async function POST(request) {
         if (userIds.length > 0) {
             const values = userIds.map(userId => [
                 contentId, 
-                userId.user_id, 
+                userId.user_id ? userId.user_id : userId, 
                 toSingular(entityType),
                 entityId, 
                 session.user.id
@@ -56,6 +56,7 @@ export async function POST(request) {
 
             const placeholders = values.map(() => '(?, ?, ?, ?, ?)').join(', ');
             const flatValues = values.flat();
+            console.log(flatValues, values, userIds)
             await executeQueryWithRetry({
                 query: `
                     INSERT INTO content_user_permissions 

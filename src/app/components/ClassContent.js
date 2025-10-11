@@ -52,7 +52,7 @@ const AddContentSection = ({ isTeacher, currentUser, formControls, contentHandle
                     showTitle={true}
                     titleRequired={false}
                     showAccessControls={true}
-                    limitedAccessControls={true}
+                    limitedAccessControls={false}
                 />
             ) : (
                 <div className={styles.actionButtons}>

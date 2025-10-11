@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { INITIAL_CONTENT_FORM } from '../constants/config';
 
 export const useContentForm = () => {
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditing, setIsEditing]     = useState(false);
     const [contentForm, setContentForm] = useState(INITIAL_CONTENT_FORM);
 
     const updateForm = (field, value) => {

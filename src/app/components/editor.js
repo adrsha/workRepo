@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserSelector } from './UserSelector'; // Import the new enhanced component
+import { UserSelector } from './UserSelector';
 import FileUpload from './FileUpload';
 import Input from './Input';
 import styles from "../../styles/ClassContent.module.css";
@@ -20,7 +20,7 @@ const UploadSuccess = ({ file, onSave, isUploading }) => (
 
 export const FileUploadSection = ({ parentId, parentType, onFileSave, isPublic, price = 0, authorizedUsers = null }) => {
     const [uploadedFile, setUploadedFile] = useState(null);
-    const [isUploading, setIsUploading] = useState(false);
+    const [isUploading, setIsUploading]   = useState(false);
 
     const handleSave = async () => {
         if (!uploadedFile) {
@@ -68,17 +68,16 @@ export const FileUploadSection = ({ parentId, parentType, onFileSave, isPublic, 
     );
 };
 
-// Toolbar configuration
 const toolbarConfig = [
-    { label: 'B', action: '**bold**', title: 'Bold' },
-    { label: 'I', action: '*italic*', title: 'Italic' },
-    { label: 'H1', action: '# ', title: 'Header 1' },
-    { label: 'H2', action: '## ', title: 'Header 2' },
-    { label: 'H3', action: '### ', title: 'Header 3' },
-    { label: 'Code', action: '`code`', title: 'Inline Code' },
-    { label: 'Link', action: '[text](url)', title: 'Link' },
-    { label: 'List', action: '- ', title: 'List Item' },
-    { label: 'Quote', action: '> ', title: 'Blockquote' },
+    { label: 'B',     action: '**bold**',      title: 'Bold' },
+    { label: 'I',     action: '*italic*',      title: 'Italic' },
+    { label: 'H1',    action: '# ',            title: 'Header 1' },
+    { label: 'H2',    action: '## ',           title: 'Header 2' },
+    { label: 'H3',    action: '### ',          title: 'Header 3' },
+    { label: 'Code',  action: '`code`',        title: 'Inline Code' },
+    { label: 'Link',  action: '[text](url)',   title: 'Link' },
+    { label: 'List',  action: '- ',            title: 'List Item' },
+    { label: 'Quote', action: '> ',            title: 'Blockquote' },
 ];
 
 const MarkdownToolbar = ({ onInsert }) => (
@@ -120,23 +119,23 @@ const insertInlineMarkdown = (content, syntax, start, end, selectedText) => {
     const insertions = {
         '[text](url)': selectedText
             ? { text: `[${selectedText}](url)`, cursor: start + selectedText.length + 3 }
-            : { text: '[text](url)', cursor: start + 1 },
+            : { text: '[text](url)',            cursor: start + 1 },
         '**bold**': selectedText
-            ? { text: `**${selectedText}**`, cursor: end + 4 }
-            : { text: '**bold**', cursor: start + 2 },
+            ? { text: `**${selectedText}**`,    cursor: end + 4 }
+            : { text: '**bold**',               cursor: start + 2 },
         '*italic*': selectedText
-            ? { text: `*${selectedText}*`, cursor: end + 2 }
-            : { text: '*italic*', cursor: start + 1 },
+            ? { text: `*${selectedText}*`,      cursor: end + 2 }
+            : { text: '*italic*',               cursor: start + 1 },
         '`code`': selectedText
-            ? { text: `\`${selectedText}\``, cursor: end + 2 }
-            : { text: '`code`', cursor: start + 1 }
+            ? { text: `\`${selectedText}\``,    cursor: end + 2 }
+            : { text: '`code`',                 cursor: start + 1 }
     };
 
     if (insertions[syntax]) {
         const { text, cursor } = insertions[syntax];
         return {
-            newContent: content.substring(0, start) + text + content.substring(end),
-            newCursor: cursor
+            newContent : content.substring(0, start) + text + content.substring(end),
+            newCursor  : cursor
         };
     }
 
@@ -144,56 +143,52 @@ const insertInlineMarkdown = (content, syntax, start, end, selectedText) => {
 };
 
 const insertHeaderMarkdown = (content, syntax, start) => {
-    const lineStart = findLineStart(content, start);
-    const lineEnd = findLineEnd(content, start);
+    const lineStart  = findLineStart(content, start);
+    const lineEnd    = findLineEnd(content, start);
     const currentLine = content.substring(lineStart, lineEnd);
-    const cleanLine = currentLine.replace(/^#+\s*/, '');
+    const cleanLine   = currentLine.replace(/^#+\s*/, '');
 
     return {
-        newContent: content.substring(0, lineStart) + syntax + cleanLine + content.substring(lineEnd),
-        newCursor: lineStart + syntax.length + cleanLine.length
+        newContent : content.substring(0, lineStart) + syntax + cleanLine + content.substring(lineEnd),
+        newCursor  : lineStart + syntax.length + cleanLine.length
     };
 };
 
 const insertLineStartMarkdown = (content, syntax, start) => {
     const lineStart = findLineStart(content, start);
     return {
-        newContent: content.substring(0, lineStart) + syntax + content.substring(lineStart),
-        newCursor: start + syntax.length
+        newContent : content.substring(0, lineStart) + syntax + content.substring(lineStart),
+        newCursor  : start + syntax.length
     };
 };
 
 const insertMarkdownSyntax = (content, syntax, start, end, selectedText) => {
-    // Try inline insertion first
     const inlineResult = insertInlineMarkdown(content, syntax, start, end, selectedText);
     if (inlineResult) {
         return inlineResult;
     }
 
-    // Handle header syntax
     if (syntax.startsWith('#')) {
         return insertHeaderMarkdown(content, syntax, start);
     }
 
-    // Handle line-start syntax (lists, quotes)
     if (syntax === '- ' || syntax === '> ') {
         return insertLineStartMarkdown(content, syntax, start);
     }
 
-    // Default: no change
     return { newContent: content, newCursor: start };
 };
 
 const EnhancedTextEditor = ({ content, onChange, onSave, saveButtonText = "Save Text Content" }) => {
     const [showPreview, setShowPreview] = useState(false);
-    const [splitView, setSplitView] = useState(true);
+    const [splitView, setSplitView]     = useState(true);
 
     const insertMarkdown = (syntax) => {
         const textarea = document.querySelector(`.${styles.contentTextarea}`);
         if (!textarea) return;
 
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
+        const start        = textarea.selectionStart;
+        const end          = textarea.selectionEnd;
         const selectedText = content.substring(start, end);
 
         const { newContent, newCursor } = insertMarkdownSyntax(
@@ -346,103 +341,101 @@ const ContentAccessSection = ({
     contentForm, 
     onUpdateForm, 
     isAdmin, 
-    showTitle = false, 
-    titleRequired = false,
+    showTitle              = false, 
+    titleRequired          = false,
     entityType,
     entityId,
-    showAccessControls = true,
-    limitedAccessControls = false
+    showAccessControls     = true,
+    limitedAccessControls  = false
 }) => {
-    const [selectedUsers, setSelectedUsers] = useState([]);
+    const [selectedUsers, setSelectedUsers]         = useState([]);
     const [viewSelectedUsers, setViewSelectedUsers] = useState(false);
 
-    // Initialize selected users from contentForm
     useEffect(() => {
         if (contentForm.authorized_users && Array.isArray(contentForm.authorized_users)) {
             setSelectedUsers(contentForm.authorized_users);
         }
     }, [contentForm.authorized_users]);
 
-    // Handle access type changes
     const handleAccessTypeChange = (e) => {
         const accessType = e.target.value;
+        console.log(accessType);
         
-        switch (accessType) {
-            case 'public':
-                onUpdateForm('is_public', true);
-                onUpdateForm('authorized_users', null);
-                onUpdateForm('price', 0);
+        const updates = {
+            public: {
+                is_public         : true,
+                authorized_users  : null,
+                price             : 0
+            },
+            private: {
+                is_public         : false,
+                authorized_users  : null,
+                price             : 0
+            },
+            paid: {
+                is_public         : false,
+                authorized_users  : null,
+                price             : contentForm.price || 10
+            },
+            restricted: {
+                is_public         : false,
+                authorized_users  : selectedUsers,
+                price             : 0
+            }
+        };
+
+        if (updates[accessType]) {
+            onUpdateForm(updates[accessType]);
+            
+            if (accessType === 'restricted') {
+                setViewSelectedUsers(true);
+            } else {
                 setSelectedUsers([]);
-                break;
-                
-            case 'private':
-                onUpdateForm('is_public', false);
-                onUpdateForm('authorized_users', null);
-                onUpdateForm('price', 0);
-                setSelectedUsers([]);
-                break;
-                
-            case 'paid':
-                onUpdateForm('is_public', false);
-                onUpdateForm('authorized_users', null);
-                onUpdateForm('price', contentForm.price || 1.00);
-                setSelectedUsers([]);
-                break;
-                
-            case 'restricted':
-                onUpdateForm('is_public', false);
-                setViewSelectedUsers(true)
-                onUpdateForm('authorized_users', selectedUsers);
-                onUpdateForm('price', 0);
-                break;
-                
-            default:
-                break;
+                setViewSelectedUsers(false);
+            }
         }
     };
 
-    // Determine current access type based on form state
     const getAccessType = () => {
         if (contentForm.is_public) return 'public';
         if (parseFloat(contentForm.price || 0) > 0) return 'paid';
-        if (selectedUsers.length > 0 || (contentForm.authorized_users && contentForm.authorized_users.length > 0)) {
+        if (selectedUsers.length > 0 || (contentForm.authorized_users)) {
             return 'restricted';
         }
-        return 'private';
+        return limitedAccessControls ? 'public' : 'Unknown';
     };
 
-    // Handle price changes
     const handlePriceChange = (e) => {
         const price = parseFloat(e.target.value) || 0;
         onUpdateForm('price', price);
     };
 
-    // Handle user selection changes
     const handleUserSelectionChange = (users) => {
         setSelectedUsers(users);
         onUpdateForm('authorized_users', users);
     };
 
-    // Access type configurations for easier maintenance
-    const accessTypeOptions = [
-        { value: 'public',     label: 'Public (Free for everyone)' , important: true},
-        { value: 'private',    label: 'Private (Only for students)', important: true},
-        { value: 'paid',       label: 'Paid Content'               , important: false},
-        { value: 'restricted', label: 'Restricted (Specific users)', important: false}
-    ];
+    const accessTypeOptions = limitedAccessControls 
+        ? [
+            { value: 'public',     label: 'Public (Free for everyone)' },
+            { value: 'paid',       label: 'Paid Content' },
+            { value: 'restricted', label: 'Restricted (Specific users)' },
+          ]
+        : [
+            { value: 'public',  label: 'Public (Free for everyone)' },
+            { value: 'private', label: 'Private (Only for students)' },
+          ];
 
     const accessStatusMessages = {
-        public     : { text: 'Everyone can access this content for free',                     className: 'statusPublic' },
-        private    : { text: 'Only admins can access this content',                         className: 'statusPrivate' },
-        paid       : { text: `Users need to pay Rs. ${(contentForm.price || 0).toFixed(2)} to access`, className: 'statusPaid' },
-        restricted : { text: `${selectedUsers.length} specific user(s) can access this content for free`, className: 'statusRestricted' }
+        public     : { text: 'Everyone can access this content for free',                                              className: 'statusPublic' },
+        private    : { text: 'Only students can access this content',                                                  className: 'statusPrivate' },
+        paid       : { text: `Users need to pay Rs. ${(contentForm.price || 0).toFixed(2)} to access this content`,   className: 'statusPaid' },
+        restricted : { text: `${selectedUsers.length} specific user(s) can access this content for free`,              className: 'statusRestricted' }
     };
 
     const currentAccessType = getAccessType();
-
     return (
         <div className={styles.contentAccessSection}>
-            {/* Title Section */}
             {showTitle && (
                 <ContentTitleSection 
                     contentForm={contentForm} 
@@ -451,34 +444,27 @@ const ContentAccessSection = ({
                 />
             )}
 
-            {/* Access Controls */}
             {showAccessControls && isAdmin && (
                 <>
                     <h4 className={styles.accessSectionTitle}>Content Access Settings</h4>
                     
-                    {/* Access Type Selector */}
                     <div className={styles.accessTypeSelector}>
                         <label className={styles.accessLabel}>
                             <strong>Access Type:</strong>
                             <select 
-                                value={currentAccessType} 
+                                value={currentAccessType || "Unknown"} 
                                 onChange={handleAccessTypeChange}
                                 className={styles.accessSelect}
                             >
-                                {accessTypeOptions.map(option => {
-                                    if (limitedAccessControls){
-                                        if (option.important) {
-                                            return <option key={option.value} value={option.value}>{option.label}</option>
-                                        }
-                                    } else {
-                                        return <option key={option.value} value={option.value}>{option.label}</option>
-                                    }
-                                })}
+                                {accessTypeOptions.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
                             </select>
                         </label>
                     </div>
 
-                    {/* Price Input for Paid Content */}
                     {currentAccessType === 'paid' && (
                         <div className={styles.priceInput}>
                             <label className={styles.priceLabel}>
@@ -499,8 +485,7 @@ const ContentAccessSection = ({
                         </div>
                     )}
 
-                    {/* User Selector for Restricted Access */}
-                    {viewSelectedUsers && entityType && entityId && (
+                    {currentAccessType === 'restricted' && viewSelectedUsers && entityType && entityId && (
                         <div className={styles.restrictedUsersInput}>
                             <label className={styles.usersLabel}>
                                 <strong>Authorized Users:</strong>
@@ -521,13 +506,12 @@ const ContentAccessSection = ({
                         </div>
                     )}
 
-                    {/* Access Status Display */}
                     <div className={styles.accessStatus}>
                         {accessStatusMessages[currentAccessType] && (
                             <span className={styles[accessStatusMessages[currentAccessType].className]}>
-                                {currentAccessType === 'public' && '✅ '}
-                                {currentAccessType === 'private' && '🔒 '}
-                                {currentAccessType === 'paid' && '💰 '}
+                                {currentAccessType === 'public'     && '✅ '}
+                                {currentAccessType === 'private'    && '🔒 '}
+                                {currentAccessType === 'paid'       && '💰 '}
                                 {currentAccessType === 'restricted' && '👥 '}
                                 {accessStatusMessages[currentAccessType].text}
                             </span>
@@ -536,7 +520,6 @@ const ContentAccessSection = ({
                 </>
             )}
 
-            {/* Price Display for Non-Admin Users */}
             {!isAdmin && parseFloat(contentForm.price || 0) > 0 && (
                 <div className={styles.priceDisplay}>
                     <p><strong>Price:</strong> Rs. {parseFloat(contentForm.price).toFixed(2)}</p>
@@ -545,7 +528,6 @@ const ContentAccessSection = ({
         </div>
     );
 };
-
 export default ContentAccessSection;
 
 const EditorHeader = ({ onCancel, title = "Add Content" }) => (
@@ -556,7 +538,6 @@ const EditorHeader = ({ onCancel, title = "Add Content" }) => (
         </button>
     </div>
 );
-
 
 export const ContentEditor = ({
     parentId,
@@ -569,19 +550,19 @@ export const ContentEditor = ({
     onCancel,
     title,
     saveButtonText,
-    showTitle = false,
-    titleRequired = false,
-    showAccessControls = true, 
-    limitedAccessControls = false 
+    showTitle              = false,
+    titleRequired          = false,
+    showAccessControls     = true, 
+    limitedAccessControls  = false 
 }) => {
-    const handleUpdateForm = (field, value) => {
-        if (typeof onUpdateForm === 'function') {
-            onUpdateForm(field, value);
-        } else {
-            // Fallback for object-style updates
-            onUpdateForm({
-                ...contentForm,
-                [field]: value
+    const handleUpdateForm = (fieldOrUpdates, value) => {
+        if (!onUpdateForm) return;
+        
+        if (typeof fieldOrUpdates === 'string') {
+            onUpdateForm(fieldOrUpdates, value);
+        } else if (fieldOrUpdates && typeof fieldOrUpdates === 'object') {
+            Object.entries(fieldOrUpdates).forEach(([key, val]) => {
+                onUpdateForm(key, val);
             });
         }
     };
@@ -598,13 +579,12 @@ export const ContentEditor = ({
 
     const handleSaveText = () => {
         if (!validateForm()) {
-            return; // Form validation will show error messages
+            return;
         }
         onSaveText();
     };
 
     const handleFileSaveWithPermissions = (file, isPublic, authorizedUsers, price) => {
-        // Pass the selected users to the file save handler
         return onFileSave(file, isPublic, authorizedUsers, price);
     };
 
@@ -656,23 +636,39 @@ export const TextOnlyEditor = ({
     onChange,
     onSave,
     onCancel,
-    title = "Edit Content",
-    saveButtonText = "Save Content",
-    showVisibilityToggle = false,
+    title                    = "Edit Content",
+    saveButtonText           = "Save Content",
+    showVisibilityToggle     = false,
     is_public,
     onToggleVisibility,
-    isAdmin = false,
+    isAdmin                  = false,
     contentForm,
     onUpdateForm,
-    showTitle = false,
-    titleRequired = false,
+    showTitle                = false,
+    titleRequired            = false,
     entityType,
     entityId,
-    showAccessControls = true
+    showAccessControls       = true
 }) => {
+    const handleUpdateForm = (fieldOrUpdates, value) => {
+        if (!onUpdateForm) return;
+        
+        if (typeof fieldOrUpdates === 'string') {
+            onUpdateForm({
+                ...contentForm,
+                [fieldOrUpdates]: value
+            });
+        } else if (fieldOrUpdates && typeof fieldOrUpdates === 'object') {
+            onUpdateForm({
+                ...contentForm,
+                ...fieldOrUpdates
+            });
+        }
+    };
+
     const validateAndSave = () => {
         if (titleRequired && contentForm && !contentForm.content_title?.trim()) {
-            return; // Validation error will be shown
+            return;
         }
         onSave();
     };
@@ -684,7 +680,7 @@ export const TextOnlyEditor = ({
             {(showTitle && contentForm && onUpdateForm) && (
                 <ContentAccessSection
                     contentForm={contentForm}
-                    onUpdateForm={onUpdateForm}
+                    onUpdateForm={handleUpdateForm}
                     isAdmin={isAdmin}
                     showTitle={showTitle}
                     titleRequired={titleRequired}
@@ -711,4 +707,3 @@ export const TextOnlyEditor = ({
         </div>
     );
 };
-

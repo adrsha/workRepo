@@ -18,7 +18,7 @@ cp -r .next/static deploy/.next
 rm -rf deploy/node_modules
 
 # Optional: include env/configs
-[ -d public ] && cp -r public deploy/
+# [ -d public ] && cp -r public deploy/
 [ -f .env.local ] && cp .env.local deploy/
 [ -f next.config.mjs ] && cp next.config.mjs deploy/
 [ -f package.json ] && cp package.json deploy/

@@ -42,11 +42,11 @@ const PartnerCard = ({ partner, isAdmin, onEdit, onDelete }) => {
             <div className={styles.partnerContent}>
                 <h3 className={styles.partnerName}>{partner.partner_name}</h3>
                 
-                {partner.partner_category && (
-                    <span className={styles.partnerCategory}>
-                        Category: {partner.partner_category}
-                    </span>
-                )}
+                {/* {partner.partner_category && ( */}
+                {/*     <span className={styles.partnerCategory}> */}
+                {/*         Category: {partner.partner_category} */}
+                {/*     </span> */}
+                {/* )} */}
                 
                 {partner.partner_description && (
                     <p className={styles.partnerDescription}>
